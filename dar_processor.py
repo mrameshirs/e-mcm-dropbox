@@ -96,7 +96,8 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
                 "Authorization": f"Bearer {openrouter_api_key}",
             },
             data=json.dumps({
-                "model": "deepseek/deepseek-r1-0528-qwen3-8b:free", # A powerful free model
+                #"model": "deepseek/deepseek-r1-0528-qwen3-8b:free", # A powerful free model
+                "model":  "deepseek/deepseek-r1:free",
                 "messages": [{"role": "user", "content": prompt}]
             })
         )
