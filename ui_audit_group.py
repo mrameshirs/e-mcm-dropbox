@@ -197,9 +197,14 @@ def upload_dar_tab(dbx, active_periods, api_key):
         if preprocessed_text.startswith("Error"):
             status_area.error(f"❌ Step 2/4 Failed: {preprocessed_text}")
             st.stop()
-        status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with Gemini AI (this may take a moment)...")
+        # status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with Gemini AI (this may take a moment)...")
         
-        parsed_data = get_structured_data_with_gemini(api_key, preprocessed_text)
+        # parsed_data = get_structured_data_with_gemini(api_key, preprocessed_text)
+        # Updated the status message
+        status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with Deepseek (this may take a moment)...")
+        
+        # Updated the function call
+        parsed_data = get_structured_data_from_llm(preprocessed_text)
         if parsed_data.parsing_errors:
             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
         status_area.info("✅ Step 3/4: AI data extraction complete. \n\n▶️ Step 4/4: Formatting data for review...")
