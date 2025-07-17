@@ -13,7 +13,7 @@ from dropbox_utils import (
     update_spreadsheet_from_df,
     upload_file
 )
-from dar_processor import preprocess_pdf_text, get_structured_data_with_gemini
+from dar_processor import preprocess_pdf_text, get_structured_data_with,gemini,get_structured_data_from_llm
 from validation_utils import validate_data_for_sheet, VALID_CATEGORIES, VALID_PARA_STATUSES
 from config import (
     USER_CREDENTIALS,
