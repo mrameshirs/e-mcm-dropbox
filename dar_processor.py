@@ -4,7 +4,7 @@ import google.generativeai as genai
 import json
 from typing import List, Dict, Any
 from models import ParsedDARReport, DARHeaderSchema, AuditParaSchema  # Using your models.py
-
+import requests
 
 def preprocess_pdf_text(pdf_path_or_bytes) -> str:
     """
@@ -36,7 +36,96 @@ def preprocess_pdf_text(pdf_path_or_bytes) -> str:
         print(error_msg)
         return error_msg
 
+def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
+    """
+    Calls the OpenRouter API with the PDF text and parses the response.
+    """
+    if text_content.startswith("Error processing PDF"):
+        return ParsedDARReport(parsing_errors=text_content)
 
+    # --- NEW: OpenRouter Configuration ---
+    openrouter_api_key = st.secrets.get("openrouter_api_key", "")
+    if not openrouter_api_key:
+        error_msg = "OpenRouter API key not found in Streamlit secrets."
+        return ParsedDARReport(parsing_errors=error_msg)
+
+    # The detailed prompt remains the same to guide the new model
+    prompt = f"""
+    You are an expert GST audit report analyst. Based on the following text from a Departmental Audit Report (DAR),
+    extract the specified information and structure it as a JSON object.
+
+    The JSON object should follow this structure precisely:
+    {{
+      "header": {{
+        "audit_group_number": "integer or null (e.g., if 'Group-VI' becomes 6; must be 1-30)",
+        "gstin": "string or null", "trade_name": "string or null", "category": "string ('Large', 'Medium', 'Small') or null",
+        "total_amount_detected_overall_rs": "float or null (in Rupees)",
+        "total_amount_recovered_overall_rs": "float or null (in Rupees)"
+      }},
+      "audit_paras": [
+        {{
+          "audit_para_number": "integer or null (e.g., 'Para-1' becomes 1; must be 1-50)",
+          "audit_para_heading": "string or null (title of the para)",
+          "revenue_involved_lakhs_rs": "float or null (in Lakhs of Rupees, e.g., 50000 becomes 0.5)",
+          "revenue_recovered_lakhs_rs": "float or null (in Lakhs of Rupees)",
+          "status_of_para": "string or null ('Agreed and Paid', 'Agreed yet to pay', 'Partially agreed and paid', 'Partially agreed, yet to pay', 'Not agreed')"
+        }}
+      ],
+      "parsing_errors": "string or null"
+    }}
+
+    Key Instructions:
+    1.  Header Info: Find `audit_group_number`, `gstin`, `trade_name`, `category`, and overall totals in Rupees.
+    2.  Audit Paras: Identify each para. Extract `audit_para_number`, `audit_para_heading`, and `status_of_para`.
+    3.  Convert revenue figures for individual paras to LAKHS of Rupees.
+    4.  If a value is not found, use null. All monetary values must be numbers (float).
+    5.  The 'audit_paras' list should contain one object per para. If none found, provide an empty list [].
+
+    DAR Text Content:
+    --- START OF DAR TEXT ---
+    {text_content}
+    --- END OF DAR TEXT ---
+
+    Provide ONLY the JSON object as your response. Do not include any explanatory text before or after the JSON.
+    """
+
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {openrouter_api_key}",
+            },
+            data=json.dumps({
+                "model": "deepseek/deepseek-coder:33b-instruct", # A powerful free model
+                "messages": [{"role": "user", "content": prompt}]
+            })
+        )
+
+        if response.status_code != 200:
+            error_message = f"API Error from OpenRouter: {response.status_code} - {response.text}"
+            return ParsedDARReport(parsing_errors=error_message)
+
+        response_data = response.json()
+        # Correctly access the content from the response structure
+        content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
+
+        # Clean up markdown code block if present
+        if content_str.strip().startswith("```json"):
+            content_str = content_str.strip()[7:-3]
+
+        if not content_str:
+            return ParsedDARReport(parsing_errors="LLM returned an empty response.")
+
+        # Parse and validate the JSON data using Pydantic models
+        json_data = json.loads(content_str)
+        return ParsedDARReport(**json_data)
+
+    except requests.exceptions.RequestException as e:
+        return ParsedDARReport(parsing_errors=f"Network error calling OpenRouter API: {e}")
+    except json.JSONDecodeError as e:
+        return ParsedDARReport(parsing_errors=f"LLM output was not valid JSON: {e}. Raw response: {content_str[:500]}...")
+    except Exception as e:
+        return ParsedDARReport(parsing_errors=f"An unexpected error occurred: {e}")
 def get_structured_data_with_gemini(api_key: str, text_content: str) -> ParsedDARReport:
     """
     Calls Gemini API with the full PDF text and parses the response.
