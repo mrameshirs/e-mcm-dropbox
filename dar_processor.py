@@ -109,7 +109,7 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
         response_data = response.json()
         # Correctly access the content from the response structure
         content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
-
+        print(content_str)
         # Clean up markdown code block if present
         if content_str.strip().startswith("```json"):
             content_str = content_str.strip()[7:-3]
