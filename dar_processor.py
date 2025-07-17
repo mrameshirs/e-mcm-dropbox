@@ -5,7 +5,7 @@ import json
 from typing import List, Dict, Any
 from models import ParsedDARReport, DARHeaderSchema, AuditParaSchema  # Using your models.py
 import requests
-
+import streamlit as st
 def preprocess_pdf_text(pdf_path_or_bytes) -> str:
     """
     Extracts all text from all pages of the PDF using pdfplumber,
