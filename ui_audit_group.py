@@ -58,7 +58,19 @@ def get_active_mcm_periods(dbx):
     df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
     if df_periods.empty:
         return {}
+    
+    # Ensure 'month_name' and 'year' columns exist before proceeding
+    if 'month_name' not in df_periods.columns or 'year' not in df_periods.columns:
+        st.error("The 'mcm_periods_info.xlsx' file is missing 'month_name' or 'year' columns.")
+        return {}
+
     df_periods['key'] = df_periods['month_name'].astype(str) + "_" + df_periods['year'].astype(str)
+    
+    # --- FIX ---
+    # NEW: Drop duplicate periods, keeping the last one.
+    df_periods.drop_duplicates(subset=['key'], keep='last', inplace=True)
+    # --- END FIX ---
+    
     all_periods = df_periods.set_index('key').to_dict('index')
     active_periods = {k: v for k, v in all_periods.items() if v.get("active")}
     return active_periods
@@ -167,9 +179,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
         st.session_state.ag_pdf_dropbox_path = None; st.session_state.ag_validation_errors = []
         st.rerun()
 
-    # MODIFIED: Changed the button text to be more accurate
     if st.session_state.ag_current_uploaded_file_obj and st.button("Extract Data", use_container_width=True):
-        # NEW: Create an empty area for status updates
         status_area = st.empty()
         
         pdf_bytes = st.session_state.ag_current_uploaded_file_obj.getvalue()
@@ -215,7 +225,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
         st.session_state.ag_editor_data = df_extracted[DISPLAY_COLUMN_ORDER_EDITOR]
         
         status_area.success("✅ Step 4/4: Formatting complete. Data is ready for review below.")
-        time.sleep(2) # Give user time to read the final message
+        time.sleep(2)
         st.rerun()
 
     if not st.session_state.ag_editor_data.empty:
@@ -236,7 +246,6 @@ def upload_dar_tab(dbx, active_periods, api_key):
                                    use_container_width=True, hide_index=True, height=min(len(st.session_state.ag_editor_data) * 45 + 70, 450))
 
         if st.button("Submit to MCM Sheet", use_container_width=True):
-            # NEW: Create a status area for submission process
             submit_status_area = st.empty()
             submit_status_area.info("▶️ Step 1/4: Cleaning and validating data...")
             
@@ -247,7 +256,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             
             validation_errors = validate_data_for_sheet(df_to_submit)
             if validation_errors:
-                submit_status_area.empty() # Clear the info message
+                submit_status_area.empty()
                 st.error("Validation Failed! Please correct the following errors:")
                 for err in validation_errors: st.warning(f"- {err}")
                 return
@@ -280,9 +289,6 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 st.session_state.ag_uploader_key_suffix += 1; st.rerun()
             else:
                 submit_status_area.error("❌ Step 4/4 Failed: Could not save the updated data to Dropbox.")
-
-# Note: The `view_uploads_tab` and `delete_entries_tab` functions remain the same as the previous correct version.
-# They are included here for completeness of the file.
 
 def view_uploads_tab(dbx, all_periods):
     """Renders the 'View My Uploaded DARs' tab."""
