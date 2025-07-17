@@ -1,4 +1,4 @@
-# config.py
+# # config.py
 import streamlit as st
 
 # --- Dropbox Configuration ---
@@ -9,6 +9,7 @@ DROPBOX_API_TOKEN = st.secrets.get("dropbox_api_token", "")
 # --- Centralized Folders and Files ---
 DROPBOX_ROOT_PATH = "/e-MCM_App"
 DAR_PDFS_PATH = f"{DROPBOX_ROOT_PATH}/DAR_PDFs"
+OFFICE_ORDERS_PATH = f"{DROPBOX_ROOT_PATH}/Office_Orders" # Path for allocation/reallocation orders
 MCM_DATA_PATH = f"{DROPBOX_ROOT_PATH}/mcm_dar_data.xlsx"
 LOG_SHEET_PATH = f"{DROPBOX_ROOT_PATH}/log_sheet.xlsx"
 SMART_AUDIT_DATA_PATH = f"{DROPBOX_ROOT_PATH}/smart_audit_data.xlsx"
