@@ -1,11 +1,13 @@
 # app.py
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 
 # --- Custom Module Imports ---
 from config import (
     DROPBOX_ROOT_PATH, DAR_PDFS_PATH, MCM_DATA_PATH,
-    LOG_SHEET_PATH, SMART_AUDIT_DATA_PATH, MCM_PERIODS_INFO_PATH
+    LOG_SHEET_PATH, SMART_AUDIT_DATA_PATH, MCM_PERIODS_INFO_PATH,
+    OFFICE_ORDERS_PATH
 )
 from css_styles import load_custom_css
 from dropbox_utils import get_dropbox_client, create_folder, upload_file
@@ -49,14 +51,21 @@ else:
         if not st.session_state.dropbox_initialized:
             with st.spinner("Initializing Dropbox structure..."):
                 dbx = st.session_state.dbx
-                create_folder(dbx, DROPBOX_ROOT_PATH)
-                create_folder(dbx, DAR_PDFS_PATH)
-                # Initialize centralized files if they don't exist
+                # Create all necessary folders
+                for folder_path in [DROPBOX_ROOT_PATH, DAR_PDFS_PATH, OFFICE_ORDERS_PATH]:
+                    create_folder(dbx, folder_path)
+                
+                # Initialize centralized Excel files if they don't exist
                 for path in [MCM_DATA_PATH, LOG_SHEET_PATH, SMART_AUDIT_DATA_PATH, MCM_PERIODS_INFO_PATH]:
                     try:
                         dbx.files_get_metadata(path)
                     except Exception:
-                        upload_file(dbx, pd.DataFrame().to_excel(index=False).encode(), path)
+                        # This is the corrected part
+                        output = BytesIO()
+                        pd.DataFrame().to_excel(output, index=False, engine='xlsxwriter')
+                        file_content = output.getvalue()
+                        upload_file(dbx, file_content, path)
+
                 st.session_state.dropbox_initialized = True
                 st.rerun()
 
