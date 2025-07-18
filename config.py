@@ -4,8 +4,9 @@ import streamlit as st
 # --- Dropbox Configuration ---
 DROPBOX_APP_KEY = st.secrets.get("dropbox_app_key", "")
 DROPBOX_APP_SECRET = st.secrets.get("dropbox_app_secret", "")
-DROPBOX_API_TOKEN = st.secrets.get("dropbox_api_token", "")
-
+#DROPBOX_API_TOKEN = st.secrets.get("dropbox_api_token", "")
+# NEW: Use the refresh token
+DROPBOX_REFRESH_TOKEN = st.secrets.get("dropbox_refresh_token", "")
 # --- Centralized Folders and Files ---
 DROPBOX_ROOT_PATH = "/e-MCM_App"
 DAR_PDFS_PATH = f"{DROPBOX_ROOT_PATH}/DAR_PDFs"
