@@ -13,7 +13,7 @@ from dropbox_utils import (
     read_from_spreadsheet,
     update_spreadsheet_from_df,
     upload_file,
-    get_shareable_link # Restored functionality
+    get_shareable_link 
 )
 from dar_processor import preprocess_pdf_text, get_structured_data_with_gemini, get_structured_data_from_llm
 from validation_utils import validate_data_for_sheet, VALID_CATEGORIES, VALID_PARA_STATUSES
@@ -198,7 +198,6 @@ def upload_dar_tab(dbx, active_periods, api_key):
         
         status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with AI (this may take a moment)...")
         
-        # Use a preferred model, e.g., Deepseek via the generic LLM function
         parsed_data = get_structured_data_from_llm(preprocessed_text)
         if parsed_data.parsing_errors:
             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
@@ -291,7 +290,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 submit_status_area.error("❌ Step 4/4 Failed: Could not save the updated data to Dropbox.")
 
 def view_uploads_tab(dbx, active_periods):
-    """Renders the 'View My Uploaded DARs' tab with restored functionality."""
+    """Renders the 'View My Uploaded DARs' tab with a colorful, modern table."""
     st.markdown("<h3>My Uploaded DARs</h3>", unsafe_allow_html=True)
     if not active_periods:
         st.info("No active MCM periods exist to view reports from.")
@@ -322,23 +321,61 @@ def view_uploads_tab(dbx, active_periods):
         
         st.markdown(f"<h4>Your Uploads for {selected_period}:</h4>", unsafe_allow_html=True)
         
-        # --- FIX: Generate clickable links ---
         @st.cache_data(ttl=600)
-        def get_link(path):
-            return get_shareable_link(dbx, path)
+        def get_link(_dbx, path):
+            return get_shareable_link(_dbx, path)
 
         if 'dar_pdf_path' in my_uploads.columns:
             my_uploads['View PDF'] = my_uploads['dar_pdf_path'].apply(
-                lambda path: f'<a href="{get_link(path)}" target="_blank">📄 View</a>' if pd.notna(path) else "No Link"
+                lambda path: f'<a href="{get_link(dbx, path)}" target="_blank" style="text-decoration:none; color:#1E88E5; font-weight:bold;">📄 View PDF</a>' if pd.notna(path) else "No Link"
             )
 
         display_cols = ["gstin", "trade_name", "audit_para_number", "audit_para_heading", "status_of_para",
                         "revenue_involved_lakhs_rs", "revenue_recovered_lakhs_rs", "record_created_date", "View PDF"]
         
         cols_to_show = [col for col in display_cols if col in my_uploads.columns]
+        
+        # --- NEW: Inject CSS for a colorful table ---
+        table_css = """
+        <style>
+            .view-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 25px 0;
+                font-size: 0.9em;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .view-table thead tr {
+                background-color: #007bff;
+                color: #ffffff;
+                text-align: left;
+                font-weight: bold;
+            }
+            .view-table th, .view-table td {
+                padding: 12px 15px;
+                text-align: left;
+            }
+            .view-table tbody tr {
+                border-bottom: 1px solid #dddddd;
+            }
+            .view-table tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+            .view-table tbody tr:last-of-type {
+                border-bottom: 2px solid #007bff;
+            }
+            .view-table tbody tr:hover {
+                background-color: #e0eaff;
+                cursor: pointer;
+            }
+        </style>
+        """
+        table_html = my_uploads[cols_to_show].to_html(escape=False, index=False, classes='view-table', border=0)
+        st.markdown(table_css + table_html, unsafe_allow_html=True)
 
-        # Use st.markdown to render HTML links
-        st.markdown(my_uploads[cols_to_show].to_html(escape=False, index=False), unsafe_allow_html=True)
 
 def delete_entries_tab(dbx, active_periods):
     """Renders the 'Delete My DAR Entries' tab with fixed logic."""
@@ -364,7 +401,6 @@ def delete_entries_tab(dbx, active_periods):
         st.info("Master data file is empty. Nothing to delete.")
         return
     
-    # --- FIX: Store original index before filtering ---
     master_df['original_index'] = master_df.index
     master_df['audit_group_number'] = pd.to_numeric(master_df['audit_group_number'], errors='coerce')
     my_entries = master_df[(master_df['audit_group_number'] == st.session_state.audit_group_no) & (master_df['mcm_period'] == selected_period)].copy()
@@ -373,20 +409,17 @@ def delete_entries_tab(dbx, active_periods):
         st.info(f"You have no entries in {selected_period} to delete.")
         return
 
-    # --- FIX: Create a robust map from a unique label to the original_index ---
     my_entries['delete_label'] = (
         "TN: " + my_entries['trade_name'].astype(str).str.slice(0, 25) + "... | " +
         "Para: " + my_entries['audit_para_number'].astype(str) + " | " +
         "Date: " + my_entries['record_created_date'].astype(str)
     )
-    # The map now correctly links the display label to the original DataFrame index
     deletable_map = my_entries.set_index('delete_label')['original_index'].to_dict()
 
     options = ["--Select an entry--"] + list(deletable_map.keys())
     selected_label = st.selectbox("Select Entry to Delete:", options=options)
 
     if selected_label != "--Select an entry--":
-        # --- FIX: Use the map to get the correct index ---
         index_to_delete = deletable_map.get(selected_label)
         
         if index_to_delete is not None:
@@ -406,8 +439,7 @@ def delete_entries_tab(dbx, active_periods):
                             else:
                                 st.error("Failed to update the data file on Dropbox.")
                     else:
-                        st.error("Incorrect password.")# # ui_audit_group.py
-# import streamlit as st
+                        st.error("Incorrect password.")
 # import pandas as pd
 # import datetime
 # import math
