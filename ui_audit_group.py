@@ -257,7 +257,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 st.session_state.ag_pdf_dropbox_path = None; st.session_state.ag_validation_errors = []
                 st.session_state.ag_uploader_key_suffix += 1; st.rerun()
             else:
-                submit_status_area.error("❌ Step 4/4 Failed: Could not save updated data to Dropbox.")
+                st.error("❌ Step 4/4 Failed: Could not save updated data to Dropbox.")
 
 def view_uploads_tab(dbx):
     """Renders the 'View My Uploaded DARs' tab using Streamlit's native st.dataframe."""
@@ -313,8 +313,8 @@ def view_uploads_tab(dbx):
                 "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d"),
                 "audit_para_heading": st.column_config.TextColumn("Para Heading", width="xlarge"),
                 "status_of_para": st.column_config.TextColumn("Status"),
-                "revenue_involved_lakhs_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="₹ {:,.2f}"),
-                "revenue_recovered_lakhs_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="₹ {:,.2f}"),
+                "revenue_involved_lakhs_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="%.2f"),
+                "revenue_recovered_lakhs_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="%.2f"),
                 "record_created_date": st.column_config.DatetimeColumn("Created Date", format="YYYY-MM-DD HH:mm:ss"),
                 "pdf_url": st.column_config.LinkColumn(
                     "View PDF",
