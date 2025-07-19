@@ -5,7 +5,11 @@ from dropbox.exceptions import AuthError, ApiError
 from io import BytesIO
 import pandas as pd
 # Import the new config variable
-from config import DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN
+# Import config variables, including LOG_FILE_PATH
+from config import (
+    DROPBOX_APP_KEY, DROPBOX_APP_SECRET, DROPBOX_REFRESH_TOKEN, LOG_FILE_PATH
+)
+
 def log_activity(dbx, username, role):
     """
     Appends a new login activity record to the log file in Dropbox.
