@@ -2,29 +2,36 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-
 from dropbox_utils import read_from_spreadsheet
-from config import LOG_SHEET_PATH
+from config import LOG_FILE_PATH
 
-# These are the expected column names in the log sheet.
+# Expected column names in the log sheet.
 LOG_SHEET_COLUMNS = ['Timestamp', 'Username', 'Role']
 
 @st.cache_data(ttl=300)
 def get_log_data(_dbx):
     """
-    Reads and caches data from the log spreadsheet on Dropbox.
+    Reads and caches data from the log spreadsheet in Dropbox.
     The _dbx argument is prefixed with an underscore to indicate it's
-    used for caching purposes and shouldn't be hashed by Streamlit's caching mechanism.
+    used for caching purposes and shouldn't be hashed.
     """
-    df = read_from_spreadsheet(_dbx, LOG_SHEET_PATH)
+    if not _dbx:
+        return pd.DataFrame(columns=LOG_SHEET_COLUMNS)
     
-    if df.empty or not all(col in df.columns for col in LOG_SHEET_COLUMNS):
+    # Read the log file directly from the defined path in Dropbox
+    df = read_from_spreadsheet(_dbx, LOG_FILE_PATH)
+    
+    # Return an empty DataFrame with correct columns if the sheet is empty or has a different structure
+    if df.empty or list(df.columns) != LOG_SHEET_COLUMNS:
          return pd.DataFrame(columns=LOG_SHEET_COLUMNS)
          
     return df
 
 def generate_login_report(df_logs, days):
-    """Processes the log DataFrame to generate the login activity report."""
+    """
+    Processes the log DataFrame to generate the login activity report.
+    (This function requires no changes as it is platform-agnostic)
+    """
     if df_logs.empty:
         return pd.DataFrame()
 
