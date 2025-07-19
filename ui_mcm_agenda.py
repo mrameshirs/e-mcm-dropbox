@@ -18,7 +18,7 @@ from PyPDF2 import PdfWriter, PdfReader
 from dropbox_utils import read_from_spreadsheet, download_file, update_spreadsheet_from_df
 from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
 
-# --- Helper Functions ---
+# --- Helper Functions (Identical to your original file) ---
 
 def format_inr(n):
     """Formats a number into the Indian numbering system."""
@@ -85,9 +85,7 @@ def create_high_value_paras_pdf(buffer, df_high_value_paras):
     styles = getSampleStyleSheet()
     story = [Paragraph("<b>High-Value Audit Paras (> ₹5 Lakhs Detection)</b>", styles['h1']), Spacer(1, 0.2*inch)]
     
-    table_data = [[Paragraph("<b>Audit Group</b>", styles['Normal']), Paragraph("<b>Para No.</b>", styles['Normal']),
-                   Paragraph("<b>Para Title</b>", styles['Normal']), Paragraph("<b>Detected (₹)</b>", styles['Normal']),
-                   Paragraph("<b>Recovered (₹)</b>", styles['Normal'])]]
+    table_data = [[Paragraph(f"<b>{col}</b>", styles['Normal']) for col in ["Audit Group", "Para No.", "Para Title", "Detected (₹)", "Recovered (₹)"]]]
     
     for _, row in df_high_value_paras.iterrows():
         detected_val = row.get('revenue_involved_lakhs_rs', 0) * 100000
@@ -112,9 +110,8 @@ def create_high_value_paras_pdf(buffer, df_high_value_paras):
     return buffer
 
 # --- Main Tab Function ---
-
 def mcm_agenda_tab(dbx):
-    st.markdown("<h3>MCM Agenda Preparation</h3>", unsafe_allow_html=True)
+    st.markdown("### MCM Agenda Preparation")
     
     df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
     if df_periods.empty:
@@ -132,7 +129,7 @@ def mcm_agenda_tab(dbx):
     if 'mcm_agenda_df' not in st.session_state or st.session_state.get('mcm_agenda_period') != selected_period:
         with st.spinner(f"Loading data for {month_year_str}..."):
             df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-            df_all_data.reset_index(inplace=True) # Preserve original index for updating
+            df_all_data.reset_index(inplace=True) 
             df_period = df_all_data[df_all_data['mcm_period'] == selected_period].copy()
             st.session_state.mcm_agenda_df = df_period
             st.session_state.mcm_agenda_period = selected_period
@@ -142,7 +139,6 @@ def mcm_agenda_tab(dbx):
     if df_period_data.empty:
         st.info(f"No data found for {month_year_str}."); return
 
-    # --- UI Loop for Circles, Groups, and Paras ---
     for circle_num in sorted(df_period_data['audit_circle_number'].dropna().unique()):
         with st.expander(f"Audit Circle {int(circle_num)}"):
             df_circle = df_period_data[df_period_data['audit_circle_number'] == circle_num]
@@ -160,44 +156,68 @@ def mcm_agenda_tab(dbx):
                             st.session_state[f"show_{trade_name}_{group_num}"] = not st.session_state.get(f"show_{trade_name}_{group_num}", False)
                         
                         if pd.notna(pdf_path):
-                            # Construct a direct download link if possible, or a link to the file page
-                            c2.link_button("View DAR PDF", f"https://www.dropbox.com/home{pdf_path}", use_container_width=True)
+                            c2.link_button("View DAR PDF", f"https://www.dropbox.com/home{pdf_path.replace(' ', '%20')}", use_container_width=True)
 
                         if st.session_state.get(f"show_{trade_name}_{group_num}", False):
                             with st.container(border=True):
                                 gstin = df_trade['gstin'].iloc[0]; category = df_trade['category'].iloc[0]
+                                cat_color_map = {"Large": ("#f8d7da", "#721c24"), "Medium": ("#ffeeba", "#856404"), "Small": ("#d4edda", "#155724")}
+                                cat_bg, cat_text = cat_color_map.get(category, ("#e2e3e5", "#383d41"))
+
                                 info_cols = st.columns(2)
-                                info_cols[0].metric("GSTIN", gstin); info_cols[1].metric("Category", category)
+                                info_cols[0].markdown(f"""<div style="background-color:{cat_bg};color:{cat_text};padding:4px 8px;border-radius:5px;text-align:center;"><b>Category:</b> {html.escape(str(category))}</div>""", unsafe_allow_html=True)
+                                info_cols[1].markdown(f"""<div style="background-color:#e9ecef;color:#495057;padding:4px 8px;border-radius:5px;text-align:center;"><b>GSTIN:</b> {html.escape(str(gstin))}</div>""", unsafe_allow_html=True)
+
+                                st.markdown(f"<h5 style='margin-top:20px;'>Gist of Audit Paras & MCM Decisions</h5>", unsafe_allow_html=True)
                                 
-                                st.markdown("##### Audit Paras & MCM Decisions")
-                                for index, row in df_trade.iterrows():
-                                    para_num = int(row["audit_para_number"]) if pd.notna(row["audit_para_number"]) else "N/A"
-                                    st.markdown(f"**Para {para_num}:** {row.get('audit_para_heading', 'N/A')}")
-                                    
-                                    p_cols = st.columns(4)
-                                    p_cols[0].metric("Detection (₹)", format_inr(row.get('revenue_involved_lakhs_rs', 0) * 100000))
-                                    p_cols[1].metric("Recovery (₹)", format_inr(row.get('revenue_recovered_lakhs_rs', 0) * 100000))
-                                    p_cols[2].metric("Status", row.get('status_of_para', 'N/A'))
-                                    
-                                    options = ['Select a decision', 'Para closed since recovered', 'Para deferred', 'Para to be pursued else issue SCN']
-                                    current = row.get('mcm_decision'); 
-                                    current = current if pd.notna(current) and current in options else options[0]
-                                    sel_decision = p_cols[3].selectbox("MCM Decision", options=options, index=options.index(current), key=f"dec_{index}")
-                                    
-                                    if sel_decision != current:
-                                        st.session_state.mcm_agenda_df.loc[st.session_state.mcm_agenda_df['index'] == index, 'mcm_decision'] = sel_decision
-                                        st.rerun()
+                                # --- RESTORED: Custom CSS grid layout ---
+                                st.markdown("""<style>.grid-header{font-weight:bold;background-color:#343a40;color:white;padding:10px 5px;border-radius:5px;text-align:center;}.cell-style{padding:8px 5px;margin:1px;border-radius:5px;}.title-cell{text-align:left;padding-left:10px;background-color:#f0f2f6;}.revenue-cell{font-weight:bold;text-align:right!important;background-color:#e8f5e9;}.status-cell{font-weight:bold;text-align:center;background-color:#e3f2fd;}.total-row{font-weight:bold;padding-top:10px;}</style>""", unsafe_allow_html=True)
+                                col_props = (0.9, 5, 1.5, 1.5, 1.8, 2.5)
+                                headers = ['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']
+                                header_cols = st.columns(col_props)
+                                for col, h in zip(header_cols, headers):
+                                    col.markdown(f"<div class='grid-header'>{h}</div>", unsafe_allow_html=True)
+
+                                total_det, total_rec = 0, 0
+                                for original_index, row in df_trade.iterrows():
+                                    with st.container():
+                                        para_num = int(row["audit_para_number"]) if pd.notna(row["audit_para_number"]) else "N/A"
+                                        det_rs = row.get('revenue_involved_lakhs_rs', 0) * 100000; total_det += det_rs
+                                        rec_rs = row.get('revenue_recovered_lakhs_rs', 0) * 100000; total_rec += rec_rs
+                                        
+                                        row_cols = st.columns(col_props)
+                                        row_cols[0].markdown(f"<div class='cell-style'>{para_num}</div>", unsafe_allow_html=True)
+                                        row_cols[1].markdown(f"<div class='cell-style title-cell'>{html.escape(str(row.get('audit_para_heading')))}</div>", unsafe_allow_html=True)
+                                        row_cols[2].markdown(f"<div class='cell-style revenue-cell'>{format_inr(det_rs)}</div>", unsafe_allow_html=True)
+                                        row_cols[3].markdown(f"<div class='cell-style revenue-cell'>{format_inr(rec_rs)}</div>", unsafe_allow_html=True)
+                                        row_cols[4].markdown(f"<div class='cell-style status-cell'>{html.escape(str(row.get('status_of_para')))}</div>", unsafe_allow_html=True)
+
+                                        options = ['Select a decision', 'Para closed since recovered', 'Para deferred', 'Para to be pursued else issue SCN']
+                                        current = row.get('mcm_decision'); current = current if pd.notna(current) and current in options else options[0]
+                                        sel_decision = row_cols[5].selectbox("Decision", options=options, index=options.index(current), key=f"dec_{row['index']}", label_visibility="collapsed")
+                                        
+                                        if sel_decision != current:
+                                            st.session_state.mcm_agenda_df.loc[st.session_state.mcm_agenda_df['index'] == row['index'], 'mcm_decision'] = sel_decision
+                                            st.rerun()
+                                
                                 st.markdown("---")
-    
+                                total_cols = st.columns(col_props)
+                                total_cols[1].markdown("<div class='total-row' style='text-align:right;'>Total of Paras</div>", unsafe_allow_html=True)
+                                total_cols[2].markdown(f"<div class='total-row revenue-cell cell-style'>{format_inr(total_det)}</div>", unsafe_allow_html=True)
+                                total_cols[3].markdown(f"<div class='total-row revenue-cell cell-style'>{format_inr(total_rec)}</div>", unsafe_allow_html=True)
+                                st.markdown("<br>", unsafe_allow_html=True)
+                                
+                                detection_style = "background-color: #f8d7da; color: #721c24; font-weight: bold; padding: 10px; border-radius: 5px; font-size: 1.1em;"
+                                recovery_style = "background-color: #d4edda; color: #155724; font-weight: bold; padding: 10px; border-radius: 5px; font-size: 1.1em;"
+                                st.markdown(f"<p style='{detection_style}'>Total Overall Detection for {html.escape(trade_name)}: ₹ {format_inr(df_trade['total_amount_detected_overall_rs'].iloc[0])}</p>", unsafe_allow_html=True)
+                                st.markdown(f"<p style='{recovery_style}'>Total Overall Recovery for {html.escape(trade_name)}: ₹ {format_inr(df_trade['total_amount_recovered_overall_rs'].iloc[0])}</p>", unsafe_allow_html=True)
+
     if st.button("Save All Decisions", type="primary"):
         with st.spinner("Saving decisions..."):
             df_master = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-            if 'mcm_decision' not in df_master.columns:
-                df_master['mcm_decision'] = ""
-            
+            if 'mcm_decision' not in df_master.columns: df_master['mcm_decision'] = ""
             update_data = st.session_state.mcm_agenda_df.set_index('index')[['mcm_decision']]
             df_master.update(update_data)
-            
             if update_spreadsheet_from_df(dbx, df_master, MCM_DATA_PATH):
                 st.success("Decisions saved!")
             else:
@@ -208,25 +228,21 @@ def mcm_agenda_tab(dbx):
         with st.spinner("Compiling PDF Agenda..."):
             final_merger = PdfWriter()
             
-            # 1. Cover Page
             cover_buf = BytesIO(); create_cover_page_pdf(cover_buf, f"MCM Agenda: {month_year_str}", "Audit-I Commissionerate"); final_merger.append(PdfReader(cover_buf))
             
-            # 2. High-Value Paras Page
             df_hv = df_period_data[df_period_data['revenue_involved_lakhs_rs'] * 100000 > 500000]
             if not df_hv.empty:
                 hv_buf = BytesIO(); create_high_value_paras_pdf(hv_buf, df_hv); final_merger.append(PdfReader(hv_buf))
 
-            # 3. Prepare for Index and Merging
             df_pdf = df_period_data.dropna(subset=['dar_pdf_path', 'trade_name', 'audit_circle_number']).drop_duplicates(subset=['dar_pdf_path']).sort_values(by=['audit_circle_number', 'trade_name'])
+            index_data, readers, current_page = [], {}, len(final_merger.pages) + 2
             
-            index_data, readers = [], {}; current_page = len(final_merger.pages) + 1
             prog_bar = st.progress(0, text="Downloading DAR PDFs...")
             for i, (_, row) in enumerate(df_pdf.iterrows()):
                 content = download_file(dbx, row['dar_pdf_path'])
                 if content: readers[row['dar_pdf_path']] = PdfReader(BytesIO(content))
-                prog_bar.progress((i + 1) / len(df_pdf), text=f"Downloading DARs... ({i+1}/{len(df_pdf)})")
+                prog_bar.progress((i + 1) / len(df_pdf), text=f"Downloading... ({i+1}/{len(df_pdf)})")
 
-            # 4. Create Index Page
             for _, row in df_pdf.iterrows():
                 reader = readers.get(row['dar_pdf_path'])
                 pages = len(reader.pages) if reader else 0
@@ -235,25 +251,17 @@ def mcm_agenda_tab(dbx):
             
             index_buf = BytesIO(); create_index_page_pdf(index_buf, index_data); final_merger.append(PdfReader(index_buf))
             
-            # 5. Merge DARs
             prog_bar.progress(0, text="Merging PDFs...")
             for i, (_, row) in enumerate(df_pdf.iterrows()):
                 if readers.get(row['dar_pdf_path']): final_merger.append(readers[row['dar_pdf_path']])
-                prog_bar.progress((i + 1) / len(df_pdf), text=f"Merging PDFs... ({i+1}/{len(df_pdf)})")
+                prog_bar.progress((i + 1) / len(df_pdf), text=f"Merging... ({i+1}/{len(df_pdf)})")
 
-            # 6. Finalize and Download
             output_pdf_bytes = BytesIO()
             final_merger.write(output_pdf_bytes)
             output_pdf_bytes.seek(0)
-
             prog_bar.empty()
             st.success("PDF Compilation Complete!")
-            st.download_button(
-                "⬇️ Download Compiled PDF Agenda",
-                data=output_pdf_bytes,
-                file_name=f"MCM_Agenda_{month_year_str.replace(' ', '_')}.pdf",
-                mime="application/pdf"
-            )
+            st.download_button("⬇️ Download Compiled PDF Agenda", data=output_pdf_bytes, file_name=f"MCM_Agenda_{month_year_str.replace(' ', '_')}.pdf", mime="application/pdf")
 # # ui_mcm_agenda.py
 # import streamlit as st
 # import pandas as pd
