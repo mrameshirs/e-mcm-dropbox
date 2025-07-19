@@ -304,7 +304,152 @@ def pco_dashboard(dbx):
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
-
+    # ========================== VISUALIZATIONS TAB ==========================
+    elif selected_tab == "Visualizations":
+        st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
+        
+        # --- 1. Load Prerequisite Data ---
+        df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+        if df_periods is None or df_periods.empty:
+            st.info("No MCM periods exist to visualize.")
+            return
+            
+        period_options = df_periods.apply(lambda row: f"{row['month_name']} {row['year']}", axis=1).tolist()
+        selected_period = st.selectbox("Select MCM Period for Visualization", options=period_options, key="pco_viz_selectbox_final_v4")
+    
+        if not selected_period:
+            return
+    
+        # --- 2. Load and Filter Core Visualization Data ---
+        with st.spinner("Loading data for visualizations..."):
+            df_viz_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+            if df_viz_data is None or df_viz_data.empty:
+                st.info("No data available to visualize.")
+                return
+            df_viz_data = df_viz_data[df_viz_data['mcm_period'] == selected_period].copy()
+    
+        if df_viz_data.empty:
+            st.info(f"No data to visualize for {selected_period}.")
+            return
+    
+        # --- 3. Data Cleaning and Preparation ---
+        # Convert all relevant amount columns to numeric, filling errors with 0
+        amount_cols = [
+            'total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs',
+            'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'
+        ]
+        for col in amount_cols:
+            if col in df_viz_data.columns:
+                df_viz_data[col] = pd.to_numeric(df_viz_data[col], errors='coerce').fillna(0)
+    
+        # Calculate amounts in Lakhs for visualizations
+        df_viz_data['Detection in Lakhs'] = df_viz_data.get('total_amount_detected_overall_rs', 0) / 100000.0
+        df_viz_data['Recovery in Lakhs'] = df_viz_data.get('total_amount_recovered_overall_rs', 0) / 100000.0
+        
+        # Clean and prepare categorical and identifier columns
+        df_viz_data['audit_group_number'] = pd.to_numeric(df_viz_data.get('audit_group_number'), errors='coerce').fillna(0).astype(int)
+        df_viz_data['audit_circle_number'] = pd.to_numeric(df_viz_data.get('audit_circle_number'), errors='coerce').fillna(0).astype(int)
+        df_viz_data['audit_group_number_str'] = df_viz_data['audit_group_number'].astype(str)
+        df_viz_data['circle_number_str'] = df_viz_data['audit_circle_number'].astype(str)
+        
+        df_viz_data['category'] = df_viz_data.get('category', 'Unknown').fillna('Unknown')
+        df_viz_data['trade_name'] = df_viz_data.get('trade_name', 'Unknown Trade Name').fillna('Unknown Trade Name')
+        df_viz_data['status_of_para'] = df_viz_data.get('status_of_para', 'Unknown').fillna('Unknown')
+    
+        # Create a de-duplicated dataframe for report-level aggregations
+        if 'dar_pdf_path' in df_viz_data.columns and df_viz_data['dar_pdf_path'].notna().any():
+            df_unique_reports = df_viz_data.drop_duplicates(subset=['dar_pdf_path']).copy()
+        else:
+            st.warning("⚠️ 'dar_pdf_path' column not found. Report-level sums might be inflated.", icon=" ")
+            df_unique_reports = df_viz_data.copy()
+    
+        # --- 4. Monthly Performance Summary Metrics ---
+        st.markdown("#### Monthly Performance Summary")
+        num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
+        col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
+        col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
+    
+        # --- 5. Group & Circle Performance Bar Charts ---
+        st.markdown("---")
+        st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
+        
+        # Define a helper function for consistent styling
+        def style_chart(fig, title_text, y_title, x_title):
+            fig.update_layout(
+                title_text=f"<b>{title_text}</b>",
+                title_x=0.5,
+                yaxis_title=f"<b>{y_title}</b>",
+                xaxis_title=f"<b>{x_title}</b>",
+                font=dict(family="sans-serif", color="#333"),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                xaxis_type='category',
+                yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
+                xaxis=dict(showgrid=False)
+            )
+            fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
+            return fig
+    
+        tab1, tab2 = st.tabs(["Detection Performance", "Recovery Performance"])
+    
+        with tab1:
+            # Group Detection Chart
+            group_detection = df_unique_reports.groupby('audit_group_number_str')['Detection in Lakhs'].sum().nlargest(10).reset_index()
+            if not group_detection.empty:
+                fig_det_grp = px.bar(group_detection, x='audit_group_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Vivid)
+                fig_det_grp = style_chart(fig_det_grp, "Top 10 Groups by Detection", "Amount (₹ Lakhs)", "Audit Group")
+                st.plotly_chart(fig_det_grp, use_container_width=True)
+    
+            # Circle Detection Chart
+            circle_detection = df_unique_reports.groupby('circle_number_str')['Detection in Lakhs'].sum().sort_values(ascending=False).reset_index()
+            circle_detection = circle_detection[circle_detection['circle_number_str'] != '0']
+            if not circle_detection.empty:
+                fig_det_circle = px.bar(circle_detection, x='circle_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Pastel1)
+                fig_det_circle = style_chart(fig_det_circle, "Circle-wise Detection", "Amount (₹ Lakhs)", "Audit Circle")
+                st.plotly_chart(fig_det_circle, use_container_width=True)
+    
+        with tab2:
+            # Group Recovery Chart
+            group_recovery = df_unique_reports.groupby('audit_group_number_str')['Recovery in Lakhs'].sum().nlargest(10).reset_index()
+            if not group_recovery.empty:
+                fig_rec_grp = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Set2)
+                fig_rec_grp = style_chart(fig_rec_grp, "Top 10 Groups by Recovery", "Amount (₹ Lakhs)", "Audit Group")
+                st.plotly_chart(fig_rec_grp, use_container_width=True)
+    
+            # Circle Recovery Chart
+            circle_recovery = df_unique_reports.groupby('circle_number_str')['Recovery in Lakhs'].sum().sort_values(ascending=False).reset_index()
+            circle_recovery = circle_recovery[circle_recovery['circle_number_str'] != '0']
+            if not circle_recovery.empty:
+                fig_rec_circle = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.G10)
+                fig_rec_circle = style_chart(fig_rec_circle, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
+                st.plotly_chart(fig_rec_circle, use_container_width=True)
+    
+        # --- 6. Treemaps by Trade Name ---
+        st.markdown("---")
+        st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
+        
+        df_treemap = df_unique_reports.dropna(subset=['category', 'trade_name']).copy()
+        color_map = {'Large': '#d62728', 'Medium': '#ff7f0e', 'Small': '#2ca02c', 'Unknown': '#7f7f7f'}
+    
+        # Detection Treemap
+        df_det_treemap = df_treemap[df_treemap['Detection in Lakhs'] > 0]
+        if not df_det_treemap.empty:
+            try:
+                fig_tree_det = px.treemap(
+                    df_det_treemap, path=[px.Constant("All Detections"), 'category', 'trade_name'],
+                    values='Detection in Lakhs', color='category', color_discrete_map=color_map,
+                    custom_data=['audit_group_number_str', 'trade_name']
+                )
+                fig_tree_det.update_layout(title_text="<b>Detection by Trade Name</b>", title_x=0.5, margin=dict(t=50, l=25, r=25, b=25))
+                fig_tree_det.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>")
+                st.plotly_chart(fig_tree_det, use_container_width=True)
+            except Exception as e:
+                st.error(f"Could not generate detection treemap: {e}")
     # # ========================== VISUALIZATIONS TAB ==========================
     # elif selected_tab == "Visualizations":
     #     st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
@@ -529,198 +674,7 @@ def pco_dashboard(dbx):
     #             viz_disp_cols_rec = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
     #             viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
     #             st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
-# ========================== VISUALIZATIONS TAB ==========================
-elif selected_tab == "Visualizations":
-    st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
-    
-    # --- 1. Load Prerequisite Data ---
-    df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
-    if df_periods is None or df_periods.empty:
-        st.info("No MCM periods exist to visualize.")
-        return
-        
-    period_options = df_periods.apply(lambda row: f"{row['month_name']} {row['year']}", axis=1).tolist()
-    selected_period = st.selectbox("Select MCM Period for Visualization", options=period_options, key="pco_viz_selectbox_final_v4")
 
-    if not selected_period:
-        return
-
-    # --- 2. Load and Filter Core Visualization Data ---
-    with st.spinner("Loading data for visualizations..."):
-        df_viz_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-        if df_viz_data is None or df_viz_data.empty:
-            st.info("No data available to visualize.")
-            return
-        df_viz_data = df_viz_data[df_viz_data['mcm_period'] == selected_period].copy()
-
-    if df_viz_data.empty:
-        st.info(f"No data to visualize for {selected_period}.")
-        return
-
-    # --- 3. Data Cleaning and Preparation ---
-    # Convert all relevant amount columns to numeric, filling errors with 0
-    amount_cols = [
-        'total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs',
-        'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'
-    ]
-    for col in amount_cols:
-        if col in df_viz_data.columns:
-            df_viz_data[col] = pd.to_numeric(df_viz_data[col], errors='coerce').fillna(0)
-
-    # Calculate amounts in Lakhs for visualizations
-    if 'total_amount_detected_overall_rs' in df_viz_data.columns:
-        df_viz_data['Detection in Lakhs'] = df_viz_data['total_amount_detected_overall_rs'] / 100000.0
-    if 'total_amount_recovered_overall_rs' in df_viz_data.columns:
-        df_viz_data['Recovery in Lakhs'] = df_viz_data['total_amount_recovered_overall_rs'] / 100000.0
-    
-    # Clean and prepare categorical and identifier columns
-    df_viz_data['audit_group_number'] = pd.to_numeric(df_viz_data.get('audit_group_number'), errors='coerce').fillna(0).astype(int)
-    df_viz_data['audit_circle_number'] = pd.to_numeric(df_viz_data.get('audit_circle_number'), errors='coerce').fillna(0).astype(int)
-    df_viz_data['audit_group_number_str'] = df_viz_data['audit_group_number'].astype(str)
-    df_viz_data['circle_number_str'] = df_viz_data['audit_circle_number'].astype(str)
-    
-    df_viz_data['category'] = df_viz_data.get('category', 'Unknown').fillna('Unknown')
-    df_viz_data['trade_name'] = df_viz_data.get('trade_name', 'Unknown Trade Name').fillna('Unknown Trade Name')
-    df_viz_data['status_of_para'] = df_viz_data.get('status_of_para', 'Unknown').fillna('Unknown')
-
-    # Create a de-duplicated dataframe for report-level aggregations (to avoid double-counting)
-    if 'dar_pdf_path' in df_viz_data.columns and df_viz_data['dar_pdf_path'].notna().any():
-        df_unique_reports = df_viz_data.drop_duplicates(subset=['dar_pdf_path']).copy()
-    else:
-        st.warning("⚠️ 'dar_pdf_path' column not found. Report-level sums might be inflated.", icon=" ")
-        df_unique_reports = df_viz_data.copy()
-
-    # --- 4. Monthly Performance Summary Metrics ---
-    st.markdown("#### Monthly Performance Summary")
-    num_dars = df_unique_reports['dar_pdf_path'].nunique()
-    total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
-    total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
-    col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
-    col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
-
-    # --- 5. Para Status Distribution Chart ---
-    st.markdown("---")
-    st.markdown("<h4>Para Status Distribution</h4>", unsafe_allow_html=True)
-    status_counts = df_viz_data['status_of_para'].value_counts().reset_index()
-    status_counts.columns = ['Status', 'Count']
-    if not status_counts.empty:
-        fig_status = px.bar(status_counts, x='Status', y='Count', text_auto=True, title="Distribution of Para Statuses")
-        fig_status.update_traces(marker_color='teal')
-        fig_status.update_layout(xaxis_type='category')
-        st.plotly_chart(fig_status, use_container_width=True)
-    else:
-        st.info("No para status data available to display.")
-
-    # --- 6. Group & Circle Performance Bar Charts ---
-    st.markdown("---")
-    st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
-    
-    tab1, tab2 = st.tabs(["Detection Performance", "Recovery Performance"])
-
-    with tab1: # Detection Charts
-        st.markdown("**Top 10 Groups by Detection (₹ Lakhs)**")
-        group_detection = df_unique_reports.groupby('audit_group_number_str')['Detection in Lakhs'].sum().nlargest(10).reset_index()
-        if not group_detection.empty:
-            fig_det_grp = px.bar(group_detection, x='audit_group_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.sequential.Reds_r)
-            fig_det_grp.update_layout(xaxis_type='category', yaxis_title="Detection (Lakhs)", xaxis_title="Audit Group")
-            st.plotly_chart(fig_det_grp, use_container_width=True)
-
-        st.markdown("**Circle-wise Detection (₹ Lakhs)**")
-        circle_detection = df_unique_reports.groupby('circle_number_str')['Detection in Lakhs'].sum().sort_values(ascending=False).reset_index()
-        circle_detection = circle_detection[circle_detection['circle_number_str'] != '0'] # Remove 'Unknown' circle
-        if not circle_detection.empty:
-            fig_det_circle = px.bar(circle_detection, x='circle_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.sequential.Greens_r)
-            fig_det_circle.update_layout(xaxis_type='category', yaxis_title="Detection (Lakhs)", xaxis_title="Audit Circle")
-            st.plotly_chart(fig_det_circle, use_container_width=True)
-
-    with tab2: # Recovery Charts
-        st.markdown("**Top 10 Groups by Recovery (₹ Lakhs)**")
-        group_recovery = df_unique_reports.groupby('audit_group_number_str')['Recovery in Lakhs'].sum().nlargest(10).reset_index()
-        if not group_recovery.empty:
-            fig_rec_grp = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.sequential.Blues_r)
-            fig_rec_grp.update_layout(xaxis_type='category', yaxis_title="Recovery (Lakhs)", xaxis_title="Audit Group")
-            st.plotly_chart(fig_rec_grp, use_container_width=True)
-
-        st.markdown("**Circle-wise Recovery (₹ Lakhs)**")
-        circle_recovery = df_unique_reports.groupby('circle_number_str')['Recovery in Lakhs'].sum().sort_values(ascending=False).reset_index()
-        circle_recovery = circle_recovery[circle_recovery['circle_number_str'] != '0'] # Remove 'Unknown' circle
-        if not circle_recovery.empty:
-            fig_rec_circle = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.sequential.Oranges_r)
-            fig_rec_circle.update_layout(xaxis_type='category', yaxis_title="Recovery (Lakhs)", xaxis_title="Audit Circle")
-            st.plotly_chart(fig_rec_circle, use_container_width=True)
-
-    # --- 7. Treemaps by Trade Name ---
-    st.markdown("---")
-    st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
-    
-    # Prepare data for treemaps by removing rows with nulls in the hierarchy path
-    df_treemap = df_unique_reports.dropna(subset=['category', 'trade_name']).copy()
-    color_map = {'Large': '#d62728', 'Medium': '#ff7f0e', 'Small': '#2ca02c', 'Unknown': '#7f7f7f'}
-
-    # Detection Treemap
-    df_det_treemap = df_treemap[df_treemap['Detection in Lakhs'] > 0]
-    if not df_det_treemap.empty:
-        st.markdown("**Detection Amounts by Trade Name**")
-        try:
-            fig_tree_det = px.treemap(
-                df_det_treemap,
-                path=[px.Constant("All Detections"), 'category', 'trade_name'],
-                values='Detection in Lakhs',
-                color='category',
-                color_discrete_map=color_map,
-                custom_data=['audit_group_number_str', 'trade_name']
-            )
-            fig_tree_det.update_traces(
-                hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Detection: %{value:,.2f} L<extra></extra>"
-            )
-            st.plotly_chart(fig_tree_det, use_container_width=True)
-        except Exception as e:
-            st.error(f"Could not generate detection treemap: {e}")
-
-    # Recovery Treemap
-    df_rec_treemap = df_treemap[df_treemap['Recovery in Lakhs'] > 0]
-    if not df_rec_treemap.empty:
-        st.markdown("**Recovery Amounts by Trade Name**")
-        try:
-            fig_tree_rec = px.treemap(
-                df_rec_treemap,
-                path=[px.Constant("All Recoveries"), 'category', 'trade_name'],
-                values='Recovery in Lakhs',
-                color='category',
-                color_discrete_map=color_map,
-                custom_data=['audit_group_number_str', 'trade_name']
-            )
-            fig_tree_rec.update_traces(
-                hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Recovery: %{value:,.2f} L<extra></extra>"
-            )
-            st.plotly_chart(fig_tree_rec, use_container_width=True)
-        except Exception as e:
-            st.error(f"Could not generate recovery treemap: {e}")
-
-    # --- 8. Top N Paras Table ---
-    st.markdown("---")
-    st.markdown("<h4>Top Paras Performance</h4>", unsafe_allow_html=True)
-    n_paras = st.number_input("Select number of Top N paras to display", min_value=1, max_value=50, value=5, step=1)
-    
-    # Filter out non-para header rows
-    paras_only_df = df_viz_data[df_viz_data['audit_para_number'].notna()].copy()
-    
-    if 'revenue_involved_lakhs_rs' in paras_only_df.columns:
-        top_det_paras = paras_only_df.nlargest(n_paras, 'revenue_involved_lakhs_rs')
-        if not top_det_paras.empty:
-            st.write(f"**Top {n_paras} Detection Paras (by Revenue Involved)**")
-            display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 'status_of_para']
-            st.dataframe(top_det_paras[[c for c in display_cols if c in top_det_paras]], use_container_width=True)
-
-    if 'revenue_recovered_lakhs_rs' in paras_only_df.columns:
-        top_rec_paras = paras_only_df.nlargest(n_paras, 'revenue_recovered_lakhs_rs')
-        if not top_rec_paras.empty:
-            st.write(f"**Top {n_paras} Realisation Paras (by Revenue Recovered)**")
-            display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
-            st.dataframe(top_rec_paras[[c for c in display_cols if c in top_rec_paras]], use_container_width=True)
     # ========================== REPORTS TAB ==========================
     elif selected_tab == "Reports":
         pco_reports_dashboard(dbx)
