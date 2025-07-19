@@ -6,11 +6,8 @@ import pandas as pd
 import plotly.express as px
 from streamlit_option_menu import option_menu
 
-# Dropbox-based imports
 from dropbox_utils import read_from_spreadsheet, update_spreadsheet_from_df
 from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
-
-# Import tab modules
 from ui_mcm_agenda import mcm_agenda_tab
 from ui_pco_reports import pco_reports_dashboard
 
@@ -28,12 +25,6 @@ def pco_dashboard(dbx):
         
         if st.button("Logout", key="pco_logout", use_container_width=True):
             st.session_state.logged_in = False
-            st.session_state.username = ""
-            st.session_state.role = ""
-            keys_to_clear = ['period_to_delete', 'show_delete_confirm', 'num_paras_to_show_pco']
-            for key in keys_to_clear:
-                if key in st.session_state:
-                    del st.session_state[key]
             st.rerun()
         
         st.markdown("---")
@@ -43,7 +34,6 @@ def pco_dashboard(dbx):
             st.rerun()
         st.markdown("---")
     
-    # Navigation menu
     selected_tab = option_menu(
         menu_title=None,
         options=["Create MCM Period", "Manage MCM Periods", "View Uploaded Reports", "MCM Agenda", "Visualizations", "Reports"],
@@ -60,7 +50,6 @@ def pco_dashboard(dbx):
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-    # ========================== CREATE MCM PERIOD TAB ==========================
     if selected_tab == "Create MCM Period":
         st.markdown("<h3>Create New MCM Period</h3>", unsafe_allow_html=True)
         
@@ -95,27 +84,24 @@ def pco_dashboard(dbx):
                     updated_df = pd.concat([df_periods, new_period], ignore_index=True)
                     
                     if update_spreadsheet_from_df(dbx, updated_df, MCM_PERIODS_INFO_PATH):
-                        st.success(f"Successfully created and activated MCM period for {selected_month} {selected_year}!")
+                        st.success(f"Successfully created MCM period for {selected_month} {selected_year}!")
                         st.balloons()
                         time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("Failed to save the new MCM period to Dropbox.")
+                        st.error("Failed to save the new MCM period.")
 
-    # ========================== MANAGE MCM PERIODS TAB ==========================
     elif selected_tab == "Manage MCM Periods":
         st.markdown("<h3>Manage Existing MCM Periods</h3>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color: red;'>Please Note: Deleting records will delete all the DAR and Spreadsheet data uploaded for that month.</h4>", unsafe_allow_html=True)
-        st.markdown("<h5 style='color: green;'>Only the months marked as 'Active' by Planning officer will be available in Audit group screen for uploading DARs.</h5>", unsafe_allow_html=True)
-        st.info("You can activate/deactivate periods or delete them using the editor. Changes are saved automatically.", icon="ℹ️")
+        st.info("You can activate/deactivate periods using the editor below.", icon="ℹ️")
         
-        df_periods_manage = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+        df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
         
-        if df_periods_manage is None or df_periods_manage.empty:
+        if df_periods is None or df_periods.empty:
             st.info("No MCM periods have been created yet.")
         else:
             edited_df = st.data_editor(
-                df_periods_manage,
+                df_periods,
                 column_config={
                     "month_name": st.column_config.TextColumn("Month", disabled=True),
                     "year": st.column_config.NumberColumn("Year", disabled=True),
@@ -128,15 +114,14 @@ def pco_dashboard(dbx):
                 key="manage_periods_editor"
             )
             
-            if not df_periods_manage.equals(edited_df):
+            if not df_periods.equals(edited_df):
                 if update_spreadsheet_from_df(dbx, edited_df, MCM_PERIODS_INFO_PATH):
                     st.toast("Changes saved successfully!")
                     time.sleep(1)
                     st.rerun()
                 else:
-                    st.error("Failed to save changes to Dropbox.")
+                    st.error("Failed to save changes.")
 
-    # ========================== VIEW UPLOADED REPORTS TAB ==========================
     elif selected_tab == "View Uploaded Reports":
         st.markdown("<h3>View Uploaded Reports Summary</h3>", unsafe_allow_html=True)
         
@@ -151,103 +136,57 @@ def pco_dashboard(dbx):
         if not selected_period:
             return
 
-        with st.spinner("Loading all report data..."):
-            df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-
+        df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
         if df_all_data is None or df_all_data.empty:
-            st.info("No DARs have been submitted by any group yet.")
+            st.info("No data available yet.")
             return
 
         df_filtered = df_all_data[df_all_data['mcm_period'] == selected_period].copy()
-
         if df_filtered.empty:
-            st.info(f"No data found for the period: {selected_period}")
+            st.info(f"No data found for {selected_period}.")
             return
 
-        # Summary section
         st.markdown("#### Summary of Uploads")
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
-        df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
         
-        # Table 1: DARs & Audit Paras per Group
         st.markdown("**DARs & Audit Paras Uploaded per Group:**")
         dars_per_group = df_filtered.groupby('audit_group_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
         paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Audit Paras')
-        
         group_summary = pd.merge(dars_per_group, paras_per_group, on='audit_group_number', how='outer').fillna(0)
         group_summary['DARs Uploaded'] = group_summary['DARs Uploaded'].astype(int)
         group_summary['Audit Paras'] = group_summary['Audit Paras'].astype(int)
-        group_summary['audit_group_number'] = group_summary['audit_group_number'].astype(int)
         group_summary = group_summary.rename(columns={'audit_group_number': 'Audit Group Number'})
-        
         st.dataframe(group_summary, use_container_width=True, hide_index=True)
         
         st.markdown("---")
         
-        # Table 2: DARs & Audit Paras per Circle
-        st.markdown("**DARs & Audit Paras Uploaded per Circle:**")
-        if 'audit_circle_number' in df_filtered.columns:
-            df_circle_data = df_filtered.dropna(subset=['audit_circle_number'])
-            if not df_circle_data.empty:
-                dars_per_circle = df_circle_data.groupby('audit_circle_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
-                paras_per_circle = df_circle_data.groupby('audit_circle_number').size().reset_index(name='Audit Paras')
-                
-                circle_summary = pd.merge(dars_per_circle, paras_per_circle, on='audit_circle_number', how='outer').fillna(0)
-                circle_summary['DARs Uploaded'] = circle_summary['DARs Uploaded'].astype(int)
-                circle_summary['Audit Paras'] = circle_summary['Audit Paras'].astype(int)
-                circle_summary['audit_circle_number'] = circle_summary['audit_circle_number'].astype(int)
-                circle_summary = circle_summary.rename(columns={'audit_circle_number': 'Audit Circle Number'})
-                
-                st.dataframe(circle_summary, use_container_width=True, hide_index=True)
-            else:
-                st.info("No circle data available for this period")
-        else:
-            st.info("Circle information not available in the data")
-        
-        st.markdown("---")
-        
-        # Table 3: Para Status Summary
-        st.markdown("**Para Status Summary:**")
         if 'status_of_para' in df_filtered.columns:
+            st.markdown("**Para Status Summary:**")
             status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
             status_summary.columns = ['Status of Para', 'Count']
             st.dataframe(status_summary, use_container_width=True, hide_index=True)
-        else:
-            st.info("Para status information not available in the data")
 
-        st.markdown("<hr>")
-        st.markdown(f"#### Edit Detailed Data for {selected_period}")
-        st.info("You can edit data below. Click 'Save Changes' to update the master file.", icon="✍️")
+        st.markdown("---")
+        st.markdown("#### Edit Detailed Data")
+        edited_df = st.data_editor(df_filtered, use_container_width=True, hide_index=True, num_rows="dynamic")
 
-        edited_df = st.data_editor(
-            df_filtered, 
-            use_container_width=True, 
-            hide_index=True, 
-            num_rows="dynamic", 
-            key=f"pco_editor_{selected_period}"
-        )
+        if st.button("Save Changes", type="primary"):
+            df_all_data.update(edited_df)
+            if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
+                st.success("Changes saved!")
+                st.rerun()
+            else:
+                st.error("Failed to save changes.")
 
-        if st.button("Save Changes to Master File", type="primary"):
-            with st.spinner("Saving changes to Dropbox..."):
-                df_all_data.update(edited_df)
-                if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
-                    st.success("Changes saved successfully!")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("Failed to save changes.")
-
-    # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
 
-    # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
         df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
         if df_periods is None or df_periods.empty:
-            st.info("No MCM periods exist to visualize.")
+            st.info("No MCM periods exist.")
             return
             
         period_options = df_periods.apply(lambda row: f"{row['month_name']} {row['year']}", axis=1).tolist()
@@ -256,18 +195,16 @@ def pco_dashboard(dbx):
         if not selected_period:
             return
 
-        with st.spinner("Loading data for visualizations..."):
-            df_viz = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-            if df_viz is None or df_viz.empty:
-                st.info("No data available to visualize.")
-                return
-            df_viz = df_viz[df_viz['mcm_period'] == selected_period].copy()
-
+        df_viz = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+        if df_viz is None or df_viz.empty:
+            st.info("No data available.")
+            return
+            
+        df_viz = df_viz[df_viz['mcm_period'] == selected_period].copy()
         if df_viz.empty:
-            st.info(f"No data to visualize for {selected_period}.")
+            st.info(f"No data for {selected_period}.")
             return
 
-        # Data Cleaning and Preparation
         amount_cols = ['total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs', 
                       'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs']
         for col in amount_cols:
@@ -275,146 +212,43 @@ def pco_dashboard(dbx):
                 df_viz[col] = pd.to_numeric(df_viz[col], errors='coerce').fillna(0)
         
         df_viz['audit_group_number'] = pd.to_numeric(df_viz['audit_group_number'], errors='coerce').fillna(0).astype(int)
-        df_viz['audit_circle_number'] = pd.to_numeric(df_viz['audit_circle_number'], errors='coerce').fillna(0).astype(int)
         
-        # De-duplicate data for aggregated charts
-        df_unique_dars = df_viz.drop_duplicates(subset=['dar_pdf_path']).copy()
-        df_unique_dars['Detection in Lakhs'] = df_unique_dars['total_amount_detected_overall_rs'] / 100000.0
-        df_unique_dars['Recovery in Lakhs'] = df_unique_dars['total_amount_recovered_overall_rs'] / 100000.0
+        df_unique = df_viz.drop_duplicates(subset=['dar_pdf_path']).copy()
+        df_unique['Detection in Lakhs'] = df_unique['total_amount_detected_overall_rs'] / 100000.0
+        df_unique['Recovery in Lakhs'] = df_unique['total_amount_recovered_overall_rs'] / 100000.0
 
-        # Summary Metrics
-        st.markdown("#### Monthly Performance Summary")
-        total_detected = df_unique_dars['Detection in Lakhs'].sum()
-        total_recovered = df_unique_dars['Recovery in Lakhs'].sum()
-        total_dars = df_unique_dars['dar_pdf_path'].nunique()
-
-        dars_per_group = df_unique_dars[df_unique_dars['audit_group_number'] > 0].groupby('audit_group_number')['dar_pdf_path'].nunique()
-        
-        max_group_str = "N/A"
-        if not dars_per_group.empty:
-            max_dars_group = dars_per_group.idxmax()
-            max_group_str = f"AG {max_dars_group} ({dars_per_group.max()} DARs)"
-
-        all_audit_groups = set(range(1, 31))
-        submitted_groups = set(dars_per_group.index)
-        zero_dar_groups_str = ", ".join(map(str, sorted(list(all_audit_groups - submitted_groups)))) or "None"
-
+        st.markdown("#### Performance Summary")
         col1, col2, col3 = st.columns(3)
-        col1.metric(label="✅ DARs Submitted", value=total_dars)
-        col2.metric(label="💰 Total Detection", value=f"₹{total_detected:.2f} L")
-        col3.metric(label="🏆 Total Recovery", value=f"₹{total_recovered:.2f} L")
-        
-        st.markdown(f"**Maximum DARs by:** `{max_group_str}`")
-        st.markdown(f"**Groups with Zero DARs:** `{zero_dar_groups_str}`")
-        st.markdown("---")
+        col1.metric("DARs Submitted", df_unique['dar_pdf_path'].nunique())
+        col2.metric("Total Detection", f"₹{df_unique['Detection in Lakhs'].sum():.2f} L")
+        col3.metric("Total Recovery", f"₹{df_unique['Recovery in Lakhs'].sum():.2f} L")
 
-        # Para Status Distribution
-        st.markdown("<h4>Para Status Distribution</h4>", unsafe_allow_html=True)
-        if 'status_of_para' in df_viz.columns and df_viz['status_of_para'].nunique() > 1:
+        if 'status_of_para' in df_viz.columns:
+            st.markdown("#### Para Status Distribution")
             status_counts = df_viz['status_of_para'].value_counts().reset_index()
-            status_counts.columns = ['Status of para', 'Count']
-            fig_status = px.bar(status_counts, x='Status of para', y='Count', text_auto=True, 
-                              title="Distribution of Para Statuses")
-            fig_status.update_traces(textposition='outside', marker_color='teal')
-            st.plotly_chart(fig_status, use_container_width=True)
-        else:
-            st.info("Not enough data for 'Status of para' distribution chart.")
+            status_counts.columns = ['Status', 'Count']
+            fig = px.bar(status_counts, x='Status', y='Count', title="Para Status Distribution")
+            st.plotly_chart(fig, use_container_width=True)
 
-        # Group & Circle Performance Charts
-        st.markdown("---")
-        st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
-        
-        c1, c2 = st.columns(2)
-        
-        with c1:
-            if df_unique_dars['audit_group_number'].nunique() > 1:
-                group_perf = df_unique_dars.groupby('audit_group_number')['Detection in Lakhs'].sum().reset_index()
-                group_perf = group_perf.sort_values('Detection in Lakhs', ascending=False).head(10)
-                if not group_perf.empty:
-                    fig_group_det = px.bar(group_perf, x='audit_group_number', y='Detection in Lakhs', 
-                                         text_auto='.2f', title="Top 10 Groups by Detection")
-                    fig_group_det.update_traces(textposition='outside', marker_color='indianred')
-                    st.plotly_chart(fig_group_det, use_container_width=True)
-            else:
-                st.info("Insufficient group data for group performance chart.")
-        
-        with c2:
-            if df_unique_dars['audit_circle_number'].nunique() > 1:
-                circle_perf = df_unique_dars.groupby('audit_circle_number')['Detection in Lakhs'].sum().reset_index()
-                circle_perf = circle_perf.sort_values('Detection in Lakhs', ascending=False)
-                if not circle_perf.empty:
-                    fig_circle_det = px.bar(circle_perf, x='audit_circle_number', y='Detection in Lakhs', 
-                                          text_auto='.2f', title="Detection by Circle")
-                    fig_circle_det.update_traces(textposition='outside', marker_color='mediumseagreen')
-                    st.plotly_chart(fig_circle_det, use_container_width=True)
-            else:
-                st.info("Insufficient circle data for circle performance chart.")
+        st.markdown("#### Top Groups by Detection")
+        if df_unique['audit_group_number'].nunique() > 1:
+            group_perf = df_unique.groupby('audit_group_number')['Detection in Lakhs'].sum().reset_index()
+            group_perf = group_perf.sort_values('Detection in Lakhs', ascending=False).head(10)
+            if not group_perf.empty:
+                fig_group = px.bar(group_perf, x='audit_group_number', y='Detection in Lakhs', 
+                                 title="Top Groups by Detection")
+                st.plotly_chart(fig_group, use_container_width=True)
 
-        # Treemap Visualizations
-        st.markdown("---")
-        st.markdown("<h4>Detection and Recovery Treemaps by Trade Name</h4>", unsafe_allow_html=True)
+        st.markdown("#### Top Paras")
+        n_paras = st.number_input("Number of paras to show:", min_value=1, max_value=50, value=5)
         
-        if 'Detection in Lakhs' in df_unique_dars.columns and 'category' in df_unique_dars.columns:
-            df_det_treemap = df_unique_dars[df_unique_dars['Detection in Lakhs'] > 0]
-            if not df_det_treemap.empty:
-                st.write("**Detection Amounts by Trade Name (Size: Amount, Color: Category)**")
-                try:
-                    fig_treemap = px.treemap(df_det_treemap, 
-                                           path=[px.Constant("All"), 'category', 'trade_name'], 
-                                           values='Detection in Lakhs', 
-                                           color='category')
-                    st.plotly_chart(fig_treemap, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Could not generate detection treemap: {e}")
+        df_paras = df_viz[df_viz['audit_para_number'].notna()]
+        if 'revenue_involved_lakhs_rs' in df_paras.columns:
+            top_paras = df_paras.nlargest(n_paras, 'revenue_involved_lakhs_rs')
+            cols = ['audit_group_number', 'trade_name', 'audit_para_heading', 'revenue_involved_lakhs_rs']
+            existing = [c for c in cols if c in top_paras.columns]
+            st.dataframe(top_paras[existing], use_container_width=True)
 
-        if 'Recovery in Lakhs' in df_unique_dars.columns and 'category' in df_unique_dars.columns:
-            df_rec_treemap = df_unique_dars[df_unique_dars['Recovery in Lakhs'] > 0]
-            if not df_rec_treemap.empty:
-                st.write("**Recovery Amounts by Trade Name (Size: Amount, Color: Category)**")
-                try:
-                    fig_treemap_rec = px.treemap(df_rec_treemap, 
-                                               path=[px.Constant("All"), 'category', 'trade_name'], 
-                                               values='Recovery in Lakhs', 
-                                               color='category')
-                    st.plotly_chart(fig_treemap_rec, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Could not generate recovery treemap: {e}")
-
-        # Para-wise Performance
-        st.markdown("---")
-        st.markdown("<h4>Para-wise Performance</h4>", unsafe_allow_html=True)
-        
-        n_paras = st.number_input("Select number of paras to show:", min_value=1, max_value=50, value=5, key="top_n_paras")
-        
-        df_paras_only = df_viz[
-            df_viz['audit_para_number'].notna() & 
-            (~df_viz['audit_para_heading'].astype(str).isin([
-                "N/A - Header Info Only (Add Paras Manually)", 
-                "Manual Entry Required", 
-                "Manual Entry - PDF Error", 
-                "Manual Entry - PDF Upload Failed"
-            ]))
-        ]
-        
-        if 'revenue_involved_lakhs_rs' in df_paras_only.columns:
-            top_det_paras = df_paras_only.nlargest(n_paras, 'revenue_involved_lakhs_rs')
-            if not top_det_paras.empty:
-                st.write(f"**Top {n_paras} Detection Paras (by Revenue Involved):**")
-                display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 
-                              'audit_para_heading', 'revenue_involved_lakhs_rs', 'status_of_para']
-                existing_cols = [c for c in display_cols if c in top_det_paras.columns]
-                st.dataframe(top_det_paras[existing_cols], use_container_width=True)
-
-        if 'revenue_recovered_lakhs_rs' in df_paras_only.columns:
-            top_rec_paras = df_paras_only.nlargest(n_paras, 'revenue_recovered_lakhs_rs')
-            if not top_rec_paras.empty:
-                st.write(f"**Top {n_paras} Recovery Paras (by Revenue Recovered):**")
-                display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 
-                              'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
-                existing_cols = [c for c in display_cols if c in top_rec_paras.columns]
-                st.dataframe(top_rec_paras[existing_cols], use_container_width=True)
-
-    # ========================== REPORTS TAB ==========================
     elif selected_tab == "Reports":
         pco_reports_dashboard(dbx)
 
