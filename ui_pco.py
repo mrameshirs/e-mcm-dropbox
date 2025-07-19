@@ -304,7 +304,7 @@ def pco_dashboard(dbx):
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
-    # ========================== VISUALIZATIONS TAB ==========================
+       # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
@@ -333,7 +333,6 @@ def pco_dashboard(dbx):
             return
     
         # --- 3. Data Cleaning and Preparation ---
-        # Convert all relevant amount columns to numeric, filling errors with 0
         amount_cols = [
             'total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs',
             'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'
@@ -342,11 +341,9 @@ def pco_dashboard(dbx):
             if col in df_viz_data.columns:
                 df_viz_data[col] = pd.to_numeric(df_viz_data[col], errors='coerce').fillna(0)
     
-        # Calculate amounts in Lakhs for visualizations
         df_viz_data['Detection in Lakhs'] = df_viz_data.get('total_amount_detected_overall_rs', 0) / 100000.0
         df_viz_data['Recovery in Lakhs'] = df_viz_data.get('total_amount_recovered_overall_rs', 0) / 100000.0
         
-        # Clean and prepare categorical and identifier columns
         df_viz_data['audit_group_number'] = pd.to_numeric(df_viz_data.get('audit_group_number'), errors='coerce').fillna(0).astype(int)
         df_viz_data['audit_circle_number'] = pd.to_numeric(df_viz_data.get('audit_circle_number'), errors='coerce').fillna(0).astype(int)
         df_viz_data['audit_group_number_str'] = df_viz_data['audit_group_number'].astype(str)
@@ -356,7 +353,6 @@ def pco_dashboard(dbx):
         df_viz_data['trade_name'] = df_viz_data.get('trade_name', 'Unknown Trade Name').fillna('Unknown Trade Name')
         df_viz_data['status_of_para'] = df_viz_data.get('status_of_para', 'Unknown').fillna('Unknown')
     
-        # Create a de-duplicated dataframe for report-level aggregations
         if 'dar_pdf_path' in df_viz_data.columns and df_viz_data['dar_pdf_path'].notna().any():
             df_unique_reports = df_viz_data.drop_duplicates(subset=['dar_pdf_path']).copy()
         else:
@@ -386,11 +382,13 @@ def pco_dashboard(dbx):
                 yaxis_title=f"<b>{y_title}</b>",
                 xaxis_title=f"<b>{x_title}</b>",
                 font=dict(family="sans-serif", color="#333"),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
+                # MODIFICATION: Added background colors
+                paper_bgcolor='#F0F2F6',
+                plot_bgcolor='#FFFFFF',
                 xaxis_type='category',
                 yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
-                xaxis=dict(showgrid=False)
+                xaxis=dict(showgrid=False),
+                height=400 # Set a fixed height for consistency
             )
             fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
             return fig
@@ -445,7 +443,11 @@ def pco_dashboard(dbx):
                     values='Detection in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
-                fig_tree_det.update_layout(title_text="<b>Detection by Trade Name</b>", title_x=0.5, margin=dict(t=50, l=25, r=25, b=25))
+                # MODIFICATION: Added background color to treemap
+                fig_tree_det.update_layout(
+                    title_text="<b>Detection by Trade Name</b>", title_x=0.5, 
+                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6'
+                )
                 fig_tree_det.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>")
                 st.plotly_chart(fig_tree_det, use_container_width=True)
             except Exception as e:
@@ -608,21 +610,21 @@ def pco_dashboard(dbx):
     #                 fig_det_circle_plot.update_traces(textposition='outside', marker_color='mediumseagreen')
     #                 st.plotly_chart(fig_det_circle_plot, use_container_width=True)
 
-        # --- Treemap Visualizations (uses de-duplicated data and shows in Lakhs) ---
-        st.markdown("---")
-        st.markdown("<h4>Detection and Recovery Treemaps by Trade Name</h4>", unsafe_allow_html=True)
-        if 'Detection in Lakhs' in df_unique_reports.columns:
-            viz_df_detection_treemap = df_unique_reports[df_unique_reports['Detection in Lakhs'] > 0]
-            if not viz_df_detection_treemap.empty:
-                st.write("**Detection Amounts (Lakhs Rs) by Trade Name (Size: Amount, Color: Category)**")
-                try:
-                    viz_fig_treemap_detection = px.treemap(viz_df_detection_treemap, path=[px.Constant("All Detections"), 'category', 'trade_name'], values='Detection in Lakhs', color='category', hover_name='trade_name', custom_data=['audit_group_number_str', 'trade_name'], color_discrete_map={'Large': 'rgba(230, 57, 70, 0.8)', 'Medium': 'rgba(241, 196, 15, 0.8)', 'Small': 'rgba(26, 188, 156, 0.8)', 'Unknown': 'rgba(149, 165, 166, 0.7)'})
-                    viz_fig_treemap_detection.update_layout(margin=dict(t=30, l=10, r=10, b=10))
-                    viz_fig_treemap_detection.data[0].textinfo = 'label+value'
-                    viz_fig_treemap_detection.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Detection: %{value:,.2f} Lakhs Rs<extra></extra>")
-                    st.plotly_chart(viz_fig_treemap_detection, use_container_width=True)
-                except Exception as e_viz_treemap_det:
-                    st.error(f"Could not generate detection treemap: {e_viz_treemap_det}")
+        # # --- Treemap Visualizations (uses de-duplicated data and shows in Lakhs) ---
+        # st.markdown("---")
+        # st.markdown("<h4>Detection and Recovery Treemaps by Trade Name</h4>", unsafe_allow_html=True)
+        # if 'Detection in Lakhs' in df_unique_reports.columns:
+        #     viz_df_detection_treemap = df_unique_reports[df_unique_reports['Detection in Lakhs'] > 0]
+        #     if not viz_df_detection_treemap.empty:
+        #         st.write("**Detection Amounts (Lakhs Rs) by Trade Name (Size: Amount, Color: Category)**")
+        #         try:
+        #             viz_fig_treemap_detection = px.treemap(viz_df_detection_treemap, path=[px.Constant("All Detections"), 'category', 'trade_name'], values='Detection in Lakhs', color='category', hover_name='trade_name', custom_data=['audit_group_number_str', 'trade_name'], color_discrete_map={'Large': 'rgba(230, 57, 70, 0.8)', 'Medium': 'rgba(241, 196, 15, 0.8)', 'Small': 'rgba(26, 188, 156, 0.8)', 'Unknown': 'rgba(149, 165, 166, 0.7)'})
+        #             viz_fig_treemap_detection.update_layout(margin=dict(t=30, l=10, r=10, b=10))
+        #             viz_fig_treemap_detection.data[0].textinfo = 'label+value'
+        #             viz_fig_treemap_detection.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Detection: %{value:,.2f} Lakhs Rs<extra></extra>")
+        #             st.plotly_chart(viz_fig_treemap_detection, use_container_width=True)
+        #         except Exception as e_viz_treemap_det:
+        #             st.error(f"Could not generate detection treemap: {e_viz_treemap_det}")
         
         if 'Recovery in Lakhs' in df_unique_reports.columns:
             viz_df_recovery_treemap = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0]
