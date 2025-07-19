@@ -15,22 +15,21 @@ def log_activity(dbx, username, role):
         st.warning("Dropbox client is not available. Skipping activity logging.")
         return False
 
-    # Define expected columns for the log file
     log_columns = ['Timestamp', 'Username', 'Role']
     
-    # 1. Read existing log data
+    # Read existing log data from the path specified in config
     df_logs = read_from_spreadsheet(dbx, LOG_FILE_PATH)
 
-    # 2. If the DataFrame is empty or has wrong columns, create a new one
+    # If the file is empty or has wrong columns, create a new DataFrame in memory
     if df_logs.empty or list(df_logs.columns) != log_columns:
         df_logs = pd.DataFrame(columns=log_columns)
 
-    # 3. Append the new log entry
+    # Append the new log entry
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_log_entry = pd.DataFrame([{'Timestamp': timestamp, 'Username': username, 'Role': role}])
     df_logs = pd.concat([df_logs, new_log_entry], ignore_index=True)
 
-    # 4. Upload the updated DataFrame back to Dropbox
+    # Upload the updated DataFrame back to Dropbox
     if update_spreadsheet_from_df(dbx, df_logs, LOG_FILE_PATH):
         return True
     else:
