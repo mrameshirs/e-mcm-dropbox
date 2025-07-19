@@ -229,52 +229,53 @@ def pco_dashboard(dbx):
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
         df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
         
-        # Create three columns for the summary tables
-        col1, col2, col3 = st.columns(3)
+        # Table 1: DARs & Audit Paras per Group
+        st.write("**DARs & Audit Paras Uploaded per Group:**")
+        dars_per_group = df_filtered.groupby('audit_group_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
+        paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Audit Paras')
         
-        with col1:
-            st.write("**DARs & Audit Paras Uploaded per Group:**")
-            # Combine DARs and Para counts per group
-            dars_per_group = df_filtered.groupby('audit_group_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
-            paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Audit Paras')
-            
-            # Merge the two dataframes
-            group_summary = pd.merge(dars_per_group, paras_per_group, on='audit_group_number', how='outer').fillna(0)
-            group_summary['DARs Uploaded'] = group_summary['DARs Uploaded'].astype(int)
-            group_summary['Audit Paras'] = group_summary['Audit Paras'].astype(int)
-            group_summary['audit_group_number'] = group_summary['audit_group_number'].astype(int)
-            
-            st.dataframe(group_summary, use_container_width=True, hide_index=True)
+        # Merge the two dataframes
+        group_summary = pd.merge(dars_per_group, paras_per_group, on='audit_group_number', how='outer').fillna(0)
+        group_summary['DARs Uploaded'] = group_summary['DARs Uploaded'].astype(int)
+        group_summary['Audit Paras'] = group_summary['Audit Paras'].astype(int)
+        group_summary['audit_group_number'] = group_summary['audit_group_number'].astype(int)
+        group_summary = group_summary.rename(columns={'audit_group_number': 'Audit Group Number'})
         
-        with col2:
-            st.write("**DARs & Audit Paras Uploaded per Circle:**")
-            # Combine DARs and Para counts per circle
-            if 'audit_circle_number' in df_filtered.columns:
-                df_circle_data = df_filtered.dropna(subset=['audit_circle_number'])
-                if not df_circle_data.empty:
-                    dars_per_circle = df_circle_data.groupby('audit_circle_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
-                    paras_per_circle = df_circle_data.groupby('audit_circle_number').size().reset_index(name='Audit Paras')
-                    
-                    # Merge the two dataframes
-                    circle_summary = pd.merge(dars_per_circle, paras_per_circle, on='audit_circle_number', how='outer').fillna(0)
-                    circle_summary['DARs Uploaded'] = circle_summary['DARs Uploaded'].astype(int)
-                    circle_summary['Audit Paras'] = circle_summary['Audit Paras'].astype(int)
-                    circle_summary['audit_circle_number'] = circle_summary['audit_circle_number'].astype(int)
-                    
-                    st.dataframe(circle_summary, use_container_width=True, hide_index=True)
-                else:
-                    st.info("No circle data available")
+        st.dataframe(group_summary, use_container_width=True, hide_index=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Table 2: DARs & Audit Paras per Circle
+        st.write("**DARs & Audit Paras Uploaded per Circle:**")
+        if 'audit_circle_number' in df_filtered.columns:
+            df_circle_data = df_filtered.dropna(subset=['audit_circle_number'])
+            if not df_circle_data.empty:
+                dars_per_circle = df_circle_data.groupby('audit_circle_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
+                paras_per_circle = df_circle_data.groupby('audit_circle_number').size().reset_index(name='Audit Paras')
+                
+                # Merge the two dataframes
+                circle_summary = pd.merge(dars_per_circle, paras_per_circle, on='audit_circle_number', how='outer').fillna(0)
+                circle_summary['DARs Uploaded'] = circle_summary['DARs Uploaded'].astype(int)
+                circle_summary['Audit Paras'] = circle_summary['Audit Paras'].astype(int)
+                circle_summary['audit_circle_number'] = circle_summary['audit_circle_number'].astype(int)
+                circle_summary = circle_summary.rename(columns={'audit_circle_number': 'Audit Circle Number'})
+                
+                st.dataframe(circle_summary, use_container_width=True, hide_index=True)
             else:
-                st.info("Circle information not available")
+                st.info("No circle data available for this period")
+        else:
+            st.info("Circle information not available in the data")
         
-        with col3:
-            st.write("**Para Status Summary:**")
-            if 'status_of_para' in df_filtered.columns:
-                status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
-                status_summary.columns = ['Status of para', 'Count']
-                st.dataframe(status_summary, use_container_width=True, hide_index=True)
-            else:
-                st.info("Para status information not available")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Table 3: Para Status Summary
+        st.write("**Para Status Summary:**")
+        if 'status_of_para' in df_filtered.columns:
+            status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
+            status_summary.columns = ['Status of Para', 'Count']
+            st.dataframe(status_summary, use_container_width=True, hide_index=True)
+        else:
+            st.info("Para status information not available in the data")
 
         st.markdown("<hr>")
         st.markdown(f"#### Edit Detailed Data for {selected_period}")
