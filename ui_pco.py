@@ -757,11 +757,7 @@ def pco_dashboard(dbx):
         #         viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
         #         st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
 
-    # ========================== REPORTS TAB ==========================
-    elif selected_tab == "Reports":
-        pco_reports_dashboard(dbx)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+ 
 # import streamlit as st
 # import datetime
 # import time
