@@ -306,6 +306,7 @@ def pco_dashboard(dbx):
         mcm_agenda_tab(dbx)
   
     # ========================== VISUALIZATIONS TAB ==========================
+    # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
@@ -423,9 +424,13 @@ def pco_dashboard(dbx):
         st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
         
         df_treemap = df_unique_reports.dropna(subset=['category', 'trade_name']).copy()
+        
+        # MODIFICATION: New light and modern color palette, avoiding red
         color_map = {
-            'Large': '#3A86FF', 'Medium': '#3DCCC7',
-            'Small': '#90E0EF', 'Unknown': '#CED4DA'
+            'Large': '#3A86FF',    # Bright Blue
+            'Medium': '#3DCCC7',   # Turquoise
+            'Small': '#90E0EF',    # Light Blue/Cyan
+            'Unknown': '#CED4DA'   # Light Grey
         }
     
         # Detection Treemap
@@ -433,100 +438,46 @@ def pco_dashboard(dbx):
         if not df_det_treemap.empty:
             try:
                 fig_tree_det = px.treemap(
-                    df_det_treemap, 
-                    path=[px.Constant("All Detections"), 'category', 'trade_name'],
-                    values='Detection in Lakhs', 
-                    color='category', 
-                    color_discrete_map=color_map,
+                    df_det_treemap, path=[px.Constant("All Detections"), 'category', 'trade_name'],
+                    values='Detection in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
-                
-                # Update layout (without pathbar properties)
                 fig_tree_det.update_layout(
-                    title_text="<b>Detection by Trade Name</b>", 
-                    title_x=0.5, 
-                    margin=dict(t=50, l=25, r=25, b=25), 
-                    paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif", size=12)
+                    title_text="<b>Detection by Trade Name</b>", title_x=0.5, 
+                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
+                    font=dict(family="sans-serif")
                 )
-                
-                # Update traces with pathbar styling and hover template
+                # MODIFICATION: Add white borders for better separation and update hover text
                 fig_tree_det.update_traces(
-                    marker_line_width=2, 
-                    marker_line_color='white',
-                    pathbar=dict(
-                        textfont=dict(color='white', size=14),
-                        bgcolor='rgba(0,0,0,0.8)',
-                        bordercolor='white',
-                        borderwidth=1
-                    ),
-                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: ₹%{value:,.2f} L<extra></extra>"
+                    marker_line_width=2, marker_line_color='white',
+                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
                 )
-                
                 st.plotly_chart(fig_tree_det, use_container_width=True)
-                
             except Exception as e:
                 st.error(f"Could not generate detection treemap: {e}")
-                # Fallback to simple bar chart if treemap fails
-                st.write("Showing alternative visualization:")
-                det_by_trade = df_det_treemap.groupby(['category', 'trade_name'])['Detection in Lakhs'].sum().reset_index()
-                det_by_trade = det_by_trade.nlargest(15, 'Detection in Lakhs')
-                if not det_by_trade.empty:
-                    fig_fallback = px.bar(det_by_trade, x='trade_name', y='Detection in Lakhs', 
-                                        color='category', color_discrete_map=color_map,
-                                        title="Top 15 Trade Names by Detection")
-                    fig_fallback.update_xaxes(tickangle=45)
-                    st.plotly_chart(fig_fallback, use_container_width=True)
     
         # Recovery Treemap
         df_rec_treemap = df_treemap[df_treemap['Recovery in Lakhs'] > 0]
         if not df_rec_treemap.empty:
             try:
                 fig_tree_rec = px.treemap(
-                    df_rec_treemap, 
-                    path=[px.Constant("All Recoveries"), 'category', 'trade_name'],
-                    values='Recovery in Lakhs', 
-                    color='category', 
-                    color_discrete_map=color_map,
+                    df_rec_treemap, path=[px.Constant("All Recoveries"), 'category', 'trade_name'],
+                    values='Recovery in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
-                
-                # Update layout (without pathbar properties)
+                # MODIFICATION: Applied consistent styling to the recovery treemap
                 fig_tree_rec.update_layout(
-                    title_text="<b>Recovery by Trade Name</b>", 
-                    title_x=0.5,
-                    margin=dict(t=50, l=25, r=25, b=25), 
-                    paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif", size=12)
+                    title_text="<b>Recovery by Trade Name</b>", title_x=0.5,
+                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
+                    font=dict(family="sans-serif")
                 )
-                
-                # Update traces with pathbar styling and hover template
                 fig_tree_rec.update_traces(
-                    marker_line_width=2, 
-                    marker_line_color='white',
-                    pathbar=dict(
-                        textfont=dict(color='white', size=14),
-                        bgcolor='rgba(0,0,0,0.8)',
-                        bordercolor='white',
-                        borderwidth=1
-                    ),
-                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Recovery: ₹%{value:,.2f} L<extra></extra>"
+                    marker_line_width=2, marker_line_color='white',
+                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Recovery: %{value:,.2f} L<extra></extra>"
                 )
-                
                 st.plotly_chart(fig_tree_rec, use_container_width=True)
-                
             except Exception as e:
                 st.error(f"Could not generate recovery treemap: {e}")
-                # Fallback to simple bar chart if treemap fails
-                st.write("Showing alternative visualization:")
-                rec_by_trade = df_rec_treemap.groupby(['category', 'trade_name'])['Recovery in Lakhs'].sum().reset_index()
-                rec_by_trade = rec_by_trade.nlargest(15, 'Recovery in Lakhs')
-                if not rec_by_trade.empty:
-                    fig_fallback = px.bar(rec_by_trade, x='trade_name', y='Recovery in Lakhs', 
-                                        color='category', color_discrete_map=color_map,
-                                        title="Top 15 Trade Names by Recovery")
-                    fig_fallback.update_xaxes(tickangle=45)
-                    st.plotly_chart(fig_fallback, use_container_width=True)
 
     elif selected_tab == "Reports":
         pco_reports_dashboard(dbx)
