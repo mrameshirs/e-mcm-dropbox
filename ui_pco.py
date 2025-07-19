@@ -229,8 +229,8 @@ def pco_dashboard(dbx):
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
         df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
         
-        # Table 1: DARs & Audit Paras per Group
-        st.write("**DARs & Audit Paras Uploaded per Group:**")
+        # Table 1: DARs & Audit Paras per Group (FULL WIDTH)
+        st.markdown("**DARs & Audit Paras Uploaded per Group:**")
         dars_per_group = df_filtered.groupby('audit_group_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
         paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Audit Paras')
         
@@ -243,10 +243,11 @@ def pco_dashboard(dbx):
         
         st.dataframe(group_summary, use_container_width=True, hide_index=True)
         
-        st.markdown("<br>", unsafe_allow_html=True)
+        # Add spacing
+        st.markdown("---")
         
-        # Table 2: DARs & Audit Paras per Circle
-        st.write("**DARs & Audit Paras Uploaded per Circle:**")
+        # Table 2: DARs & Audit Paras per Circle (FULL WIDTH)
+        st.markdown("**DARs & Audit Paras Uploaded per Circle:**")
         if 'audit_circle_number' in df_filtered.columns:
             df_circle_data = df_filtered.dropna(subset=['audit_circle_number'])
             if not df_circle_data.empty:
@@ -266,10 +267,11 @@ def pco_dashboard(dbx):
         else:
             st.info("Circle information not available in the data")
         
-        st.markdown("<br>", unsafe_allow_html=True)
+        # Add spacing
+        st.markdown("---")
         
-        # Table 3: Para Status Summary
-        st.write("**Para Status Summary:**")
+        # Table 3: Para Status Summary (FULL WIDTH)
+        st.markdown("**Para Status Summary:**")
         if 'status_of_para' in df_filtered.columns:
             status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
             status_summary.columns = ['Status of Para', 'Count']
