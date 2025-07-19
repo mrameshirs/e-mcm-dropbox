@@ -650,56 +650,56 @@ def pco_dashboard(dbx):
         #         except Exception as e_viz_treemap_det:
         #             st.error(f"Could not generate detection treemap: {e_viz_treemap_det}")
         
-        if 'Recovery in Lakhs' in df_unique_reports.columns:
-            viz_df_recovery_treemap = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0]
-            if not viz_df_recovery_treemap.empty:
-                st.write("**Recovery Amounts (Lakhs Rs) by Trade Name (Size: Amount, Color: Category)**")
-                try:
-                    viz_fig_treemap_recovery = px.treemap(viz_df_recovery_treemap, path=[px.Constant("All Recoveries"), 'category', 'trade_name'], values='Recovery in Lakhs', color='category', hover_name='trade_name', custom_data=['audit_group_number_str', 'trade_name'], color_discrete_map={'Large': 'rgba(230, 57, 70, 0.8)', 'Medium': 'rgba(241, 196, 15, 0.8)', 'Small': 'rgba(26, 188, 156, 0.8)', 'Unknown': 'rgba(149, 165, 166, 0.7)'})
-                    viz_fig_treemap_recovery.update_layout(margin=dict(t=30, l=10, r=10, b=10))
-                    viz_fig_treemap_recovery.data[0].textinfo = 'label+value'
-                    viz_fig_treemap_recovery.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Recovery: %{value:,.2f} Lakhs Rs<extra></extra>")
-                    st.plotly_chart(viz_fig_treemap_recovery, use_container_width=True)
-                except Exception as e_viz_treemap_rec:
-                    st.error(f"Could not generate recovery treemap: {e_viz_treemap_rec}")
+        # if 'Recovery in Lakhs' in df_unique_reports.columns:
+        #     viz_df_recovery_treemap = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0]
+        #     if not viz_df_recovery_treemap.empty:
+        #         st.write("**Recovery Amounts (Lakhs Rs) by Trade Name (Size: Amount, Color: Category)**")
+        #         try:
+        #             viz_fig_treemap_recovery = px.treemap(viz_df_recovery_treemap, path=[px.Constant("All Recoveries"), 'category', 'trade_name'], values='Recovery in Lakhs', color='category', hover_name='trade_name', custom_data=['audit_group_number_str', 'trade_name'], color_discrete_map={'Large': 'rgba(230, 57, 70, 0.8)', 'Medium': 'rgba(241, 196, 15, 0.8)', 'Small': 'rgba(26, 188, 156, 0.8)', 'Unknown': 'rgba(149, 165, 166, 0.7)'})
+        #             viz_fig_treemap_recovery.update_layout(margin=dict(t=30, l=10, r=10, b=10))
+        #             viz_fig_treemap_recovery.data[0].textinfo = 'label+value'
+        #             viz_fig_treemap_recovery.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Audit Group: %{customdata[0]}<br>Recovery: %{value:,.2f} Lakhs Rs<extra></extra>")
+        #             st.plotly_chart(viz_fig_treemap_recovery, use_container_width=True)
+        #         except Exception as e_viz_treemap_rec:
+        #             st.error(f"Could not generate recovery treemap: {e_viz_treemap_rec}")
 
-        # --- Para-wise Performance (uses original full data) ---
-        st.markdown("---")
-        st.markdown("<h4>Para-wise Performance</h4>", unsafe_allow_html=True)
-        if 'num_paras_to_show_pco' not in st.session_state:
-            st.session_state.num_paras_to_show_pco = 5
-        viz_n_paras_input = st.text_input("Enter N for Top N Paras (e.g., 5):", value=str(st.session_state.num_paras_to_show_pco), key="pco_n_paras_input_final_v2")
-        viz_num_paras_show = st.session_state.num_paras_to_show_pco
-        try:
-            viz_parsed_n = int(viz_n_paras_input)
-            if viz_parsed_n < 1:
-                viz_num_paras_show = 5
-                st.warning("N must be positive. Showing Top 5.", icon="⚠️")
-            elif viz_parsed_n > 50:
-                viz_num_paras_show = 50
-                st.warning("N capped at 50. Showing Top 50.", icon="⚠️")
-            else:
-                viz_num_paras_show = viz_parsed_n
-            st.session_state.num_paras_to_show_pco = viz_num_paras_show
-        except ValueError:
-            if viz_n_paras_input != str(st.session_state.num_paras_to_show_pco):
-                st.warning(f"Invalid N ('{viz_n_paras_input}'). Using: {viz_num_paras_show}", icon="⚠️")
+        # # --- Para-wise Performance (uses original full data) ---
+        # st.markdown("---")
+        # st.markdown("<h4>Para-wise Performance</h4>", unsafe_allow_html=True)
+        # if 'num_paras_to_show_pco' not in st.session_state:
+        #     st.session_state.num_paras_to_show_pco = 5
+        # viz_n_paras_input = st.text_input("Enter N for Top N Paras (e.g., 5):", value=str(st.session_state.num_paras_to_show_pco), key="pco_n_paras_input_final_v2")
+        # viz_num_paras_show = st.session_state.num_paras_to_show_pco
+        # try:
+        #     viz_parsed_n = int(viz_n_paras_input)
+        #     if viz_parsed_n < 1:
+        #         viz_num_paras_show = 5
+        #         st.warning("N must be positive. Showing Top 5.", icon="⚠️")
+        #     elif viz_parsed_n > 50:
+        #         viz_num_paras_show = 50
+        #         st.warning("N capped at 50. Showing Top 50.", icon="⚠️")
+        #     else:
+        #         viz_num_paras_show = viz_parsed_n
+        #     st.session_state.num_paras_to_show_pco = viz_num_paras_show
+        # except ValueError:
+        #     if viz_n_paras_input != str(st.session_state.num_paras_to_show_pco):
+        #         st.warning(f"Invalid N ('{viz_n_paras_input}'). Using: {viz_num_paras_show}", icon="⚠️")
         
-        viz_df_paras_only = df_viz_data[df_viz_data['audit_para_number'].notna() & (~df_viz_data['audit_para_heading'].astype(str).isin(["N/A - Header Info Only (Add Paras Manually)", "Manual Entry Required", "Manual Entry - PDF Error", "Manual Entry - PDF Upload Failed"]))]
-        if 'revenue_involved_lakhs_rs' in viz_df_paras_only.columns:
-            viz_top_det_paras = viz_df_paras_only.nlargest(viz_num_paras_show, 'revenue_involved_lakhs_rs')
-            if not viz_top_det_paras.empty:
-                st.write(f"**Top {viz_num_paras_show} Detection Paras (by Revenue Involved):**")
-                viz_disp_cols_det = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 'status_of_para']
-                viz_existing_cols_det = [c for c in viz_disp_cols_det if c in viz_top_det_paras.columns]
-                st.dataframe(viz_top_det_paras[viz_existing_cols_det].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
-        if 'revenue_recovered_lakhs_rs' in viz_df_paras_only.columns:
-            viz_top_rec_paras = viz_df_paras_only.nlargest(viz_num_paras_show, 'revenue_recovered_lakhs_rs')
-            if not viz_top_rec_paras.empty:
-                st.write(f"**Top {viz_num_paras_show} Realisation Paras (by Revenue Recovered):**")
-                viz_disp_cols_rec = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
-                viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
-                st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
+        # viz_df_paras_only = df_viz_data[df_viz_data['audit_para_number'].notna() & (~df_viz_data['audit_para_heading'].astype(str).isin(["N/A - Header Info Only (Add Paras Manually)", "Manual Entry Required", "Manual Entry - PDF Error", "Manual Entry - PDF Upload Failed"]))]
+        # if 'revenue_involved_lakhs_rs' in viz_df_paras_only.columns:
+        #     viz_top_det_paras = viz_df_paras_only.nlargest(viz_num_paras_show, 'revenue_involved_lakhs_rs')
+        #     if not viz_top_det_paras.empty:
+        #         st.write(f"**Top {viz_num_paras_show} Detection Paras (by Revenue Involved):**")
+        #         viz_disp_cols_det = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 'status_of_para']
+        #         viz_existing_cols_det = [c for c in viz_disp_cols_det if c in viz_top_det_paras.columns]
+        #         st.dataframe(viz_top_det_paras[viz_existing_cols_det].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
+        # if 'revenue_recovered_lakhs_rs' in viz_df_paras_only.columns:
+        #     viz_top_rec_paras = viz_df_paras_only.nlargest(viz_num_paras_show, 'revenue_recovered_lakhs_rs')
+        #     if not viz_top_rec_paras.empty:
+        #         st.write(f"**Top {viz_num_paras_show} Realisation Paras (by Revenue Recovered):**")
+        #         viz_disp_cols_rec = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
+        #         viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
+        #         st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
 
     # ========================== REPORTS TAB ==========================
     elif selected_tab == "Reports":
