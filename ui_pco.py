@@ -454,8 +454,7 @@ def pco_dashboard(dbx):
                     st.plotly_chart(fig_rec_circle_plot, use_container_width=True)
         
             if 'Detection in Lakhs' in df_unique_reports.columns:
-                detection_per_circle_plot = df_unique_reports.groupby('circle_number_str_plot')['Detection in Lakhs'].sum().reset_index().sort_values(by='Detection in Lakhs', ascending=False)
-                if not detection_per_circle_plot.empty:
+                detection_per_circle_plot.empty:
                     st.write("**Total Detection Amount (Lakhs Rs) per Circle (Descending):**")
                     fig_det_circle_plot = px.bar(detection_per_circle_plot, x='circle_number_str_plot', y='Detection in Lakhs', text_auto='.2f', labels={'Detection in Lakhs': 'Total Detection (Lakhs Rs)', 'circle_number_str_plot': '<b>Circle Number</b>'}, title="Circle-wise Total Detection")
                     fig_det_circle_plot.update_layout(xaxis_title_font_size=14, yaxis_title_font_size=14, xaxis_tickfont_size=12, yaxis_tickfont_size=12, xaxis_type='category')
@@ -528,58 +527,6 @@ def pco_dashboard(dbx):
                 viz_disp_cols_rec = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
                 viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
                 st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
-
-    # ========================== REPORTS TAB ==========================
-    elif selected_tab == "Reports":
-        pco_reports_dashboard(dbx)
-
-    st.markdown("</div>", unsafe_allow_html=True)dars[df_unique_dars['Recovery in Lakhs'] > 0]
-            if not df_rec_treemap.empty:
-                st.write("**Recovery Amounts by Trade Name (Size: Amount, Color: Category)**")
-                try:
-                    fig_treemap_rec = px.treemap(df_rec_treemap, 
-                                               path=[px.Constant("All"), 'category', 'trade_name'], 
-                                               values='Recovery in Lakhs', 
-                                               color='category')
-                    st.plotly_chart(fig_treemap_rec, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Could not generate recovery treemap: {e}")
-
-        # --- Para-wise Performance ---
-        st.markdown("---")
-        st.markdown("<h4>Para-wise Performance</h4>", unsafe_allow_html=True)
-        
-        # Top N paras selector
-        n_paras = st.number_input("Select number of paras to show:", min_value=1, max_value=50, value=5, key="top_n_paras")
-        
-        # Filter out non-actual paras
-        df_paras_only = df_viz[
-            df_viz['audit_para_number'].notna() & 
-            (~df_viz['audit_para_heading'].astype(str).isin([
-                "N/A - Header Info Only (Add Paras Manually)", 
-                "Manual Entry Required", 
-                "Manual Entry - PDF Error", 
-                "Manual Entry - PDF Upload Failed"
-            ]))
-        ]
-        
-        if 'revenue_involved_lakhs_rs' in df_paras_only.columns:
-            top_det_paras = df_paras_only.nlargest(n_paras, 'revenue_involved_lakhs_rs')
-            if not top_det_paras.empty:
-                st.write(f"**Top {n_paras} Detection Paras (by Revenue Involved):**")
-                display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 
-                              'audit_para_heading', 'revenue_involved_lakhs_rs', 'status_of_para']
-                existing_cols = [c for c in display_cols if c in top_det_paras.columns]
-                st.dataframe(top_det_paras[existing_cols], use_container_width=True)
-
-        if 'revenue_recovered_lakhs_rs' in df_paras_only.columns:
-            top_rec_paras = df_paras_only.nlargest(n_paras, 'revenue_recovered_lakhs_rs')
-            if not top_rec_paras.empty:
-                st.write(f"**Top {n_paras} Recovery Paras (by Revenue Recovered):**")
-                display_cols = ['audit_group_number', 'trade_name', 'audit_para_number', 
-                              'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
-                existing_cols = [c for c in display_cols if c in top_rec_paras.columns]
-                st.dataframe(top_rec_paras[existing_cols], use_container_width=True)
 
     # ========================== REPORTS TAB ==========================
     elif selected_tab == "Reports":
