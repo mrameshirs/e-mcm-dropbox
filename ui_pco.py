@@ -306,7 +306,6 @@ def pco_dashboard(dbx):
         mcm_agenda_tab(dbx)
   
     # ========================== VISUALIZATIONS TAB ==========================
-    # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
