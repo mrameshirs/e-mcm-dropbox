@@ -76,7 +76,6 @@ def get_active_mcm_periods(_dbx):
 # --- Main Dashboard Function ---
 
 def audit_group_dashboard(dbx):
-    """Main function to render the Audit Group dashboard."""
     st.markdown(f"<div class='sub-header'>Audit Group {st.session_state.audit_group_no} Dashboard</div>", unsafe_allow_html=True)
 
     YOUR_GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
@@ -176,15 +175,15 @@ def upload_dar_tab(dbx, active_periods, api_key):
         dar_filename_on_dropbox = f"AG{st.session_state.audit_group_no}_{st.session_state.ag_current_uploaded_file_name}"
         pdf_dropbox_path = f"{DAR_PDFS_PATH}/{dar_filename_on_dropbox}"
         if not upload_file(dbx, pdf_bytes, pdf_dropbox_path):
-            status_area.error("❌ Step 1/4 Failed: Could not upload PDF to Dropbox. Please try again.")
+            status_area.error("❌ Step 1/4 Failed: Could not upload PDF to Dropbox.")
             st.stop()
         st.session_state.ag_pdf_dropbox_path = pdf_dropbox_path
-        status_area.info("✅ Step 1/4: PDF uploaded successfully. \n\n▶️ Step 2/4: Pre-processing PDF content...")
+        status_area.info("✅ Step 1/4: PDF uploaded. \n\n▶️ Step 2/4: Pre-processing PDF...")
         preprocessed_text = preprocess_pdf_text(BytesIO(pdf_bytes))
         if preprocessed_text.startswith("Error"):
             status_area.error(f"❌ Step 2/4 Failed: {preprocessed_text}")
             st.stop()
-        status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with AI (this may take a moment)...")
+        status_area.info("✅ Step 2/4: PDF pre-processed. \n\n▶️ Step 3/4: Extracting data with AI...")
         parsed_data = get_structured_data_from_llm(preprocessed_text)
         if parsed_data.parsing_errors:
             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
@@ -238,33 +237,30 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 st.error("Validation Failed! Please correct the following errors:")
                 for err in validation_errors: st.warning(f"- {err}")
                 return
-            submit_status_area.info("✅ Step 1/4: Validation successful. \n\n▶️ Step 2/4: Reading master data file from Dropbox...")
+            submit_status_area.info("✅ Step 1/4: Validation successful. \n\n▶️ Step 2/4: Reading master data file...")
             master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-            submit_status_area.info("✅ Step 2/4: Master file read. \n\n▶️ Step 3/4: Preparing final data for submission...")
+            submit_status_area.info("✅ Step 2/4: Master file read. \n\n▶️ Step 3/4: Preparing final data...")
             df_to_submit['mcm_period'] = selected_period_str
             df_to_submit['dar_pdf_path'] = st.session_state.ag_pdf_dropbox_path
             df_to_submit['record_created_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             for col in SHEET_DATA_COLUMNS_ORDER:
                 if col not in master_df.columns: master_df[col] = pd.NA
                 if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
-            submit_status_area.info("✅ Step 3/4: Data prepared. \n\n▶️ Step 4/4: Saving updated data back to Dropbox...")
+            submit_status_area.info("✅ Step 3/4: Data prepared. \n\n▶️ Step 4/4: Saving updated data to Dropbox...")
             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
             if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
                 submit_status_area.success("✅ Submission complete! Data saved successfully.")
                 st.balloons()
                 time.sleep(2)
-                st.session_state.ag_current_uploaded_file_obj = None
-                st.session_state.ag_current_uploaded_file_name = None
+                st.session_state.ag_current_uploaded_file_obj = None; st.session_state.ag_current_uploaded_file_name = None
                 st.session_state.ag_editor_data = pd.DataFrame(columns=DISPLAY_COLUMN_ORDER_EDITOR)
-                st.session_state.ag_pdf_dropbox_path = None
-                st.session_state.ag_validation_errors = []
-                st.session_state.ag_uploader_key_suffix += 1
-                st.rerun()
+                st.session_state.ag_pdf_dropbox_path = None; st.session_state.ag_validation_errors = []
+                st.session_state.ag_uploader_key_suffix += 1; st.rerun()
             else:
-                submit_status_area.error("❌ Step 4/4 Failed: Could not save the updated data to Dropbox.")
+                submit_status_area.error("❌ Step 4/4 Failed: Could not save updated data to Dropbox.")
 
 def view_uploads_tab(dbx):
-    """Renders the 'View My Uploaded DARs' tab with a robust, styled table."""
+    """Renders the 'View My Uploaded DARs' tab using Streamlit's native st.dataframe."""
     st.markdown("<h3>My Uploaded DARs</h3>", unsafe_allow_html=True)
     
     all_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
@@ -297,49 +293,42 @@ def view_uploads_tab(dbx):
             return get_shareable_link(_dbx, path)
 
         if 'dar_pdf_path' in my_uploads.columns:
-            my_uploads['View PDF'] = my_uploads['dar_pdf_path'].apply(
-                lambda path: f'<a href="{get_link(dbx, path)}" target="_blank" style="text-decoration:none; color:#1E88E5; font-weight:bold;">📄 View PDF</a>' if pd.notna(path) else "No Link"
+            my_uploads['pdf_url'] = my_uploads['dar_pdf_path'].apply(
+                lambda path: get_link(dbx, path) if pd.notna(path) else None
             )
+        
+        cols_to_show = [
+            "gstin", "trade_name", "audit_para_number", "audit_para_heading", 
+            "status_of_para", "revenue_involved_lakhs_rs", "revenue_recovered_lakhs_rs", 
+            "record_created_date", "pdf_url"
+        ]
+        
+        df_to_display = my_uploads[[col for col in cols_to_show if col in my_uploads.columns]].copy()
 
-        display_cols = ["gstin", "trade_name", "audit_para_number", "audit_para_heading", "status_of_para",
-                        "revenue_involved_lakhs_rs", "revenue_recovered_lakhs_rs", "record_created_date", "View PDF"]
-        
-        df_to_display = my_uploads[[col for col in display_cols if col in my_uploads.columns]].copy()
-
-        # --- FINAL FIX: Use Styler but EXCLUDE its internal styles ---
-        
-        format_dict = {
-            'revenue_involved_lakhs_rs': '₹ {:,.2f}',
-            'revenue_recovered_lakhs_rs': '₹ {:,.2f}',
-            'audit_para_number': '{:.0f}'
-        }
-        
-        styler = df_to_display.style.format(formatter=format_dict, na_rep="N/A")
-        styler = styler.hide(axis="index")
-        styler = styler.set_table_attributes('class="view-table"')
-        styler = styler.set_properties(subset=['revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'], **{'text-align': 'right'})
-        styler = styler.set_properties(subset=['gstin', 'trade_name', 'audit_para_heading', 'status_of_para'], **{'text-align': 'left'})
-
-        # This is the key change: generate HTML without the problematic <style> block
-        table_html = styler.to_html(escape=False, exclude_styles=True)
-        
-        # Provide our own, safe CSS
-        table_css = """
-        <style>
-            .view-table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; font-family: 'Segoe UI', sans-serif; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border-radius: 10px; overflow: hidden; }
-            .view-table thead tr { background-color: #16a085 !important; color: #ffffff !important; text-align: left; font-weight: bold; }
-            .view-table th, .view-table td { padding: 12px 15px !important; text-align: left; }
-            .view-table tbody tr { border-bottom: 1px solid #dddddd; }
-            .view-table tbody tr:nth-of-type(even) { background-color: #f3f3f3 !important; }
-            .view-table tbody tr:nth-of-type(odd) { background-color: #ffffff !important; }
-            .view-table tbody tr:last-of-type { border-bottom: 2px solid #16a085 !important; }
-            .view-table tbody tr:hover { background-color: #d4edda !important; }
-        </style>
-        """
-        st.markdown(table_css + table_html, unsafe_allow_html=True)
+        st.dataframe(
+            df_to_display,
+            column_config={
+                "gstin": st.column_config.TextColumn("GSTIN", width="medium"),
+                "trade_name": st.column_config.TextColumn("Trade Name", width="large"),
+                "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d"),
+                "audit_para_heading": st.column_config.TextColumn("Para Heading", width="xlarge"),
+                "status_of_para": st.column_config.TextColumn("Status"),
+                "revenue_involved_lakhs_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="₹ {:,.2f}"),
+                "revenue_recovered_lakhs_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="₹ {:,.2f}"),
+                "record_created_date": st.column_config.DatetimeColumn("Created Date", format="YYYY-MM-DD HH:mm:ss"),
+                "pdf_url": st.column_config.LinkColumn(
+                    "View PDF",
+                    help="Click to view the uploaded DAR PDF",
+                    display_text="📄 View PDF"
+                )
+            },
+            hide_index=True,
+            use_container_width=True
+        )
 
 
 def delete_entries_tab(dbx):
+    """Renders the 'Delete My DAR Entries' tab with fixed logic."""
     # This function remains unchanged
     st.markdown("<h3>Delete My Uploaded DAR Entries</h3>", unsafe_allow_html=True)
     st.error("⚠️ **Warning:** This action is permanent and cannot be undone.")
