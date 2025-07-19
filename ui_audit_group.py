@@ -138,10 +138,10 @@ def audit_group_dashboard(dbx):
 
 
 def upload_dar_tab(dbx, active_periods, api_key):
-    # This function remains unchanged from the previous correct version
+    # This function remains unchanged
     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
     if not active_periods:
-        st.warning("No active MCM periods available. Please contact the Planning Officer.")
+        st.warning("No active MCM periods available.")
         return
     period_options_disp_map = {k: f"{v.get('month_name')} {v.get('year')}" for k, v in sorted(active_periods.items(), key=lambda x: x[0], reverse=True)}
     period_select_map_rev = {v: k for k, v in period_options_disp_map.items()}
@@ -202,7 +202,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             temp_list_for_df.append({**base_info, "audit_para_heading": "N/A - Header Info Only"})
         else:
             temp_list_for_df.append({**base_info, "audit_para_heading": "Manual Entry Required"})
-            st.error("AI failed to extract key information. A manual entry template is provided.")
+            st.error("AI failed to extract key information.")
         df_extracted = pd.DataFrame(temp_list_for_df)
         for col in DISPLAY_COLUMN_ORDER_EDITOR:
             if col not in df_extracted.columns: df_extracted[col] = None
@@ -304,11 +304,10 @@ def view_uploads_tab(dbx):
         display_cols = ["gstin", "trade_name", "audit_para_number", "audit_para_heading", "status_of_para",
                         "revenue_involved_lakhs_rs", "revenue_recovered_lakhs_rs", "record_created_date", "View PDF"]
         
-        cols_to_show = [col for col in display_cols if col in my_uploads.columns]
-        
-        # --- NEW: Use Pandas Styler for robust HTML and formatting ---
-        df_to_display = my_uploads[cols_to_show].copy()
+        df_to_display = my_uploads[[col for col in display_cols if col in my_uploads.columns]].copy()
 
+        # --- FINAL FIX: Use Styler but EXCLUDE its internal styles ---
+        
         format_dict = {
             'revenue_involved_lakhs_rs': '₹ {:,.2f}',
             'revenue_recovered_lakhs_rs': '₹ {:,.2f}',
@@ -318,62 +317,30 @@ def view_uploads_tab(dbx):
         styler = df_to_display.style.format(formatter=format_dict, na_rep="N/A")
         styler = styler.hide(axis="index")
         styler = styler.set_table_attributes('class="view-table"')
-        
-        numeric_cols = ['revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs']
-        styler = styler.set_properties(subset=numeric_cols, **{'text-align': 'right'})
-        
-        text_cols = ['gstin', 'trade_name', 'audit_para_heading', 'status_of_para']
-        styler = styler.set_properties(subset=text_cols, **{'text-align': 'left'})
+        styler = styler.set_properties(subset=['revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'], **{'text-align': 'right'})
+        styler = styler.set_properties(subset=['gstin', 'trade_name', 'audit_para_heading', 'status_of_para'], **{'text-align': 'left'})
 
-        table_html = styler.to_html(escape=False)
+        # This is the key change: generate HTML without the problematic <style> block
+        table_html = styler.to_html(escape=False, exclude_styles=True)
         
-        # --- Inject more forceful CSS to ensure styles are applied ---
+        # Provide our own, safe CSS
         table_css = """
         <style>
-            .view-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 25px 0;
-                font-size: 0.9em;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-                border-radius: 10px;
-                overflow: hidden;
-            }
-            .view-table thead tr {
-                background-color: #16a085 !important;
-                color: #ffffff !important;
-                text-align: left;
-                font-weight: bold;
-            }
-            .view-table th, .view-table td {
-                padding: 12px 15px !important;
-                text-align: left;
-            }
-            .view-table tbody tr {
-                border-bottom: 1px solid #dddddd;
-            }
-            .view-table tbody tr:nth-of-type(even) {
-                background-color: #f3f3f3 !important;
-            }
-            .view-table tbody tr:nth-of-type(odd) {
-                background-color: #ffffff !important;
-            }
-            .view-table tbody tr:last-of-type {
-                border-bottom: 2px solid #16a085 !important;
-            }
-            .view-table tbody tr:hover {
-                background-color: #d4edda !important;
-                cursor: pointer;
-            }
+            .view-table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; font-family: 'Segoe UI', sans-serif; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border-radius: 10px; overflow: hidden; }
+            .view-table thead tr { background-color: #16a085 !important; color: #ffffff !important; text-align: left; font-weight: bold; }
+            .view-table th, .view-table td { padding: 12px 15px !important; text-align: left; }
+            .view-table tbody tr { border-bottom: 1px solid #dddddd; }
+            .view-table tbody tr:nth-of-type(even) { background-color: #f3f3f3 !important; }
+            .view-table tbody tr:nth-of-type(odd) { background-color: #ffffff !important; }
+            .view-table tbody tr:last-of-type { border-bottom: 2px solid #16a085 !important; }
+            .view-table tbody tr:hover { background-color: #d4edda !important; }
         </style>
         """
         st.markdown(table_css + table_html, unsafe_allow_html=True)
 
 
 def delete_entries_tab(dbx):
-    """Renders the 'Delete My DAR Entries' tab with fixed logic."""
-    # This function remains unchanged from the previous correct version
+    # This function remains unchanged
     st.markdown("<h3>Delete My Uploaded DAR Entries</h3>", unsafe_allow_html=True)
     st.error("⚠️ **Warning:** This action is permanent and cannot be undone.")
     all_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
