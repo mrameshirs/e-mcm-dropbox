@@ -32,7 +32,28 @@ def get_dropbox_client():
     except Exception as e:
         st.error(f"Failed to connect to Dropbox: {e}")
         return None
-
+        
+def get_shareable_link(dbx, dropbox_path):
+    """Gets a shareable link for a file, creating one if it doesn't exist."""
+    try:
+        links = dbx.sharing_list_shared_links(path=dropbox_path, direct_only=True).links
+        if links:
+            return links[0].url
+        else:
+            settings = dropbox.sharing.SharedLinkSettings(requested_visibility=dropbox.sharing.RequestedVisibility.public)
+            link = dbx.sharing_create_shared_link_with_settings(dropbox_path, settings=settings)
+            return link.url
+    except ApiError as e:
+        # If a link already exists but is not direct_only, this will fail. We can try getting any link.
+        try:
+            links = dbx.sharing_list_shared_links(path=dropbox_path).links
+            if links:
+                return links[0].url
+        except ApiError:
+            pass # Fall through to error if all attempts fail
+        print(f"Dropbox API error getting shareable link for {dropbox_path}: {e}")
+        return None # Return None if a link can't be fetched or created
+        
 def upload_file(dbx, file_content, dropbox_path):
     """Uploads a file to a specific path in Dropbox."""
     try:
