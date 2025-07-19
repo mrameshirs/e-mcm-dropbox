@@ -527,7 +527,13 @@ def pco_dashboard(dbx):
                 st.write(f"**Top {viz_num_paras_show} Realisation Paras (by Revenue Recovered):**")
                 viz_disp_cols_rec = ['audit_group_number_str', 'trade_name', 'audit_para_number', 'audit_para_heading', 'revenue_recovered_lakhs_rs', 'status_of_para']
                 viz_existing_cols_rec = [c for c in viz_disp_cols_rec if c in viz_top_rec_paras.columns]
-                st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)dars[df_unique_dars['Recovery in Lakhs'] > 0]
+                st.dataframe(viz_top_rec_paras[viz_existing_cols_rec].rename(columns={'audit_group_number_str': 'Audit Group'}), use_container_width=True)
+
+    # ========================== REPORTS TAB ==========================
+    elif selected_tab == "Reports":
+        pco_reports_dashboard(dbx)
+
+    st.markdown("</div>", unsafe_allow_html=True)dars[df_unique_dars['Recovery in Lakhs'] > 0]
             if not df_rec_treemap.empty:
                 st.write("**Recovery Amounts by Trade Name (Size: Amount, Color: Category)**")
                 try:
