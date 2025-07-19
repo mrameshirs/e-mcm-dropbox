@@ -304,7 +304,7 @@ def pco_dashboard(dbx):
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
-    # ========================== VISUALIZATIONS TAB ==========================
+     # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
@@ -422,13 +422,9 @@ def pco_dashboard(dbx):
         st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
         
         df_treemap = df_unique_reports.dropna(subset=['category', 'trade_name']).copy()
-        
-        # MODIFICATION: New light and modern color palette, avoiding red
         color_map = {
-            'Large': '#3A86FF',    # Bright Blue
-            'Medium': '#3DCCC7',   # Turquoise
-            'Small': '#90E0EF',    # Light Blue/Cyan
-            'Unknown': '#CED4DA'   # Light Grey
+            'Large': '#3A86FF', 'Medium': '#3DCCC7',
+            'Small': '#90E0EF', 'Unknown': '#CED4DA'
         }
     
         # Detection Treemap
@@ -443,9 +439,10 @@ def pco_dashboard(dbx):
                 fig_tree_det.update_layout(
                     title_text="<b>Detection by Trade Name</b>", title_x=0.5, 
                     margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif")
+                    font=dict(family="sans-serif"),
+                    # MODIFICATION: Make path bar text white and larger for visibility
+                    pathbar=dict(textfont=dict(color='white', size=14))
                 )
-                # MODIFICATION: Add white borders for better separation and update hover text
                 fig_tree_det.update_traces(
                     marker_line_width=2, marker_line_color='white',
                     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
@@ -463,11 +460,12 @@ def pco_dashboard(dbx):
                     values='Recovery in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
-                # MODIFICATION: Applied consistent styling to the recovery treemap
                 fig_tree_rec.update_layout(
                     title_text="<b>Recovery by Trade Name</b>", title_x=0.5,
                     margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif")
+                    font=dict(family="sans-serif"),
+                    # MODIFICATION: Make path bar text white and larger for visibility
+                    pathbar=dict(textfont=dict(color='white', size=14))
                 )
                 fig_tree_rec.update_traces(
                     marker_line_width=2, marker_line_color='white',
