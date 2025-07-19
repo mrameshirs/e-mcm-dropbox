@@ -72,8 +72,8 @@ def pco_dashboard(dbx):
     # Navigation menu
     selected_tab = option_menu(
         menu_title=None,
-        options=["Create/Manage Periods", "View Uploaded Reports", "MCM Agenda", "Visualizations", "Reports"],
-        icons=["calendar-plus-fill", "eye-fill", "journal-richtext", "bar-chart-fill", "file-earmark-text-fill"],
+        options=["Create MCM Period", "Manage MCM Periods", "View Uploaded Reports", "MCM Agenda", "Visualizations", "Reports"],
+        icons=["calendar-plus-fill", "sliders", "eye-fill", "journal-richtext", "bar-chart-fill", "file-earmark-text-fill"],
         menu_icon="gear-wide-connected",
         default_index=0,
         orientation="horizontal",
@@ -86,8 +86,8 @@ def pco_dashboard(dbx):
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-    # ========================== CREATE/MANAGE PERIODS TAB ==========================
-    if selected_tab == "Create/Manage Periods":
+    # ========================== CREATE MCM PERIOD TAB ==========================
+    if selected_tab == "Create MCM Period":
         st.markdown("<h3>Create New MCM Period</h3>", unsafe_allow_html=True)
         
         with st.form("create_period_form"):
@@ -128,7 +128,8 @@ def pco_dashboard(dbx):
                     else:
                         st.error("Failed to save the new MCM period to Dropbox.")
 
-        st.markdown("<hr>")
+    # ========================== MANAGE MCM PERIODS TAB ==========================
+    elif selected_tab == "Manage MCM Periods":
         st.markdown("<h3>Manage Existing MCM Periods</h3>", unsafe_allow_html=True)
         st.markdown("<h4 style='color: red;'>Please Note: Deleting records will delete all the DAR and Spreadsheet data uploaded for that month.</h4>", unsafe_allow_html=True)
         st.markdown("<h5 style='color: green;'>Only the months marked as 'Active' by Planning officer will be available in Audit group screen for uploading DARs.</h5>", unsafe_allow_html=True)
@@ -161,6 +162,40 @@ def pco_dashboard(dbx):
                 else:
                     st.error("Failed to save changes to Dropbox.")
 
+        # Handle deletion with confirmation (similar to original Google version)
+        if st.session_state.get('show_delete_confirm') and st.session_state.get('period_to_delete'):
+            period_key_to_delete = st.session_state.period_to_delete
+            with st.form(key=f"delete_confirm_form_{period_key_to_delete}"):
+                st.warning(f"Are you sure you want to delete the MCM period: **{period_key_to_delete}**?")
+                st.error("**Warning:** This will remove the period from tracking. Use cautiously.")
+                
+                pco_password_confirm = st.text_input("Enter your PCO password:", type="password")
+                form_c1, form_c2 = st.columns(2)
+                
+                with form_c1:
+                    submitted_delete = st.form_submit_button("Yes, Delete Record", use_container_width=True)
+                with form_c2:
+                    if st.form_submit_button("Cancel", type="secondary", use_container_width=True):
+                        st.session_state.show_delete_confirm = False
+                        st.session_state.period_to_delete = None
+                        st.rerun()
+                
+                if submitted_delete:
+                    # Here you would validate the password against your user credentials
+                    # For now, we'll skip password validation as it depends on your config
+                    if pco_password_confirm:  # Replace with actual password validation
+                        # Remove the period from the dataframe
+                        df_updated = df_periods_manage[df_periods_manage['key'] != period_key_to_delete]
+                        if update_spreadsheet_from_df(dbx, df_updated, MCM_PERIODS_INFO_PATH):
+                            st.success(f"MCM period {period_key_to_delete} deleted successfully.")
+                        else:
+                            st.error("Failed to delete the period.")
+                        st.session_state.show_delete_confirm = False
+                        st.session_state.period_to_delete = None
+                        st.rerun()
+                    else:
+                        st.error("Please enter your password to confirm deletion.")
+
     # ========================== VIEW UPLOADED REPORTS TAB ==========================
     elif selected_tab == "View Uploaded Reports":
         st.markdown("<h3>View Uploaded Reports Summary</h3>", unsafe_allow_html=True)
@@ -192,34 +227,54 @@ def pco_dashboard(dbx):
         # Summary section
         st.markdown("#### Summary of Uploads")
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
+        df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
         
-        # Summary reports
-        col1, col2 = st.columns(2)
+        # Create three columns for the summary tables
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.write("**DARs Uploaded per Group:**")
+            st.write("**DARs & Audit Paras Uploaded per Group:**")
+            # Combine DARs and Para counts per group
             dars_per_group = df_filtered.groupby('audit_group_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
-            st.dataframe(dars_per_group, use_container_width=True)
+            paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Audit Paras')
             
-            # Para status summary
-            if 'status_of_para' in df_filtered.columns:
-                st.write("**Para Status Summary:**")
-                status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
-                status_summary.columns = ['Status of para', 'Count']
-                st.dataframe(status_summary, use_container_width=True)
+            # Merge the two dataframes
+            group_summary = pd.merge(dars_per_group, paras_per_group, on='audit_group_number', how='outer').fillna(0)
+            group_summary['DARs Uploaded'] = group_summary['DARs Uploaded'].astype(int)
+            group_summary['Audit Paras'] = group_summary['Audit Paras'].astype(int)
+            group_summary['audit_group_number'] = group_summary['audit_group_number'].astype(int)
+            
+            st.dataframe(group_summary, use_container_width=True, hide_index=True)
         
         with col2:
-            st.write("**Para Entries per Group:**")
-            paras_per_group = df_filtered.groupby('audit_group_number').size().reset_index(name='Total Para Entries')
-            st.dataframe(paras_per_group, use_container_width=True)
-            
-            # Circle summary if available
+            st.write("**DARs & Audit Paras Uploaded per Circle:**")
+            # Combine DARs and Para counts per circle
             if 'audit_circle_number' in df_filtered.columns:
-                df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
-                dars_per_circle = df_filtered.dropna(subset=['audit_circle_number']).groupby('audit_circle_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
-                if not dars_per_circle.empty:
-                    st.write("**DARs Uploaded per Circle:**")
-                    st.dataframe(dars_per_circle, use_container_width=True)
+                df_circle_data = df_filtered.dropna(subset=['audit_circle_number'])
+                if not df_circle_data.empty:
+                    dars_per_circle = df_circle_data.groupby('audit_circle_number')['dar_pdf_path'].nunique().reset_index(name='DARs Uploaded')
+                    paras_per_circle = df_circle_data.groupby('audit_circle_number').size().reset_index(name='Audit Paras')
+                    
+                    # Merge the two dataframes
+                    circle_summary = pd.merge(dars_per_circle, paras_per_circle, on='audit_circle_number', how='outer').fillna(0)
+                    circle_summary['DARs Uploaded'] = circle_summary['DARs Uploaded'].astype(int)
+                    circle_summary['Audit Paras'] = circle_summary['Audit Paras'].astype(int)
+                    circle_summary['audit_circle_number'] = circle_summary['audit_circle_number'].astype(int)
+                    
+                    st.dataframe(circle_summary, use_container_width=True, hide_index=True)
+                else:
+                    st.info("No circle data available")
+            else:
+                st.info("Circle information not available")
+        
+        with col3:
+            st.write("**Para Status Summary:**")
+            if 'status_of_para' in df_filtered.columns:
+                status_summary = df_filtered['status_of_para'].value_counts().reset_index(name='Count')
+                status_summary.columns = ['Status of para', 'Count']
+                st.dataframe(status_summary, use_container_width=True, hide_index=True)
+            else:
+                st.info("Para status information not available")
 
         st.markdown("<hr>")
         st.markdown(f"#### Edit Detailed Data for {selected_period}")
@@ -432,7 +487,7 @@ def pco_dashboard(dbx):
     elif selected_tab == "Reports":
         pco_reports_dashboard(dbx)
 
-    st.markdown("</div>", unsafe_allow_html=True)# # ui_pco.py
+    st.markdown("</div>", unsafe_allow_html=True)
 # import streamlit as st
 # import datetime
 # import time
