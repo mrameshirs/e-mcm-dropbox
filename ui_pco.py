@@ -304,7 +304,7 @@ def pco_dashboard(dbx):
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
-       # ========================== VISUALIZATIONS TAB ==========================
+    # ========================== VISUALIZATIONS TAB ==========================
     elif selected_tab == "Visualizations":
         st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
         
@@ -374,21 +374,15 @@ def pco_dashboard(dbx):
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
         
-        # Define a helper function for consistent styling
         def style_chart(fig, title_text, y_title, x_title):
             fig.update_layout(
-                title_text=f"<b>{title_text}</b>",
-                title_x=0.5,
-                yaxis_title=f"<b>{y_title}</b>",
-                xaxis_title=f"<b>{x_title}</b>",
+                title_text=f"<b>{title_text}</b>", title_x=0.5,
+                yaxis_title=f"<b>{y_title}</b>", xaxis_title=f"<b>{x_title}</b>",
                 font=dict(family="sans-serif", color="#333"),
-                # MODIFICATION: Added background colors
-                paper_bgcolor='#F0F2F6',
-                plot_bgcolor='#FFFFFF',
+                paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
                 xaxis_type='category',
                 yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
-                xaxis=dict(showgrid=False),
-                height=400 # Set a fixed height for consistency
+                xaxis=dict(showgrid=False), height=400
             )
             fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
             return fig
@@ -396,14 +390,12 @@ def pco_dashboard(dbx):
         tab1, tab2 = st.tabs(["Detection Performance", "Recovery Performance"])
     
         with tab1:
-            # Group Detection Chart
             group_detection = df_unique_reports.groupby('audit_group_number_str')['Detection in Lakhs'].sum().nlargest(10).reset_index()
             if not group_detection.empty:
                 fig_det_grp = px.bar(group_detection, x='audit_group_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Vivid)
                 fig_det_grp = style_chart(fig_det_grp, "Top 10 Groups by Detection", "Amount (₹ Lakhs)", "Audit Group")
                 st.plotly_chart(fig_det_grp, use_container_width=True)
     
-            # Circle Detection Chart
             circle_detection = df_unique_reports.groupby('circle_number_str')['Detection in Lakhs'].sum().sort_values(ascending=False).reset_index()
             circle_detection = circle_detection[circle_detection['circle_number_str'] != '0']
             if not circle_detection.empty:
@@ -412,14 +404,12 @@ def pco_dashboard(dbx):
                 st.plotly_chart(fig_det_circle, use_container_width=True)
     
         with tab2:
-            # Group Recovery Chart
             group_recovery = df_unique_reports.groupby('audit_group_number_str')['Recovery in Lakhs'].sum().nlargest(10).reset_index()
             if not group_recovery.empty:
                 fig_rec_grp = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Set2)
                 fig_rec_grp = style_chart(fig_rec_grp, "Top 10 Groups by Recovery", "Amount (₹ Lakhs)", "Audit Group")
                 st.plotly_chart(fig_rec_grp, use_container_width=True)
     
-            # Circle Recovery Chart
             circle_recovery = df_unique_reports.groupby('circle_number_str')['Recovery in Lakhs'].sum().sort_values(ascending=False).reset_index()
             circle_recovery = circle_recovery[circle_recovery['circle_number_str'] != '0']
             if not circle_recovery.empty:
@@ -432,7 +422,14 @@ def pco_dashboard(dbx):
         st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
         
         df_treemap = df_unique_reports.dropna(subset=['category', 'trade_name']).copy()
-        color_map = {'Large': '#d62728', 'Medium': '#ff7f0e', 'Small': '#2ca02c', 'Unknown': '#7f7f7f'}
+        
+        # MODIFICATION: New light and modern color palette, avoiding red
+        color_map = {
+            'Large': '#3A86FF',    # Bright Blue
+            'Medium': '#3DCCC7',   # Turquoise
+            'Small': '#90E0EF',    # Light Blue/Cyan
+            'Unknown': '#CED4DA'   # Light Grey
+        }
     
         # Detection Treemap
         df_det_treemap = df_treemap[df_treemap['Detection in Lakhs'] > 0]
@@ -443,15 +440,42 @@ def pco_dashboard(dbx):
                     values='Detection in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
-                # MODIFICATION: Added background color to treemap
                 fig_tree_det.update_layout(
                     title_text="<b>Detection by Trade Name</b>", title_x=0.5, 
-                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6'
+                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
+                    font=dict(family="sans-serif")
                 )
-                fig_tree_det.update_traces(hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>")
+                # MODIFICATION: Add white borders for better separation and update hover text
+                fig_tree_det.update_traces(
+                    marker_line_width=2, marker_line_color='white',
+                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
+                )
                 st.plotly_chart(fig_tree_det, use_container_width=True)
             except Exception as e:
                 st.error(f"Could not generate detection treemap: {e}")
+    
+        # Recovery Treemap
+        df_rec_treemap = df_treemap[df_treemap['Recovery in Lakhs'] > 0]
+        if not df_rec_treemap.empty:
+            try:
+                fig_tree_rec = px.treemap(
+                    df_rec_treemap, path=[px.Constant("All Recoveries"), 'category', 'trade_name'],
+                    values='Recovery in Lakhs', color='category', color_discrete_map=color_map,
+                    custom_data=['audit_group_number_str', 'trade_name']
+                )
+                # MODIFICATION: Applied consistent styling to the recovery treemap
+                fig_tree_rec.update_layout(
+                    title_text="<b>Recovery by Trade Name</b>", title_x=0.5,
+                    margin=dict(t=50, l=25, r=25, b=25), paper_bgcolor='#F0F2F6',
+                    font=dict(family="sans-serif")
+                )
+                fig_tree_rec.update_traces(
+                    marker_line_width=2, marker_line_color='white',
+                    hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Recovery: %{value:,.2f} L<extra></extra>"
+                )
+                st.plotly_chart(fig_tree_rec, use_container_width=True)
+            except Exception as e:
+                st.error(f"Could not generate recovery treemap: {e}")
     # # ========================== VISUALIZATIONS TAB ==========================
     # elif selected_tab == "Visualizations":
     #     st.markdown("<h3>Data Visualizations</h3>", unsafe_allow_html=True)
