@@ -13,6 +13,7 @@ DAR_PDFS_PATH = f"{DROPBOX_ROOT_PATH}/DAR_PDFs"
 OFFICE_ORDERS_PATH = f"{DROPBOX_ROOT_PATH}/Office_Orders" # Path for allocation/reallocation orders
 MCM_DATA_PATH = f"{DROPBOX_ROOT_PATH}/mcm_dar_data.xlsx"
 LOG_SHEET_PATH = f"{DROPBOX_ROOT_PATH}/log_sheet.xlsx"
+LOG_FILE_PATH = f"{DROPBOX_ROOT_PATH}/log_sheet.xlsx"
 SMART_AUDIT_DATA_PATH = f"{DROPBOX_ROOT_PATH}/smart_audit_data.xlsx"
 MCM_PERIODS_INFO_PATH = f"{DROPBOX_ROOT_PATH}/mcm_periods_info.xlsx"
 
