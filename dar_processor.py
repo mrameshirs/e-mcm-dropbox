@@ -232,7 +232,8 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> (List[s
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {openrouter_api_key}"},
             data=json.dumps({
-                "model": "deepseek/deepseek-r1:free",
+                 #"model": "deepseek/deepseek-r1:free",
+                "model": tngtech/deepseek-r1t2-chimera:free",
                 "messages": [
                     {"role": "system", "content": BATCH_SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt}
