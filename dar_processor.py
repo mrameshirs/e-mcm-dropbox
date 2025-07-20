@@ -195,6 +195,11 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
             content_str = content_str.strip()[7:-3].strip()
         elif content_str.strip().startswith("```"):
              content_str = content_str.strip()[3:-3].strip()
+         # --- ADDED FOR DEBUGGING ---
+        print("--- RAW LLM RESPONSE (OpenRouter) ---")
+        print(content_str)
+        print("--------------------------------------")
+        # ---------------------------
 
         if not content_str:
             return ParsedDARReport(parsing_errors="LLM returned an empty response.")
