@@ -259,7 +259,9 @@ def upload_dar_tab(dbx, active_periods, api_key):
         st.checkbox("No risk flags available for this Taxpayer", key='ag_no_risk_flags')
 
         if not st.session_state.ag_no_risk_flags:
-            valid_para_numbers = pd.DataFrame(edited_df)['audit_para_number'].dropna().astype(int).unique().tolist()
+            # CORRECTED LINE:
+            valid_para_numbers = pd.to_numeric(pd.DataFrame(edited_df)['audit_para_number'], errors='coerce').dropna().astype(int).unique().tolist()
+            
             risk_container = st.container()
             with risk_container:
                 for i, risk_item in enumerate(st.session_state.ag_risk_flags_data):
@@ -288,73 +290,11 @@ def upload_dar_tab(dbx, active_periods, api_key):
                     if st.button("Add Flag", use_container_width=True):
                         if new_risk_flag and not any(d['risk_flag'] == new_risk_flag for d in st.session_state.ag_risk_flags_data):
                             st.session_state.ag_risk_flags_data.append({"risk_flag": new_risk_flag, "paras": []})
-                            # st.session_state.new_risk_flag_select = "" # Does not work as expected
                             st.rerun()
                         elif not new_risk_flag:
                             st.warning("Please select a risk flag to add.")
                         else:
                             st.warning(f"Risk flag '{new_risk_flag}' is already in the list.")
-
-        st.markdown("<hr>", unsafe_allow_html=True)
-        if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
-            submit_status_area = st.empty()
-            submit_status_area.info("▶️ Step 1/5: Cleaning and validating data...")
-            df_to_submit = pd.DataFrame(edited_df).dropna(how='all').reset_index(drop=True)
-            if df_to_submit.empty:
-                submit_status_area.error("❌ Submission Failed: No data found in the editor.")
-                return
-
-            df_to_submit['taxpayer_classification'] = st.session_state.ag_taxpayer_classification
-
-            validation_errors = validate_data_for_sheet(df_to_submit, st.session_state.ag_risk_flags_data, st.session_state.ag_no_risk_flags)
-            if validation_errors:
-                submit_status_area.empty()
-                st.error("Validation Failed! Please correct the following errors:")
-                for err in validation_errors: st.warning(f"- {err}")
-                return
-
-            submit_status_area.info("✅ Step 1/5: Validation successful. \n\n▶️ Step 2/5: Classifying audit paras with AI...")
-            headings_to_classify = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
-            classifications, class_error = get_para_classifications_from_llm(headings_to_classify)
-            if class_error:
-                st.error(f"AI Classification Failed: {class_error}")
-                if not classifications: # Stop if it completely failed
-                    st.stop()
-                st.warning("Classification was partial. Proceeding with available data.")
-            
-            # Map classifications back to the dataframe
-            para_rows = df_to_submit['audit_para_number'].notna()
-            df_to_submit.loc[para_rows, 'para_classification_code'] = classifications[:len(df_to_submit[para_rows])]
-
-
-            submit_status_area.info("✅ Step 2/5: AI classification complete. \n\n▶️ Step 3/5: Reading master data file...")
-            master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-            
-            submit_status_area.info("✅ Step 3/5: Master file read. \n\n▶️ Step 4/5: Preparing final data...")
-            df_to_submit['mcm_period'] = selected_period_str
-            df_to_submit['dar_pdf_path'] = st.session_state.ag_pdf_dropbox_path
-            df_to_submit['record_created_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            # Add risk flag data as JSON string to the first row only
-            risk_json = json.dumps(st.session_state.ag_risk_flags_data) if not st.session_state.ag_no_risk_flags else None
-            df_to_submit['risk_flags_data'] = pd.Series([risk_json] + [None] * (len(df_to_submit) - 1))
-
-
-            for col in SHEET_DATA_COLUMNS_ORDER:
-                if col not in master_df.columns: master_df[col] = pd.NA
-                if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
-
-            submit_status_area.info("✅ Step 4/5: Data prepared. \n\n▶️ Step 5/5: Saving updated data to Dropbox...")
-            final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
-            if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
-                submit_status_area.success("✅ Submission complete! Data saved successfully.")
-                st.balloons()
-                time.sleep(2)
-                reset_ag_states()
-                st.session_state.ag_uploader_key_suffix += 1
-                st.rerun()
-            else:
-                st.error("❌ Step 5/5 Failed: Could not save updated data to Dropbox.")
 
 def view_uploads_tab(dbx):
     """Renders the 'View My Uploaded DARs' tab using Streamlit's native st.dataframe."""
