@@ -77,28 +77,22 @@ def get_active_mcm_periods(_dbx):
     active_periods = {k: v for k, v in all_periods.items() if v.get("active")}
     return active_periods
 
-def reset_ag_states():
-    """Resets all session state variables for the audit group upload tab."""
-    # FIXED: Don't clear uploaded file references to prevent Extract button from disappearing
-    # st.session_state.ag_current_uploaded_file_obj = None  # REMOVED
-    # st.session_state.ag_current_uploaded_file_name = None  # REMOVED
-    
+def reset_ag_states(clear_file=False):
+    """Resets session state variables, optionally clearing the uploaded file state."""
+    if clear_file:
+        st.session_state.ag_current_uploaded_file_obj = None
+        st.session_state.ag_current_uploaded_file_name = None
+
     st.session_state.ag_editor_data = pd.DataFrame(columns=DISPLAY_COLUMN_ORDER_EDITOR)
     st.session_state.ag_pdf_dropbox_path = None
     st.session_state.ag_validation_errors = []
     st.session_state.ag_risk_flags_data = []
     st.session_state.ag_raw_taxpayer_classification = None
 
-    # FIX: Delete keyed widget states instead of reassigning to prevent StreamlitAPIException
+    # Delete keyed widget states instead of reassigning to prevent StreamlitAPIException
     for key in ['ag_taxpayer_classification', 'ag_no_risk_flags', 'new_risk_flag_select']:
         if key in st.session_state:
             del st.session_state[key]
-
-def reset_file_states():
-    """Separate function to reset file-related states when needed."""
-    st.session_state.ag_current_uploaded_file_obj = None
-    st.session_state.ag_current_uploaded_file_name = None
-    reset_ag_states()
 
 # --- Main Dashboard Function ---
 
@@ -170,49 +164,34 @@ def upload_dar_tab(dbx, active_periods, api_key):
     if not active_periods:
         st.warning("No active MCM periods available.")
         return
-    
     period_options_disp_map = {k: f"{v.get('month_name')} {v.get('year')}" for k, v in sorted(active_periods.items(), key=lambda x: x[0], reverse=True)}
     period_select_map_rev = {v: k for k, v in period_options_disp_map.items()}
     selected_period_str = st.selectbox(
         "Select Active MCM Period", options=list(period_select_map_rev.keys()),
         key=f"ag_mcm_sel_uploader_{st.session_state.ag_uploader_key_suffix}"
     )
-    if not selected_period_str: 
-        return
-    
+    if not selected_period_str: return
     new_mcm_key = period_select_map_rev[selected_period_str]
     if st.session_state.ag_current_mcm_key != new_mcm_key:
         st.session_state.ag_current_mcm_key = new_mcm_key
-        reset_file_states()  # Use separate function to reset file states when period changes
+        reset_ag_states(clear_file=True) # Clear everything including the file
         st.session_state.ag_uploader_key_suffix += 1
         st.rerun()
 
     mcm_info_current = active_periods[st.session_state.ag_current_mcm_key]
     st.info(f"Uploading for: {mcm_info_current['month_name']} {mcm_info_current['year']}")
-    
     uploaded_file = st.file_uploader(
         "Choose DAR PDF", type="pdf",
         key=f"ag_uploader_main_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_uploader_key_suffix}"
     )
-    
-    # FIXED: Only update file references, don't reset all states
-    if uploaded_file and st.session_state.ag_current_uploaded_file_name != uploaded_file.name:
+    # FIX: Correct logic to set file and reset data (not the file itself)
+    if uploaded_file and (st.session_state.ag_current_uploaded_file_name != uploaded_file.name):
         st.session_state.ag_current_uploaded_file_obj = uploaded_file
         st.session_state.ag_current_uploaded_file_name = uploaded_file.name
-        # Only clear data-related states, not file states
-        st.session_state.ag_editor_data = pd.DataFrame(columns=DISPLAY_COLUMN_ORDER_EDITOR)
-        st.session_state.ag_pdf_dropbox_path = None
-        st.session_state.ag_validation_errors = []
-        st.session_state.ag_risk_flags_data = []
-        st.session_state.ag_raw_taxpayer_classification = None
-        # Clear widget states
-        for key in ['ag_taxpayer_classification', 'ag_no_risk_flags', 'new_risk_flag_select']:
-            if key in st.session_state:
-                del st.session_state[key]
+        reset_ag_states(clear_file=False) # Reset only the data, not the file object
         st.rerun()
 
-    # FIXED: Extract button now appears when file is uploaded
-    if st.session_state.ag_current_uploaded_file_obj and st.button("Extract Data", use_container_width=True, type="primary"):
+    if st.session_state.ag_current_uploaded_file_obj and st.button("Extract Data", use_container_width=True):
         progress_bar = st.progress(0, text="Starting process...")
         
         pdf_bytes = st.session_state.ag_current_uploaded_file_obj.getvalue()
@@ -258,8 +237,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
         
         df_extracted = pd.DataFrame(temp_list_for_df)
         for col in DISPLAY_COLUMN_ORDER_EDITOR:
-            if col not in df_extracted.columns: 
-                df_extracted[col] = None
+            if col not in df_extracted.columns: df_extracted[col] = None
         st.session_state.ag_editor_data = df_extracted[DISPLAY_COLUMN_ORDER_EDITOR]
         
         progress_bar.empty()
@@ -280,20 +258,16 @@ def upload_dar_tab(dbx, active_periods, api_key):
         if st.session_state.ag_raw_taxpayer_classification:
             st.caption(f"AI Extracted Value: {st.session_state.ag_raw_taxpayer_classification}")
 
-        col_conf = { 
-            "audit_group_number": st.column_config.NumberColumn("Group No.", disabled=True), 
-            "audit_circle_number": st.column_config.NumberColumn("Circle No.", disabled=True),
-            "gstin": st.column_config.TextColumn("GSTIN", width="medium"), 
-            "trade_name": st.column_config.TextColumn("Trade Name", width="large"),
-            "category": st.column_config.SelectboxColumn("Category", options=[None] + VALID_CATEGORIES, width="small"),
-            "total_amount_detected_overall_rs": st.column_config.NumberColumn("Total Detect (₹)", format="%.2f"),
-            "total_amount_recovered_overall_rs": st.column_config.NumberColumn("Total Recover (₹)", format="%.2f"),
-            "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d", width="small"),
-            "audit_para_heading": st.column_config.TextColumn("Para Heading", width="xlarge"),
-            "revenue_involved_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="%.2f"),
-            "revenue_recovered_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="%.2f"),
-            "status_of_para": st.column_config.SelectboxColumn("Para Status", options=[None] + VALID_PARA_STATUSES, width="medium") 
-        }
+        col_conf = { "audit_group_number": st.column_config.NumberColumn("Group No.", disabled=True), "audit_circle_number": st.column_config.NumberColumn("Circle No.", disabled=True),
+                     "gstin": st.column_config.TextColumn("GSTIN", width="medium"), "trade_name": st.column_config.TextColumn("Trade Name", width="large"),
+                     "category": st.column_config.SelectboxColumn("Category", options=[None] + VALID_CATEGORIES, width="small"),
+                     "total_amount_detected_overall_rs": st.column_config.NumberColumn("Total Detect (₹)", format="%.2f"),
+                     "total_amount_recovered_overall_rs": st.column_config.NumberColumn("Total Recover (₹)", format="%.2f"),
+                     "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d", width="small"),
+                     "audit_para_heading": st.column_config.TextColumn("Para Heading", width="xlarge"),
+                     "revenue_involved_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="%.2f"),
+                     "revenue_recovered_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="%.2f"),
+                     "status_of_para": st.column_config.SelectboxColumn("Para Status", options=[None] + VALID_PARA_STATUSES, width="medium") }
         editor_key = f"data_editor_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_current_uploaded_file_name or 'no_file'}"
         edited_df = st.data_editor(st.session_state.ag_editor_data, column_config=col_conf, num_rows="dynamic", key=editor_key,
                                    use_container_width=True, hide_index=True, height=min(len(st.session_state.ag_editor_data) * 45 + 70, 450))
@@ -309,15 +283,10 @@ def upload_dar_tab(dbx, active_periods, api_key):
             with risk_container:
                 for i, risk_item in enumerate(st.session_state.ag_risk_flags_data):
                     cols = st.columns([2, 5, 4, 1])
-                    with cols[0]: 
-                        st.text(risk_item['risk_flag'])
-                    with cols[1]: 
-                        st.caption(GST_RISK_PARAMETERS.get(risk_item['risk_flag'], "Unknown Description"))
+                    with cols[0]: st.text(risk_item['risk_flag'])
+                    with cols[1]: st.caption(GST_RISK_PARAMETERS.get(risk_item['risk_flag'], "Unknown Description"))
                     with cols[2]:
-                        selected_paras = st.multiselect( 
-                            "Link to Para(s)", options=valid_para_numbers, default=risk_item['paras'], 
-                            key=f"risk_{i}_paras", label_visibility="collapsed"
-                        )
+                        selected_paras = st.multiselect( "Link to Para(s)", options=valid_para_numbers, default=risk_item['paras'], key=f"risk_{i}_paras", label_visibility="collapsed")
                         st.session_state.ag_risk_flags_data[i]['paras'] = selected_paras
                     with cols[3]:
                         if st.button("🗑️", key=f"del_risk_{i}", help="Remove this risk flag"):
@@ -326,18 +295,15 @@ def upload_dar_tab(dbx, active_periods, api_key):
 
                 st.markdown("---")
                 add_cols = st.columns([3, 1])
-                with add_cols[0]: 
-                    new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
+                with add_cols[0]: new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
                 with add_cols[1]:
                     st.markdown("<br>", unsafe_allow_html=True)
                     if st.button("Add Flag", use_container_width=True):
                         if new_risk_flag and not any(d['risk_flag'] == new_risk_flag for d in st.session_state.ag_risk_flags_data):
                             st.session_state.ag_risk_flags_data.append({"risk_flag": new_risk_flag, "paras": []})
                             st.rerun()
-                        elif not new_risk_flag: 
-                            st.warning("Please select a risk flag to add.")
-                        else: 
-                            st.warning(f"Risk flag '{new_risk_flag}' is already in the list.")
+                        elif not new_risk_flag: st.warning("Please select a risk flag to add.")
+                        else: st.warning(f"Risk flag '{new_risk_flag}' is already in the list.")
 
         st.markdown("<hr>", unsafe_allow_html=True)
         if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
@@ -349,17 +315,15 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 submit_status_area.error("❌ Submission Failed: No data found in the editor.")
                 return
 
-            # FIX: Automatically fill disabled/required fields for all rows
             df_to_submit['audit_group_number'] = st.session_state.audit_group_no
             df_to_submit['audit_circle_number'] = calculate_audit_circle(st.session_state.audit_group_no)
-            df_to_submit['taxpayer_classification'] = st.session_state.ag_taxpayer_classification
+            df_to_submit['taxpayer_classification'] = st.session_state.get('ag_taxpayer_classification')
 
             validation_errors = validate_data_for_sheet(df_to_submit, st.session_state.ag_risk_flags_data, st.session_state.get('ag_no_risk_flags', False))
             if validation_errors:
                 submit_status_area.empty()
                 st.error("Validation Failed! Please correct the following errors:")
-                for err in validation_errors: 
-                    st.warning(f"- {err}")
+                for err in validation_errors: st.warning(f"- {err}")
                 return
 
             submit_status_area.info("✅ Step 1/5: Validation successful. \n\n▶️ Step 2/5: Classifying audit paras with AI...")
@@ -368,8 +332,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 classifications, class_error = get_para_classifications_from_llm(headings_to_classify)
                 if class_error:
                     st.error(f"AI Classification Failed: {class_error}")
-                    if not classifications: 
-                        st.stop()
+                    if not classifications: st.stop()
                     st.warning("Classification was partial. Proceeding with available data.")
                 
                 para_rows = df_to_submit['audit_para_number'].notna()
@@ -387,10 +350,8 @@ def upload_dar_tab(dbx, active_periods, api_key):
             df_to_submit['risk_flags_data'] = pd.Series([risk_json] + [None] * (len(df_to_submit) - 1))
 
             for col in SHEET_DATA_COLUMNS_ORDER:
-                if col not in master_df.columns: 
-                    master_df[col] = pd.NA
-                if col not in df_to_submit.columns: 
-                    df_to_submit[col] = pd.NA
+                if col not in master_df.columns: master_df[col] = pd.NA
+                if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
 
             submit_status_area.info("✅ Step 4/5: Data prepared. \n\n▶️ Step 5/5: Saving updated data to Dropbox...")
             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
@@ -398,7 +359,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 submit_status_area.success("✅ Submission complete! Data saved successfully.")
                 st.balloons()
                 time.sleep(2)
-                reset_file_states()  # Reset everything after successful submission
+                reset_ag_states(clear_file=True)
                 st.session_state.ag_uploader_key_suffix += 1
                 st.rerun()
             else:
@@ -415,55 +376,9 @@ def view_uploads_tab(dbx):
         return
         
     period_options_map = {f"{row['month_name']} {row['year']}": f"{row['month_name']} {row['year']}" for _, row in all_periods.iterrows()}
-    selected_period = st.selectbox("Select MCM Period to Manage", options=list(period_options_map.keys()))
-    if not selected_period: 
-        return
-        
-    master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-    if master_df.empty:
-        st.info("Master data file is empty. Nothing to delete.")
-        return
-        
-    master_df['original_index'] = master_df.index
-    master_df['audit_group_number'] = pd.to_numeric(master_df['audit_group_number'], errors='coerce')
-    my_entries = master_df[(master_df['audit_group_number'] == st.session_state.audit_group_no) & (master_df['mcm_period'] == selected_period)].copy()
-    
-    if my_entries.empty:
-        st.info(f"You have no entries in {selected_period} to delete.")
-        return
-        
-    my_entries['delete_label'] = (
-        "TN: " + my_entries['trade_name'].astype(str).str.slice(0, 25) + "... | " +
-        "Para: " + my_entries['audit_para_number'].astype(str) + " | " +
-        "Date: " + my_entries['record_created_date'].astype(str)
-    )
-    deletable_map = my_entries.set_index('delete_label')['original_index'].to_dict()
-    options = ["--Select an entry--"] + list(deletable_map.keys())
-    selected_label = st.selectbox("Select Entry to Delete:", options=options)
-    
-    if selected_label != "--Select an entry--":
-        index_to_delete = deletable_map.get(selected_label)
-        if index_to_delete is not None:
-            details = master_df.loc[index_to_delete]
-            st.warning(f"Confirm Deletion: **{details['trade_name']}**, Para: **{details['audit_para_number']}**")
-            with st.form(key=f"delete_form_{index_to_delete}"):
-                password = st.text_input("Enter your password to confirm:", type="password")
-                if st.form_submit_button("Yes, Delete This Entry", type="primary"):
-                    if password == USER_CREDENTIALS.get(st.session_state.username):
-                        with st.spinner("Deleting entry..."):
-                            df_after_delete = master_df.drop(index=index_to_delete).drop(columns=['original_index'])
-                            if update_spreadsheet_from_df(dbx, df_after_delete, MCM_DATA_PATH):
-                                st.success("Entry deleted successfully!")
-                                time.sleep(1)
-                                st.rerun()
-                            else:
-                                st.error("Failed to update the data file on Dropbox.")
-                    else:
-                        st.error("Incorrect password.")} {row['year']}" for _, row in all_periods.iterrows()}
     selected_period = st.selectbox("Select MCM Period to View", options=list(period_options_map.keys()))
 
-    if not selected_period: 
-        return
+    if not selected_period: return
 
     with st.spinner("Loading your uploaded reports..."):
         df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
@@ -539,13 +454,50 @@ def delete_entries_tab(dbx):
     """Renders the 'Delete My DAR Entries' tab with fixed logic."""
     st.markdown("<h3>Delete My Uploaded DAR Entries</h3>", unsafe_allow_html=True)
     st.error("⚠️ **Warning:** This action is permanent and cannot be undone.")
-    
     all_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
     if all_periods.empty:
         st.warning("Could not load period information.")
         return
-        
-    period_options_map = {f"{row['month_name']} {row['year']}": f"{row['month_name'
+    period_options_map = {f"{row['month_name']} {row['year']}": f"{row['month_name']} {row['year']}" for _, row in all_periods.iterrows()}
+    selected_period = st.selectbox("Select MCM Period to Manage", options=list(period_options_map.keys()))
+    if not selected_period: return
+    master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+    if master_df.empty:
+        st.info("Master data file is empty. Nothing to delete.")
+        return
+    master_df['original_index'] = master_df.index
+    master_df['audit_group_number'] = pd.to_numeric(master_df['audit_group_number'], errors='coerce')
+    my_entries = master_df[(master_df['audit_group_number'] == st.session_state.audit_group_no) & (master_df['mcm_period'] == selected_period)].copy()
+    if my_entries.empty:
+        st.info(f"You have no entries in {selected_period} to delete.")
+        return
+    my_entries['delete_label'] = (
+        "TN: " + my_entries['trade_name'].astype(str).str.slice(0, 25) + "... | " +
+        "Para: " + my_entries['audit_para_number'].astype(str) + " | " +
+        "Date: " + my_entries['record_created_date'].astype(str)
+    )
+    deletable_map = my_entries.set_index('delete_label')['original_index'].to_dict()
+    options = ["--Select an entry--"] + list(deletable_map.keys())
+    selected_label = st.selectbox("Select Entry to Delete:", options=options)
+    if selected_label != "--Select an entry--":
+        index_to_delete = deletable_map.get(selected_label)
+        if index_to_delete is not None:
+            details = master_df.loc[index_to_delete]
+            st.warning(f"Confirm Deletion: **{details['trade_name']}**, Para: **{details['audit_para_number']}**")
+            with st.form(key=f"delete_form_{index_to_delete}"):
+                password = st.text_input("Enter your password to confirm:", type="password")
+                if st.form_submit_button("Yes, Delete This Entry", type="primary"):
+                    if password == USER_CREDENTIALS.get(st.session_state.username):
+                        with st.spinner("Deleting entry..."):
+                            df_after_delete = master_df.drop(index=index_to_delete).drop(columns=['original_index'])
+                            if update_spreadsheet_from_df(dbx, df_after_delete, MCM_DATA_PATH):
+                                st.success("Entry deleted successfully!")
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.error("Failed to update the data file on Dropbox.")
+                    else:
+                        st.error("Incorrect password.")
 # import streamlit as st
 # import pandas as pd
 # import datetime
