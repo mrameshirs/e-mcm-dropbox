@@ -148,8 +148,8 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
         {{
           "audit_para_number": "integer or null (e.g., 'Para-1' becomes 1)",
           "audit_para_heading": "string or null (title of the para)",
-          "revenue_involved_rs": "float or null (Value MUST be in RUPEES)",
-          "revenue_recovered_rs": "float or null (Value MUST be in RUPEES)",
+          "revenue_involved_rs": "float or null ( in RUPEES)",
+          "revenue_recovered_rs": "float or null ( in RUPEES)",
           "status_of_para": "string or null ('Agreed and Paid', 'Agreed yet to pay', 'Partially agreed and paid', 'Partially agreed, yet to pay', 'Not agreed')"
         }}
       ],
@@ -161,7 +161,7 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
     2.  Taxpayer Classification: Identify the taxpayer nature of business /activity/profile /serivce or goods provided  and Select the best fit for 'taxpayer_classification' from the provided list.
     3.  Risk Flags: Find all risk parameter codes mentioned, which look like P1, P2, P3... P34. Ignore any numbers in parentheses like P1(1). Collect only the codes (e.g., "P1").
     #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts in the text. These amounts are often written as 'Rs. X,XX,XXX' or 'in Rupees'. Extract ONLY the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**.
-    4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts mentioned after the audit para headings in the text.Convert into the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**
+    #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts mentioned after the audit para headings in the text.Convert into the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**
     5.  If a value is not found, use null. All monetary values must be numbers (float).
     6.  The 'audit_paras' list should contain one object per para. If none found, provide an empty list [].
 
