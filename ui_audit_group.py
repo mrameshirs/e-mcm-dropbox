@@ -159,6 +159,211 @@ def audit_group_dashboard(dbx):
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+# def upload_dar_tab(dbx, active_periods, api_key):
+#     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
+#     if not active_periods:
+#         st.warning("No active MCM periods available.")
+#         return
+#     period_options_disp_map = {k: f"{v.get('month_name')} {v.get('year')}" for k, v in sorted(active_periods.items(), key=lambda x: x[0], reverse=True)}
+#     period_select_map_rev = {v: k for k, v in period_options_disp_map.items()}
+#     selected_period_str = st.selectbox(
+#         "Select Active MCM Period", options=list(period_select_map_rev.keys()),
+#         key=f"ag_mcm_sel_uploader_{st.session_state.ag_uploader_key_suffix}"
+#     )
+#     if not selected_period_str: return
+#     new_mcm_key = period_select_map_rev[selected_period_str]
+#     if st.session_state.ag_current_mcm_key != new_mcm_key:
+#         st.session_state.ag_current_mcm_key = new_mcm_key
+#         reset_ag_states(clear_file=True) # Clear everything including the file
+#         st.session_state.ag_uploader_key_suffix += 1
+#         st.rerun()
+
+#     mcm_info_current = active_periods[st.session_state.ag_current_mcm_key]
+#     st.info(f"Uploading for: {mcm_info_current['month_name']} {mcm_info_current['year']}")
+#     uploaded_file = st.file_uploader(
+#         "Choose DAR PDF", type="pdf",
+#         key=f"ag_uploader_main_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_uploader_key_suffix}"
+#     )
+#     # FIX: Correct logic to set file and reset data (not the file itself)
+#     if uploaded_file and (st.session_state.ag_current_uploaded_file_name != uploaded_file.name):
+#         st.session_state.ag_current_uploaded_file_obj = uploaded_file
+#         st.session_state.ag_current_uploaded_file_name = uploaded_file.name
+#         reset_ag_states(clear_file=False) # Reset only the data, not the file object
+#         st.rerun()
+
+#     if st.session_state.ag_current_uploaded_file_obj and st.button("Extract Data", use_container_width=True):
+#         progress_bar = st.progress(0, text="Starting process...")
+        
+#         pdf_bytes = st.session_state.ag_current_uploaded_file_obj.getvalue()
+
+#         progress_bar.progress(10, text="▶️ Stage 1/4: Uploading PDF to Dropbox...")
+#         dar_filename_on_dropbox = f"AG{st.session_state.audit_group_no}_{st.session_state.ag_current_uploaded_file_name}"
+#         pdf_dropbox_path = f"{DAR_PDFS_PATH}/{dar_filename_on_dropbox}"
+#         if not upload_file(dbx, pdf_bytes, pdf_dropbox_path):
+#             st.error("❌ Failed: Could not upload PDF to Dropbox.")
+#             st.stop()
+#         st.session_state.ag_pdf_dropbox_path = pdf_dropbox_path
+
+#         progress_bar.progress(25, text="▶️ Stage 2/4: Pre-processing PDF content...")
+#         preprocessed_text = preprocess_pdf_text(BytesIO(pdf_bytes))
+#         if preprocessed_text.startswith("Error"):
+#             st.error(f"❌ Failed: {preprocessed_text}")
+#             st.stop()
+        
+#         progress_bar.progress(50, text="▶️ Stage 3/4: Extracting with AI (it may take less than 2 min.. pls wait)")
+#         parsed_data = get_structured_data_from_llm(preprocessed_text)
+#         if parsed_data.parsing_errors:
+#             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
+        
+#         progress_bar.progress(75, text="▶️ Stage 4/4: Formatting data for review...")
+#         header_dict = parsed_data.header.model_dump() if parsed_data.header else {}
+#         st.session_state.ag_raw_taxpayer_classification = header_dict.get("taxpayer_classification")
+#         extracted_risk_flags = header_dict.get("risk_flags") or []
+#         st.session_state.ag_risk_flags_data = [{"risk_flag": flag, "paras": []} for flag in extracted_risk_flags]
+        
+#         base_info = {"audit_group_number": st.session_state.audit_group_no, "audit_circle_number": calculate_audit_circle(st.session_state.audit_group_no),
+#                      "gstin": header_dict.get("gstin"), "trade_name": header_dict.get("trade_name"), "category": header_dict.get("category"),
+#                      "total_amount_detected_overall_rs": header_dict.get("total_amount_detected_overall_rs"),
+#                      "total_amount_recovered_overall_rs": header_dict.get("total_amount_recovered_overall_rs")}
+#         temp_list_for_df = []
+#         if parsed_data.audit_paras:
+#             for para_obj in parsed_data.audit_paras:
+#                 temp_list_for_df.append({**base_info, **para_obj.model_dump()})
+#         elif base_info.get("trade_name"):
+#             temp_list_for_df.append({**base_info, "audit_para_heading": "N/A - Header Info Only"})
+#         else:
+#             temp_list_for_df.append({**base_info, "audit_para_heading": "Manual Entry Required"})
+#             st.error("AI failed to extract key information.")
+        
+#         df_extracted = pd.DataFrame(temp_list_for_df)
+#         for col in DISPLAY_COLUMN_ORDER_EDITOR:
+#             if col not in df_extracted.columns: df_extracted[col] = None
+#         st.session_state.ag_editor_data = df_extracted[DISPLAY_COLUMN_ORDER_EDITOR]
+        
+#         progress_bar.empty()
+#         st.success("✅ Extraction complete. Data is ready for review below.")
+#         time.sleep(1)
+#         st.rerun()
+
+#     if not st.session_state.ag_editor_data.empty:
+#         st.markdown("<h4>Review and Edit Extracted Data:</h4>", unsafe_allow_html=True)
+        
+#         st.selectbox(
+#             "Taxpayer Classification",
+#             options=[None] + TAXPAYER_CLASSIFICATION_OPTIONS,
+#             index=(TAXPAYER_CLASSIFICATION_OPTIONS.index(st.session_state.ag_raw_taxpayer_classification) + 1) if st.session_state.ag_raw_taxpayer_classification in TAXPAYER_CLASSIFICATION_OPTIONS else 0,
+#             key='ag_taxpayer_classification'
+#         )
+
+#         if st.session_state.ag_raw_taxpayer_classification:
+#             st.caption(f"AI Extracted Value: {st.session_state.ag_raw_taxpayer_classification}")
+
+#         col_conf = { "audit_group_number": st.column_config.NumberColumn("Group No.", disabled=True), "audit_circle_number": st.column_config.NumberColumn("Circle No.", disabled=True),
+#                      "gstin": st.column_config.TextColumn("GSTIN", width="medium"), "trade_name": st.column_config.TextColumn("Trade Name", width="large"),
+#                      "category": st.column_config.SelectboxColumn("Category", options=[None] + VALID_CATEGORIES, width="small"),
+#                      "total_amount_detected_overall_rs": st.column_config.NumberColumn("Total Detect (₹)", format="%.2f"),
+#                      "total_amount_recovered_overall_rs": st.column_config.NumberColumn("Total Recover (₹)", format="%.2f"),
+#                      "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d", width="small"),
+#                      "audit_para_heading": st.column_config.TextColumn("Para Heading", width="xlarge"),
+#                      "revenue_involved_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="%.2f"),
+#                      "revenue_recovered_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="%.2f"),
+#                      "status_of_para": st.column_config.SelectboxColumn("Para Status", options=[None] + VALID_PARA_STATUSES, width="medium") }
+#         editor_key = f"data_editor_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_current_uploaded_file_name or 'no_file'}"
+#         edited_df = st.data_editor(st.session_state.ag_editor_data, column_config=col_conf, num_rows="dynamic", key=editor_key,
+#                                    use_container_width=True, hide_index=True, height=min(len(st.session_state.ag_editor_data) * 45 + 70, 450))
+
+#         st.markdown("<hr>", unsafe_allow_html=True)
+#         st.markdown("<h4>Manage Risk Flags:</h4>", unsafe_allow_html=True)
+#         st.checkbox("No risk flags available for this Taxpayer", key='ag_no_risk_flags')
+
+#         if not st.session_state.get('ag_no_risk_flags', False):
+#             valid_para_numbers = pd.to_numeric(pd.DataFrame(edited_df)['audit_para_number'], errors='coerce').dropna().astype(int).unique().tolist()
+            
+#             risk_container = st.container()
+#             with risk_container:
+#                 for i, risk_item in enumerate(st.session_state.ag_risk_flags_data):
+#                     cols = st.columns([2, 5, 4, 1])
+#                     with cols[0]: st.text(risk_item['risk_flag'])
+#                     with cols[1]: st.caption(GST_RISK_PARAMETERS.get(risk_item['risk_flag'], "Unknown Description"))
+#                     with cols[2]:
+#                         selected_paras = st.multiselect( "Link to Para(s)", options=valid_para_numbers, default=risk_item['paras'], key=f"risk_{i}_paras", label_visibility="collapsed")
+#                         st.session_state.ag_risk_flags_data[i]['paras'] = selected_paras
+#                     with cols[3]:
+#                         if st.button("🗑️", key=f"del_risk_{i}", help="Remove this risk flag"):
+#                             st.session_state.ag_risk_flags_data.pop(i)
+#                             st.rerun()
+
+#                 st.markdown("---")
+#                 add_cols = st.columns([3, 1])
+#                 with add_cols[0]: new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
+#                 with add_cols[1]:
+#                     st.markdown("<br>", unsafe_allow_html=True)
+#                     if st.button("Add Flag", use_container_width=True):
+#                         if new_risk_flag and not any(d['risk_flag'] == new_risk_flag for d in st.session_state.ag_risk_flags_data):
+#                             st.session_state.ag_risk_flags_data.append({"risk_flag": new_risk_flag, "paras": []})
+#                             st.rerun()
+#                         elif not new_risk_flag: st.warning("Please select a risk flag to add.")
+#                         else: st.warning(f"Risk flag '{new_risk_flag}' is already in the list.")
+
+#         st.markdown("<hr>", unsafe_allow_html=True)
+#         if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
+#             submit_status_area = st.empty()
+#             submit_status_area.info("▶️ Step 1/5: Cleaning and validating data...")
+#             df_to_submit = pd.DataFrame(edited_df).dropna(how='all').reset_index(drop=True)
+            
+#             if df_to_submit.empty:
+#                 submit_status_area.error("❌ Submission Failed: No data found in the editor.")
+#                 return
+
+#             df_to_submit['audit_group_number'] = st.session_state.audit_group_no
+#             df_to_submit['audit_circle_number'] = calculate_audit_circle(st.session_state.audit_group_no)
+#             df_to_submit['taxpayer_classification'] = st.session_state.get('ag_taxpayer_classification')
+
+#             validation_errors = validate_data_for_sheet(df_to_submit, st.session_state.ag_risk_flags_data, st.session_state.get('ag_no_risk_flags', False))
+#             if validation_errors:
+#                 submit_status_area.empty()
+#                 st.error("Validation Failed! Please correct the following errors:")
+#                 for err in validation_errors: st.warning(f"- {err}")
+#                 return
+
+#             submit_status_area.info("✅ Step 1/5: Validation successful. \n\n▶️ Step 2/5: Classifying audit paras with AI...")
+#             headings_to_classify = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
+#             if headings_to_classify:
+#                 classifications, class_error = get_para_classifications_from_llm(headings_to_classify)
+#                 if class_error:
+#                     st.error(f"AI Classification Failed: {class_error}")
+#                     if not classifications: st.stop()
+#                     st.warning("Classification was partial. Proceeding with available data.")
+                
+#                 para_rows = df_to_submit['audit_para_number'].notna()
+#                 df_to_submit.loc[para_rows, 'para_classification_code'] = classifications[:len(df_to_submit[para_rows])]
+
+#             submit_status_area.info("✅ Step 2/5: AI classification complete. \n\n▶️ Step 3/5: Reading master data file...")
+#             master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+            
+#             submit_status_area.info("✅ Step 3/5: Master file read. \n\n▶️ Step 4/5: Preparing final data...")
+#             df_to_submit['mcm_period'] = selected_period_str
+#             df_to_submit['dar_pdf_path'] = st.session_state.ag_pdf_dropbox_path
+#             df_to_submit['record_created_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+#             risk_json = json.dumps(st.session_state.ag_risk_flags_data) if not st.session_state.get('ag_no_risk_flags', False) else None
+#             df_to_submit['risk_flags_data'] = pd.Series([risk_json] + [None] * (len(df_to_submit) - 1))
+
+#             for col in SHEET_DATA_COLUMNS_ORDER:
+#                 if col not in master_df.columns: master_df[col] = pd.NA
+#                 if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
+
+#             submit_status_area.info("✅ Step 4/5: Data prepared. \n\n▶️ Step 5/5: Saving updated data to Dropbox...")
+#             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
+#             if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
+#                 submit_status_area.success("✅ Submission complete! Data saved successfully.")
+#                 st.balloons()
+#                 time.sleep(2)
+#                 reset_ag_states(clear_file=True)
+#                 st.session_state.ag_uploader_key_suffix += 1
+#                 st.rerun()
+#             else:
+#                 st.error("❌ Step 5/5 Failed: Could not save updated data to Dropbox.")
 def upload_dar_tab(dbx, active_periods, api_key):
     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
     if not active_periods:
@@ -248,15 +453,23 @@ def upload_dar_tab(dbx, active_periods, api_key):
     if not st.session_state.ag_editor_data.empty:
         st.markdown("<h4>Review and Edit Extracted Data:</h4>", unsafe_allow_html=True)
         
+        # Initialize default index for taxpayer classification
+        default_index = 0
+        if st.session_state.ag_raw_taxpayer_classification and st.session_state.ag_raw_taxpayer_classification in TAXPAYER_CLASSIFICATION_OPTIONS:
+            default_index = TAXPAYER_CLASSIFICATION_OPTIONS.index(st.session_state.ag_raw_taxpayer_classification) + 1
+        
         st.selectbox(
             "Taxpayer Classification",
             options=[None] + TAXPAYER_CLASSIFICATION_OPTIONS,
-            index=(TAXPAYER_CLASSIFICATION_OPTIONS.index(st.session_state.ag_raw_taxpayer_classification) + 1) if st.session_state.ag_raw_taxpayer_classification in TAXPAYER_CLASSIFICATION_OPTIONS else 0,
+            index=default_index,
             key='ag_taxpayer_classification'
         )
 
+        # Always show the AI extracted value if it exists
         if st.session_state.ag_raw_taxpayer_classification:
             st.caption(f"AI Extracted Value: {st.session_state.ag_raw_taxpayer_classification}")
+        else:
+            st.caption("AI Extracted Value: Not detected")
 
         col_conf = { "audit_group_number": st.column_config.NumberColumn("Group No.", disabled=True), "audit_circle_number": st.column_config.NumberColumn("Circle No.", disabled=True),
                      "gstin": st.column_config.TextColumn("GSTIN", width="medium"), "trade_name": st.column_config.TextColumn("Trade Name", width="large"),
@@ -328,6 +541,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
 
             submit_status_area.info("✅ Step 1/5: Validation successful. \n\n▶️ Step 2/5: Classifying audit paras with AI...")
             headings_to_classify = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
+            classifications = []
             if headings_to_classify:
                 classifications, class_error = get_para_classifications_from_llm(headings_to_classify)
                 if class_error:
@@ -357,15 +571,27 @@ def upload_dar_tab(dbx, active_periods, api_key):
             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
             if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
                 submit_status_area.success("✅ Submission complete! Data saved successfully.")
+                
+                # Display classification results after successful submission
+                if classifications:
+                    st.markdown("<h4>🎯 AI Classification Results:</h4>", unsafe_allow_html=True)
+                    para_headings = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
+                    for i, (heading, classification) in enumerate(zip(para_headings, classifications)):
+                        if classification:
+                            st.success(f"**Para {i+1}:** {heading[:50]}{'...' if len(heading) > 50 else ''}")
+                            st.caption(f"📋 Classification Code: **{classification}**")
+                        else:
+                            st.warning(f"**Para {i+1}:** {heading[:50]}{'...' if len(heading) > 50 else ''}")
+                            st.caption("📋 Classification Code: **Not classified**")
+                    st.markdown("---")
+                
                 st.balloons()
-                time.sleep(2)
+                time.sleep(3)  # Give user time to see the classification results
                 reset_ag_states(clear_file=True)
                 st.session_state.ag_uploader_key_suffix += 1
                 st.rerun()
             else:
                 st.error("❌ Step 5/5 Failed: Could not save updated data to Dropbox.")
-
-
 def view_uploads_tab(dbx):
     """Renders the 'View My Uploaded DARs' tab using Streamlit's native st.dataframe."""
     st.markdown("<h3>My Uploaded DARs</h3>", unsafe_allow_html=True)
