@@ -292,7 +292,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             if not master_df.empty and 'gstin' in master_df.columns and 'mcm_period' in master_df.columns:
                 is_duplicate = not master_df[(master_df['gstin'] == current_gstin) & (master_df['mcm_period'] == selected_period_str)].empty
                 if is_duplicate:
-                    status_area.error(f"❌ Submission Failed: A DAR for GSTIN {current_gstin} has already been submitted for {selected_period_str}.")
+                    status_area.error(f"❌ Submission Failed: A DAR for GSTIN {current_gstin} has already been submitted for {selected_period_str}.First Delete the entries if u want to re-upload!")
                     return
 
             status_area.info("✅ Step 2/7: No duplicates found. \n\n▶️ Step 3/7: Uploading PDF...")
