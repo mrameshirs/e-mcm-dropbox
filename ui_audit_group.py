@@ -141,7 +141,6 @@ def audit_group_dashboard(dbx):
         delete_entries_tab(dbx)
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 def upload_dar_tab(dbx, active_periods, api_key):
     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
     if not active_periods:
@@ -272,7 +271,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
         st.markdown("<hr>", unsafe_allow_html=True)
         if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
             status_area = st.empty()
-            status_area.info("▶️ Step 1/6: Validating data...")
+            status_area.info("▶️ Step 1/7: Validating data...")
             df_to_submit = pd.DataFrame(edited_df).dropna(how='all').reset_index(drop=True)
             if df_to_submit.empty:
                 status_area.error("❌ Validation Failed: No data to submit.")
@@ -287,14 +286,23 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 for err in errors: st.warning(f"- {err}")
                 return
 
-            status_area.info("✅ Step 1/6: Validation successful. \n\n▶️ Step 2/6: Uploading PDF...")
+            status_area.info("✅ Step 1/7: Validation successful. \n\n▶️ Step 2/7: Checking for duplicates...")
+            master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+            current_gstin = df_to_submit['gstin'].iloc[0]
+            if not master_df.empty and 'gstin' in master_df.columns and 'mcm_period' in master_df.columns:
+                is_duplicate = not master_df[(master_df['gstin'] == current_gstin) & (master_df['mcm_period'] == selected_period_str)].empty
+                if is_duplicate:
+                    status_area.error(f"❌ Submission Failed: A DAR for GSTIN {current_gstin} has already been submitted for {selected_period_str}.")
+                    return
+
+            status_area.info("✅ Step 2/7: No duplicates found. \n\n▶️ Step 3/7: Uploading PDF...")
             dar_filename = f"AG{st.session_state.audit_group_no}_{st.session_state.ag_current_uploaded_file_name}"
             pdf_path = f"{DAR_PDFS_PATH}/{dar_filename}"
             if not upload_file(dbx, st.session_state.ag_pdf_bytes, pdf_path):
                 status_area.error("❌ Submission Failed: Could not upload PDF.")
                 return
             
-            status_area.info("✅ Step 2/6: PDF uploaded. \n\n▶️ Step 3/6: Classifying paras with AI...")
+            status_area.info("✅ Step 3/7: PDF uploaded. \n\n▶️ Step 4/7: Classifying paras with AI...")
             headings = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
             if headings:
                 classifications, class_error = get_para_classifications_from_llm(headings)
@@ -305,10 +313,10 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 para_rows = df_to_submit['audit_para_number'].notna()
                 df_to_submit.loc[para_rows, 'para_classification_code'] = classifications[:len(df_to_submit[para_rows])]
 
-            status_area.info("✅ Step 3/6: Classification complete. \n\n▶️ Step 4/6: Reading master data...")
+            status_area.info("✅ Step 4/7: Classification complete. \n\n▶️ Step 5/7: Reading master data (final check)...")
             master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
             
-            status_area.info("✅ Step 4/6: Master data read. \n\n▶️ Step 5/6: Preparing final data...")
+            status_area.info("✅ Step 5/7: Master data read. \n\n▶️ Step 6/7: Preparing final data...")
             df_to_submit['mcm_period'] = selected_period_str
             df_to_submit['dar_pdf_path'] = pdf_path
             df_to_submit['record_created_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -318,7 +326,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 if col not in master_df.columns: master_df[col] = pd.NA
                 if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
 
-            status_area.info("✅ Step 5/6: Data prepared. \n\n▶️ Step 6/6: Saving to Dropbox...")
+            status_area.info("✅ Step 6/7: Data prepared. \n\n▶️ Step 7/7: Saving to Dropbox...")
             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
             if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
                 status_area.success("✅ Submission complete! Data saved successfully.")
@@ -328,7 +336,194 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 st.session_state.ag_uploader_key_suffix += 1
                 st.rerun()
             else:
-                status_area.error("❌ Step 6/6 Failed: Could not save data.")
+                status_area.error("❌ Step 7/7 Failed: Could not save data.")
+# def upload_dar_tab(dbx, active_periods, api_key):
+#     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
+#     if not active_periods:
+#         st.warning("No active MCM periods available.")
+#         return
+#     period_options_disp_map = {k: f"{v.get('month_name')} {v.get('year')}" for k, v in sorted(active_periods.items(), key=lambda x: x[0], reverse=True)}
+#     period_select_map_rev = {v: k for k, v in period_options_disp_map.items()}
+#     selected_period_str = st.selectbox(
+#         "Select Active MCM Period", options=list(period_select_map_rev.keys()),
+#         key=f"ag_mcm_sel_uploader_{st.session_state.ag_uploader_key_suffix}"
+#     )
+#     if not selected_period_str: return
+#     new_mcm_key = period_select_map_rev[selected_period_str]
+#     if st.session_state.ag_current_mcm_key != new_mcm_key:
+#         st.session_state.ag_current_mcm_key = new_mcm_key
+#         reset_ag_states(clear_file=True)
+#         st.session_state.ag_uploader_key_suffix += 1
+#         st.rerun()
+
+#     mcm_info_current = active_periods[st.session_state.ag_current_mcm_key]
+#     st.info(f"Uploading for: {mcm_info_current['month_name']} {mcm_info_current['year']}")
+#     uploaded_file = st.file_uploader(
+#         "Choose DAR PDF", type="pdf",
+#         key=f"ag_uploader_main_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_uploader_key_suffix}"
+#     )
+#     if uploaded_file and (st.session_state.ag_current_uploaded_file_name != uploaded_file.name):
+#         st.session_state.ag_current_uploaded_file_obj = uploaded_file
+#         st.session_state.ag_current_uploaded_file_name = uploaded_file.name
+#         reset_ag_states(clear_file=False)
+#         st.rerun()
+
+#     if st.session_state.ag_current_uploaded_file_obj and st.button("Extract Data", use_container_width=True):
+#         progress_bar = st.progress(0, text="Starting process...")
+#         pdf_bytes = st.session_state.ag_current_uploaded_file_obj.getvalue()
+#         st.session_state.ag_pdf_bytes = pdf_bytes
+#         progress_bar.progress(33, text="▶️ Stage 1/3: Pre-processing PDF content...")
+#         preprocessed_text = preprocess_pdf_text(BytesIO(pdf_bytes))
+#         if preprocessed_text.startswith("Error"):
+#             st.error(f"❌ Failed: {preprocessed_text}")
+#             st.stop()
+        
+#         progress_bar.progress(66, text="▶️ Stage 2/3: Extracting with AI...")
+#         parsed_data = get_structured_data_from_llm(preprocessed_text)
+#         if parsed_data.parsing_errors:
+#             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
+        
+#         progress_bar.progress(90, text="▶️ Stage 3/3: Formatting data for review...")
+#         header_dict = parsed_data.header.model_dump() if parsed_data.header else {}
+#         st.session_state.ag_raw_taxpayer_classification = header_dict.get("taxpayer_classification")
+#         extracted_risk_flags = header_dict.get("risk_flags") or []
+#         st.session_state.ag_risk_flags_data = [{"risk_flag": flag, "paras": []} for flag in extracted_risk_flags]
+        
+#         base_info = {"audit_group_number": st.session_state.audit_group_no, "audit_circle_number": calculate_audit_circle(st.session_state.audit_group_no),
+#                      "gstin": header_dict.get("gstin"), "trade_name": header_dict.get("trade_name"), "category": header_dict.get("category"),
+#                      "total_amount_detected_overall_rs": header_dict.get("total_amount_detected_overall_rs"),
+#                      "total_amount_recovered_overall_rs": header_dict.get("total_amount_recovered_overall_rs")}
+#         temp_list_for_df = []
+#         if parsed_data.audit_paras:
+#             for para_obj in parsed_data.audit_paras: temp_list_for_df.append({**base_info, **para_obj.model_dump()})
+#         elif base_info.get("trade_name"):
+#             temp_list_for_df.append({**base_info, "audit_para_heading": "N/A - Header Info Only"})
+#         else:
+#             temp_list_for_df.append({**base_info, "audit_para_heading": "Manual Entry Required"})
+#             st.error("AI failed to extract key information.")
+        
+#         df_extracted = pd.DataFrame(temp_list_for_df)
+#         for col in DISPLAY_COLUMN_ORDER_EDITOR:
+#             if col not in df_extracted.columns: df_extracted[col] = None
+#         st.session_state.ag_editor_data = df_extracted[DISPLAY_COLUMN_ORDER_EDITOR]
+        
+#         progress_bar.empty()
+#         st.success("✅ Extraction complete. Data is ready for review below.")
+#         time.sleep(1)
+#         st.rerun()
+
+#     if not st.session_state.ag_editor_data.empty:
+#         st.markdown("<h4>Review and Edit Extracted Data:</h4>", unsafe_allow_html=True)
+#         st.selectbox( "Taxpayer Classification", options=[None] + TAXPAYER_CLASSIFICATION_OPTIONS,
+#             index=(TAXPAYER_CLASSIFICATION_OPTIONS.index(st.session_state.ag_raw_taxpayer_classification) + 1) if st.session_state.ag_raw_taxpayer_classification in TAXPAYER_CLASSIFICATION_OPTIONS else 0,
+#             key='ag_taxpayer_classification'
+#         )
+#         if st.session_state.ag_raw_taxpayer_classification:
+#             st.caption(f"AI Extracted Value: {st.session_state.ag_raw_taxpayer_classification}")
+
+#         col_conf = { "audit_group_number": st.column_config.NumberColumn("Group No.", disabled=True), "audit_circle_number": st.column_config.NumberColumn("Circle No.", disabled=True),
+#                      "gstin": st.column_config.TextColumn("GSTIN"), "trade_name": st.column_config.TextColumn("Trade Name"),
+#                      "category": st.column_config.SelectboxColumn("Category", options=[None] + VALID_CATEGORIES),
+#                      "total_amount_detected_overall_rs": st.column_config.NumberColumn("Total Detect (₹)", format="%.2f"),
+#                      "total_amount_recovered_overall_rs": st.column_config.NumberColumn("Total Recover (₹)", format="%.2f"),
+#                      "audit_para_number": st.column_config.NumberColumn("Para No.", format="%d"),
+#                      "audit_para_heading": st.column_config.TextColumn("Para Heading"),
+#                      "revenue_involved_rs": st.column_config.NumberColumn("Revenue Involved (₹)", format="%.2f"),
+#                      "revenue_recovered_rs": st.column_config.NumberColumn("Revenue Recovered (₹)", format="%.2f"),
+#                      "status_of_para": st.column_config.SelectboxColumn("Para Status", options=[None] + VALID_PARA_STATUSES) }
+#         editor_key = f"data_editor_{st.session_state.ag_current_mcm_key}_{st.session_state.ag_current_uploaded_file_name or 'no_file'}"
+#         edited_df = st.data_editor(st.session_state.ag_editor_data, column_config=col_conf, num_rows="dynamic", key=editor_key, use_container_width=True, hide_index=True)
+
+#         st.markdown("<hr>", unsafe_allow_html=True)
+#         st.markdown("<h4>Manage Risk Flags:</h4>", unsafe_allow_html=True)
+#         st.checkbox("No risk flags available for this Taxpayer", key='ag_no_risk_flags')
+
+#         if not st.session_state.get('ag_no_risk_flags', False):
+#             valid_para_numbers = pd.to_numeric(pd.DataFrame(edited_df)['audit_para_number'], errors='coerce').dropna().astype(int).unique().tolist()
+#             with st.container():
+#                 for i, risk_item in enumerate(st.session_state.ag_risk_flags_data):
+#                     cols = st.columns([2, 5, 4, 1])
+#                     with cols[0]: st.text(risk_item['risk_flag'])
+#                     with cols[1]: st.caption(GST_RISK_PARAMETERS.get(risk_item['risk_flag'], "Unknown"))
+#                     with cols[2]:
+#                         selected_paras = st.multiselect("Link to Para(s)", options=valid_para_numbers, default=risk_item['paras'], key=f"risk_{i}_paras", label_visibility="collapsed")
+#                         st.session_state.ag_risk_flags_data[i]['paras'] = selected_paras
+#                     with cols[3]:
+#                         if st.button("🗑️", key=f"del_risk_{i}", help="Remove flag"):
+#                             st.session_state.ag_risk_flags_data.pop(i)
+#                             st.rerun()
+#                 st.markdown("---")
+#                 add_cols = st.columns([3, 1])
+#                 with add_cols[0]: new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
+#                 with add_cols[1]:
+#                     st.markdown("<br>", unsafe_allow_html=True)
+#                     if st.button("Add Flag", use_container_width=True):
+#                         if new_risk_flag and not any(d['risk_flag'] == new_risk_flag for d in st.session_state.ag_risk_flags_data):
+#                             st.session_state.ag_risk_flags_data.append({"risk_flag": new_risk_flag, "paras": []})
+#                             st.rerun()
+#                         elif not new_risk_flag: st.warning("Please select a flag.")
+#                         else: st.warning(f"Flag '{new_risk_flag}' already added.")
+
+#         st.markdown("<hr>", unsafe_allow_html=True)
+#         if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
+#             status_area = st.empty()
+#             status_area.info("▶️ Step 1/6: Validating data...")
+#             df_to_submit = pd.DataFrame(edited_df).dropna(how='all').reset_index(drop=True)
+#             if df_to_submit.empty:
+#                 status_area.error("❌ Validation Failed: No data to submit.")
+#                 return
+#             df_to_submit['audit_group_number'] = st.session_state.audit_group_no
+#             df_to_submit['audit_circle_number'] = calculate_audit_circle(st.session_state.audit_group_no)
+#             df_to_submit['taxpayer_classification'] = st.session_state.get('ag_taxpayer_classification')
+#             errors = validate_data_for_sheet(df_to_submit, st.session_state.ag_risk_flags_data, st.session_state.get('ag_no_risk_flags', False))
+#             if errors:
+#                 status_area.empty()
+#                 st.error("Validation Failed! Please correct the following errors:")
+#                 for err in errors: st.warning(f"- {err}")
+#                 return
+
+#             status_area.info("✅ Step 1/6: Validation successful. \n\n▶️ Step 2/6: Uploading PDF...")
+#             dar_filename = f"AG{st.session_state.audit_group_no}_{st.session_state.ag_current_uploaded_file_name}"
+#             pdf_path = f"{DAR_PDFS_PATH}/{dar_filename}"
+#             if not upload_file(dbx, st.session_state.ag_pdf_bytes, pdf_path):
+#                 status_area.error("❌ Submission Failed: Could not upload PDF.")
+#                 return
+            
+#             status_area.info("✅ Step 2/6: PDF uploaded. \n\n▶️ Step 3/6: Classifying paras with AI...")
+#             headings = df_to_submit[df_to_submit['audit_para_number'].notna()]['audit_para_heading'].tolist()
+#             if headings:
+#                 classifications, class_error = get_para_classifications_from_llm(headings)
+#                 if class_error:
+#                     st.error(f"AI Classification Failed: {class_error}")
+#                     if not classifications: st.stop()
+#                     st.warning("Proceeding with partial classification.")
+#                 para_rows = df_to_submit['audit_para_number'].notna()
+#                 df_to_submit.loc[para_rows, 'para_classification_code'] = classifications[:len(df_to_submit[para_rows])]
+
+#             status_area.info("✅ Step 3/6: Classification complete. \n\n▶️ Step 4/6: Reading master data...")
+#             master_df = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+            
+#             status_area.info("✅ Step 4/6: Master data read. \n\n▶️ Step 5/6: Preparing final data...")
+#             df_to_submit['mcm_period'] = selected_period_str
+#             df_to_submit['dar_pdf_path'] = pdf_path
+#             df_to_submit['record_created_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#             risk_json = json.dumps(st.session_state.ag_risk_flags_data) if not st.session_state.get('ag_no_risk_flags', False) else None
+#             df_to_submit['risk_flags_data'] = pd.Series([risk_json] + [None] * (len(df_to_submit) - 1))
+#             for col in SHEET_DATA_COLUMNS_ORDER:
+#                 if col not in master_df.columns: master_df[col] = pd.NA
+#                 if col not in df_to_submit.columns: df_to_submit[col] = pd.NA
+
+#             status_area.info("✅ Step 5/6: Data prepared. \n\n▶️ Step 6/6: Saving to Dropbox...")
+#             final_df = pd.concat([master_df, df_to_submit[SHEET_DATA_COLUMNS_ORDER]], ignore_index=True)
+#             if update_spreadsheet_from_df(dbx, final_df, MCM_DATA_PATH):
+#                 status_area.success("✅ Submission complete! Data saved successfully.")
+#                 st.balloons()
+#                 time.sleep(2)
+#                 reset_ag_states(clear_file=True)
+#                 st.session_state.ag_uploader_key_suffix += 1
+#                 st.rerun()
+#             else:
+#                 status_area.error("❌ Step 6/6 Failed: Could not save data.")
 
 
 def view_uploads_tab(dbx):
