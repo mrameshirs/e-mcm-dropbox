@@ -5,7 +5,7 @@ import datetime
 import math
 from io import BytesIO
 import html
-import time
+import time as time_module
 
 # PDF manipulation libraries
 from reportlab.lib.pagesizes import A4
@@ -226,7 +226,7 @@ def mcm_agenda_tab(dbx):
                     
                     if update_spreadsheet_from_df(dbx, df_periods_for_remarks, MCM_PERIODS_INFO_PATH):
                         st.success("Overall remarks saved successfully!")
-                        time.sleep(1)
+                        time_module.sleep(1)
                         st.rerun()
                     else:
                         st.error("Failed to save overall remarks.")
@@ -489,7 +489,7 @@ def mcm_agenda_tab(dbx):
                                     
                                     if success:
                                         st.success("✅ Decisions and remarks saved successfully!")
-                                        time.sleep(1)
+                                        time_module.sleep(1)
                                         st.rerun()
                                     else:
                                         st.error("❌ Failed to save. Check app logs for details.")
@@ -665,8 +665,8 @@ def mcm_agenda_tab(dbx):
                 import traceback
                 st.error(traceback.format_exc())
             finally:
-                import time
-                time.sleep(0.5)  # Brief pause to ensure user sees final status
+                
+                time_module.sleep(0.5)  # Brief pause to ensure user sees final status
                 status_message_area.empty()
                 progress_bar.empty()# # ui_mcm_agenda.py
 # import streamlit as st
