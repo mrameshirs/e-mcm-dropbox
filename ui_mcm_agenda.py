@@ -182,7 +182,55 @@ def mcm_agenda_tab(dbx):
 
     if not selected_period:
         st.info("Please select an MCM period."); return
+    # --- NEW: Overall Remarks Section ---
+    st.markdown("---")
+    with st.container(border=True):
+        st.markdown("<h5>Overall Remarks for the Meeting</h5>", unsafe_allow_html=True)
 
+        df_periods_for_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+        if df_periods_for_remarks is None:
+            df_periods_for_remarks = pd.DataFrame(columns=['key', 'overall_remarks'])
+        
+        if 'overall_remarks' not in df_periods_for_remarks.columns:
+            df_periods_for_remarks['overall_remarks'] = ""
+
+        current_remark = ""
+        period_key_str = selected_period.replace(" ", "_")
+        
+        # Match period using month and year from the selected string
+        month_name, year_val = selected_period.split(" ")
+        year_val = int(year_val)
+        
+        period_row = df_periods_for_remarks[(df_periods_for_remarks['month_name'] == month_name) & (df_periods_for_remarks['year'] == year_val)]
+
+        if not period_row.empty:
+            current_remark = period_row.iloc[0].get('overall_remarks', '')
+            if pd.isna(current_remark):
+                current_remark = ""
+
+        overall_remark_text = st.text_area(
+            "Record any overall remarks or instructions from the chair for this MCM period.",
+            value=current_remark,
+            key=f"overall_remarks_{period_key_str}",
+            height=100
+        )
+
+        if st.button("Save Overall Remarks", key=f"save_overall_remarks_{period_key_str}"):
+            with st.spinner("Saving overall remarks..."):
+                period_indices = df_periods_for_remarks.index[(df_periods_for_remarks['month_name'] == month_name) & (df_periods_for_remarks['year'] == year_val)].tolist()
+                if period_indices:
+                    idx_to_update = period_indices[0]
+                    df_periods_for_remarks.loc[idx_to_update, 'overall_remarks'] = overall_remark_text
+                    
+                    if update_spreadsheet_from_df(dbx, df_periods_for_remarks, MCM_PERIODS_INFO_PATH):
+                        st.success("Overall remarks saved successfully!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("Failed to save overall remarks.")
+                else:
+                    st.error("Could not find the current period in the periods file to save remarks.")
+    # --- END: Overall Remarks Section ---
     month_year_str = selected_period
     st.markdown(f"<h2 style='text-align: center; color: #007bff; font-size: 22pt; margin-bottom:10px;'>MCM Audit Paras for {month_year_str}</h2>", unsafe_allow_html=True)
     st.markdown("---")
@@ -390,17 +438,46 @@ def mcm_agenda_tab(dbx):
                             st.markdown(f"<p style='{recovery_style}'>Total Recovery for {html.escape(trade_name_item)}: ₹ {format_inr(total_overall_recovery)}</p>", unsafe_allow_html=True)
                             
                             st.markdown("<br>", unsafe_allow_html=True)
+                            # --- NEW: Chair's Remarks Section per Trade Name ---
+                            st.markdown(f"<h6 style='font-size:12pt; color:#154360;'>Remarks of Chair for {html.escape(trade_name_item)}</h6>", unsafe_allow_html=True)
+
+                            if 'chair_remarks' not in df_trade_paras_item.columns:
+                                df_trade_paras_item['chair_remarks'] = ""
+
+                            existing_chair_remark = ""
+                            if not df_trade_paras_item.empty:
+                                remark_val = df_trade_paras_item.iloc[0].get('chair_remarks')
+                                if pd.notna(remark_val):
+                                    existing_chair_remark = str(remark_val)
                             
-                            if st.button("Save Decisions", key=f"save_decisions_{trade_name_item}", use_container_width=True, type="primary"):
-                                with st.spinner("Saving decisions..."):
+                            chair_remark_key = f"chair_remark_input_{trade_name_item}_{session_key_selected_trade}"
+                            st.text_area(
+                                "Enter remarks for this assessee:",
+                                value=existing_chair_remark,
+                                key=chair_remark_key,
+                                label_visibility="collapsed",
+                                height=80
+                            )
+                            # --- END: Chair's Remarks Section ---
+                            
+                            if st.button("Save Decisions & Remarks", key=f"save_decisions_{trade_name_item}", use_container_width=True, type="primary"):
+                                with st.spinner("Saving decisions and remarks..."):
+                                    # Ensure columns exist in the main dataframe
                                     if 'mcm_decision' not in st.session_state.df_period_data.columns:
                                         st.session_state.df_period_data['mcm_decision'] = ""
+                                    if 'chair_remarks' not in st.session_state.df_period_data.columns:
+                                        st.session_state.df_period_data['chair_remarks'] = ""
                                     
+                                    new_chair_remark = st.session_state.get(chair_remark_key, "")
+
                                     for index, row in df_trade_paras_item.iterrows():
                                         para_num_str = str(int(row["audit_para_number"])) if pd.notna(row["audit_para_number"]) and row["audit_para_number"] != 0 else "N/A"
                                         decision_key = f"mcm_decision_{trade_name_item}_{para_num_str}_{index}"
                                         selected_decision = st.session_state.get(decision_key, decision_options[0])
+                                        
+                                        # Update both decision and remark in the main session state dataframe
                                         st.session_state.df_period_data.loc[index, 'mcm_decision'] = selected_decision
+                                        st.session_state.df_period_data.loc[index, 'chair_remarks'] = new_chair_remark
                                     
                                     success = update_spreadsheet_from_df(
                                         dbx=dbx,
@@ -409,11 +486,37 @@ def mcm_agenda_tab(dbx):
                                     )
                                     
                                     if success:
-                                        st.success("✅ Decisions saved successfully!")
+                                        st.success("✅ Decisions and remarks saved successfully!")
+                                        time.sleep(1)
+                                        st.rerun()
                                     else:
-                                        st.error("❌ Failed to save decisions. Check app logs for details.")
+                                        st.error("❌ Failed to save. Check app logs for details.")
                             
                             st.markdown("<hr>", unsafe_allow_html=True)
+
+                            # if st.button("Save Decisions", key=f"save_decisions_{trade_name_item}", use_container_width=True, type="primary"):
+                            #     with st.spinner("Saving decisions..."):
+                            #         if 'mcm_decision' not in st.session_state.df_period_data.columns:
+                            #             st.session_state.df_period_data['mcm_decision'] = ""
+                                    
+                            #         for index, row in df_trade_paras_item.iterrows():
+                            #             para_num_str = str(int(row["audit_para_number"])) if pd.notna(row["audit_para_number"]) and row["audit_para_number"] != 0 else "N/A"
+                            #             decision_key = f"mcm_decision_{trade_name_item}_{para_num_str}_{index}"
+                            #             selected_decision = st.session_state.get(decision_key, decision_options[0])
+                            #             st.session_state.df_period_data.loc[index, 'mcm_decision'] = selected_decision
+                                    
+                            #         success = update_spreadsheet_from_df(
+                            #             dbx=dbx,
+                            #             df_to_write=st.session_state.df_period_data,
+                            #             file_path=MCM_DATA_PATH
+                            #         )
+                                    
+                            #         if success:
+                            #             st.success("✅ Decisions saved successfully!")
+                            #         else:
+                            #             st.error("❌ Failed to save decisions. Check app logs for details.")
+                            
+                            # st.markdown("<hr>", unsafe_allow_html=True)
 
     # --- Compile PDF Button ---
     if st.button("Compile Full MCM Agenda PDF", key="compile_mcm_agenda_pdf_final_v4_progress", type="primary", help="Generates a comprehensive PDF.", use_container_width=True):
