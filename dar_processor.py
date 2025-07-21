@@ -117,6 +117,154 @@ def preprocess_pdf_text(pdf_path_or_bytes) -> str:
 #         return ParsedDARReport(parsing_errors=f"An unexpected error occurred during Gemini processing: {e}")
 
 
+# def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
+#     """
+#     Calls the OpenRouter API with the PDF text and parses the response.
+#     This version keeps all monetary values in Rupees as requested.
+#     """
+#     if text_content.startswith("Error processing PDF"):
+#         return ParsedDARReport(parsing_errors=text_content)
+
+#     openrouter_api_key = st.secrets.get("openrouter_api_key", "")
+#     if not openrouter_api_key:
+#         error_msg = "OpenRouter API key not found in Streamlit secrets."
+#         return ParsedDARReport(parsing_errors=error_msg)
+
+#     prompt = f"""
+#     You are an expert GST audit report analyst. Based on the following text from a Departmental Audit Report (DAR),
+#     extract the specified information and structure it as a JSON object.
+
+#     The JSON object should follow this structure precisely:
+#     {{
+#       "header": {{
+#         "audit_group_number": "integer or null (e.g., 'Group-VI' becomes 6)",
+#         "gstin": "string or null", "trade_name": "string or null", "category": "string ('Large', 'Medium', 'Small') or null",
+#         "taxpayer_classification": "string or null. Choose one from the following list: {TAXPAYER_CLASSIFICATION_OPTIONS}",
+#         "total_amount_detected_overall_rs": "float or null (in Rupees)",
+#         "total_amount_recovered_overall_rs": "float or null (in Rupees)",
+#         "risk_flags": "list of strings or null (e.g., ['P1', 'P04', 'P21'])"
+#       }},
+#       "audit_paras": [
+#         {{
+#           "audit_para_number": "integer or null (e.g., 'Para-1' becomes 1)",
+#           "audit_para_heading": "string or null (title of the para)",
+#           "revenue_involved_rs": "float or null ( in RUPEES)",
+#           "revenue_recovered_rs": "float or null ( in RUPEES)",
+#           "status_of_para": "string or null ('Agreed and Paid', 'Agreed yet to pay', 'Partially agreed and paid', 'Partially agreed, yet to pay', 'Not agreed')"
+#         }}
+#       ],
+#       "parsing_errors": "string or null"
+#     }}
+
+#     Key Instructions:
+#     1.  Header Info: Find all header fields.
+#     2.  Taxpayer Classification: Identify the taxpayer nature of business /activity/profile /serivce or goods provided  and Select the best fit for 'taxpayer_classification' from the provided list.
+#     3.  Risk Flags: Find all risk parameter codes mentioned, which look like P1, P2, P3... P34. Ignore any numbers in parentheses like P1(1). Collect only the codes (e.g., "P1").
+#     #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts in the text. These amounts are often written as 'Rs. X,XX,XXX' or 'in Rupees'. Extract ONLY the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**.
+#     #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts mentioned after the audit para headings in the text.Convert into the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**
+#     5.  If a value is not found, use null. All monetary values must be numbers (float).
+#     6.  The 'audit_paras' list should contain one object per para. If none found, provide an empty list [].
+
+#     DAR Text Content:
+#     --- START OF DAR TEXT ---
+#     {text_content}
+#     --- END OF DAR TEXT ---
+
+#     Provide ONLY the JSON object as your response. Do not include any explanatory text before or after the JSON.
+#     """
+
+#     try:
+#         response = requests.post(
+#             url="https://openrouter.ai/api/v1/chat/completions",
+#             headers={
+#                 "Authorization": f"Bearer {openrouter_api_key}",
+#             },
+#             data=json.dumps({
+#                 "model": "deepseek/deepseek-r1:free",
+#                 "messages": [{"role": "user", "content": prompt}]
+#             })
+#         )
+
+#         if response.status_code != 200:
+#             error_message = f"API Error from OpenRouter: {response.status_code} - {response.text}"
+#             return ParsedDARReport(parsing_errors=error_message)
+
+#         response_data = response.json()
+#         content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
+
+#         if content_str.strip().startswith("```json"):
+#             content_str = content_str.strip()[7:-3].strip()
+#         elif content_str.strip().startswith("```"):
+#              content_str = content_str.strip()[3:-3].strip()
+#          # --- ADDED FOR DEBUGGING ---
+#         print("--- RAW LLM RESPONSE (OpenRouter) ---")
+#         print(content_str)
+#         print("--------------------------------------")
+#         # ---------------------------
+
+#         if not content_str:
+#             return ParsedDARReport(parsing_errors="LLM returned an empty response.")
+
+#         json_data = json.loads(content_str)
+#         return ParsedDARReport(**json_data)
+
+#     except requests.exceptions.RequestException as e:
+#         return ParsedDARReport(parsing_errors=f"Network error calling OpenRouter API: {e}")
+#     except json.JSONDecodeError as e:
+#         return ParsedDARReport(parsing_errors=f"LLM output was not valid JSON: {e}. Raw response: {content_str[:500]}...")
+#     except Exception as e:
+#         return ParsedDARReport(parsing_errors=f"An unexpected error occurred: {e}")
+
+# def get_para_classifications_from_llm(audit_para_headings: List[str]) -> (List[str], str):
+#     """
+#     Calls the OpenRouter API to classify a batch of audit para headings.
+#     Returns a tuple: (list_of_codes, error_message_or_none).
+#     """
+#     openrouter_api_key = st.secrets.get("openrouter_api_key", "")
+#     if not openrouter_api_key:
+#         return [], "OpenRouter API key not found."
+
+#     formatted_observations = "\n".join([f"{i+1}. {heading}" for i, heading in enumerate(audit_para_headings)])
+#     user_prompt = f"Here are the audit observations to classify:\n{formatted_observations}"
+
+#     try:
+#         response = requests.post(
+#             url="https://openrouter.ai/api/v1/chat/completions",
+#             headers={"Authorization": f"Bearer {openrouter_api_key}"},
+#             data=json.dumps({
+#                  #"model": "deepseek/deepseek-r1:free",
+#                 "model": "tngtech/deepseek-r1t2-chimera:free",
+#                 "messages": [
+#                     {"role": "system", "content": BATCH_SYSTEM_PROMPT},
+#                     {"role": "user", "content": user_prompt}
+#                 ]
+#             })
+#         )
+
+#         if response.status_code != 200:
+#             return [], f"API Error from OpenRouter: {response.status_code} - {response.text}"
+
+#         response_data = response.json()
+#         content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+
+#         if not content_str:
+#             return [], "LLM returned an empty response for classification."
+
+#         # The prompt asks for a comma-separated list.
+#         classifications = [code.strip() for code in content_str.split(',')]
+
+#         if len(classifications) != len(audit_para_headings):
+#             error_msg = f"Classification count mismatch. Expected {len(audit_para_headings)}, but got {len(classifications)}. Raw response: '{content_str}'"
+#             # Return what we got, along with the error, for debugging.
+#             return classifications, error_msg
+
+#         return classifications, None
+
+#     except requests.exceptions.RequestException as e:
+#         return [], f"Network error during classification: {e}"
+#     except Exception as e:
+#         return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+
 def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
     """
     Calls the OpenRouter API with the PDF text and parses the response.
@@ -192,15 +340,41 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
         response_data = response.json()
         content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
 
+        # --- DISPLAY RAW OUTPUT IN STREAMLIT UI ---
+        st.markdown("### 🔍 **Raw LLM Response Debug**")
+        with st.expander("Click to view raw LLM output", expanded=False):
+            st.text_area(
+                "Raw API Response:",
+                value=content_str,
+                height=300,
+                disabled=True,
+                key=f"raw_output_{hash(content_str[:100])}"
+            )
+        # ----------------------------------------
+
         if content_str.strip().startswith("```json"):
             content_str = content_str.strip()[7:-3].strip()
         elif content_str.strip().startswith("```"):
              content_str = content_str.strip()[3:-3].strip()
-         # --- ADDED FOR DEBUGGING ---
-        print("--- RAW LLM RESPONSE (OpenRouter) ---")
+         
+        # --- ALSO SHOW CLEANED VERSION ---
+        with st.expander("Click to view cleaned JSON", expanded=False):
+            st.text_area(
+                "Cleaned JSON:",
+                value=content_str,
+                height=200,
+                disabled=True,
+                key=f"cleaned_output_{hash(content_str[:100])}"
+            )
+        # --------------------------------
+
+        # --- ADDITIONAL: Print to console (for local development) ---
+        print("=" * 60)
+        print("RAW LLM RESPONSE (OpenRouter)")
+        print("=" * 60)
         print(content_str)
-        print("--------------------------------------")
-        # ---------------------------
+        print("=" * 60)
+        # --------------------------------------------------------
 
         if not content_str:
             return ParsedDARReport(parsing_errors="LLM returned an empty response.")
@@ -214,6 +388,7 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
         return ParsedDARReport(parsing_errors=f"LLM output was not valid JSON: {e}. Raw response: {content_str[:500]}...")
     except Exception as e:
         return ParsedDARReport(parsing_errors=f"An unexpected error occurred: {e}")
+
 
 def get_para_classifications_from_llm(audit_para_headings: List[str]) -> (List[str], str):
     """
@@ -247,6 +422,26 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> (List[s
         response_data = response.json()
         content_str = response_data.get('choices', [{}])[0].get('message', {}).get('content', '').strip()
 
+        # --- DISPLAY CLASSIFICATION RAW OUTPUT ---
+        st.markdown("### 🏷️ **Classification Response Debug**")
+        with st.expander("Click to view classification raw output", expanded=False):
+            st.text_area(
+                "Classification API Response:",
+                value=content_str,
+                height=150,
+                disabled=True,
+                key=f"classification_output_{hash(content_str[:50])}"
+            )
+        # ----------------------------------------
+
+        # --- Print to console ---
+        print("=" * 40)
+        print("CLASSIFICATION RESPONSE")
+        print("=" * 40)
+        print(content_str)
+        print("=" * 40)
+        # -----------------------
+
         if not content_str:
             return [], "LLM returned an empty response for classification."
 
@@ -263,7 +458,10 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> (List[s
     except requests.exceptions.RequestException as e:
         return [], f"Network error during classification: {e}"
     except Exception as e:
-        return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+        return [], f"An unexpected error occurred during classification: {e}"
+
+
+
 # import pdfplumber
 # import google.generativeai as genai
 # import json
