@@ -484,7 +484,7 @@ def mcm_agenda_tab(dbx):
                                     success = update_spreadsheet_from_df(
                                         dbx=dbx,
                                         df_to_write=st.session_state.df_period_data,
-                                        file_path=MCM_DATA_PATH
+                                        dropbox_path=MCM_DATA_PATH
                                     )
                                     
                                     if success:
