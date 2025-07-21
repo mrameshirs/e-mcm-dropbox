@@ -190,9 +190,11 @@ def mcm_agenda_tab(dbx):
         df_periods_for_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
         if df_periods_for_remarks is None:
             df_periods_for_remarks = pd.DataFrame(columns=['key', 'overall_remarks'])
-        
         if 'overall_remarks' not in df_periods_for_remarks.columns:
-            df_periods_for_remarks['overall_remarks'] = ""
+            df_periods_for_remarks['overall_remarks'] = ''
+        df_periods_for_remarks['overall_remarks'] = df_periods_for_remarks['overall_remarks'].fillna('').astype(object)
+        # if 'overall_remarks' not in df_periods_for_remarks.columns:
+        #     df_periods_for_remarks['overall_remarks'] = ""
 
         current_remark = ""
         period_key_str = selected_period.replace(" ", "_")
