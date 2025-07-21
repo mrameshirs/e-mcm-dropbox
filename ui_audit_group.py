@@ -258,7 +258,9 @@ def upload_dar_tab(dbx, active_periods, api_key):
                             st.rerun()
                 st.markdown("---")
                 add_cols = st.columns([3, 1])
-                with add_cols[0]: new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
+                with add_cols[0]:
+                    #new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + list(GST_RISK_PARAMETERS.keys()), key="new_risk_flag_select")
+                    new_risk_flag = st.selectbox("Add new risk flag:", options=[""] + sorted(list(GST_RISK_PARAMETERS.keys())), key="new_risk_flag_select")
                 with add_cols[1]:
                     st.markdown("<br>", unsafe_allow_html=True)
                     if st.button("Add Flag", use_container_width=True):
