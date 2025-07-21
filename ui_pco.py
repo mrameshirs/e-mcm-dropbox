@@ -84,8 +84,7 @@ def pco_dashboard(dbx):
         })
 
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-
-    # ========================== CREATE MCM PERIOD TAB ==========================
+       # ========================== CREATE MCM PERIOD TAB ==========================
     if selected_tab == "Create MCM Period":
         st.markdown("<h3>Create New MCM Period</h3>", unsafe_allow_html=True)
         
@@ -108,15 +107,26 @@ def pco_dashboard(dbx):
                 
                 period_key = f"{selected_month}_{selected_year}"
                 
-                if not df_periods.empty and period_key in df_periods['key'].values:
+                # --- FIX: Check if 'key' column exists before accessing it ---
+                if not df_periods.empty and 'key' in df_periods.columns and period_key in df_periods['key'].values:
                     st.warning(f"MCM Period for {selected_month} {selected_year} already exists.")
                 else:
                     new_period = pd.DataFrame([{
                         "month_name": selected_month, 
                         "year": selected_year, 
                         "active": True, 
-                        "key": period_key
+                        "key": period_key,
+                        "overall_remarks": "" 
                     }])
+
+                    if 'overall_remarks' not in df_periods.columns and not df_periods.empty:
+                        df_periods['overall_remarks'] = ""
+                    
+                    # Ensure all columns from the new period are in the old one before concat
+                    for col in new_period.columns:
+                        if col not in df_periods.columns:
+                            df_periods[col] = pd.NA
+
                     updated_df = pd.concat([df_periods, new_period], ignore_index=True)
                     
                     if update_spreadsheet_from_df(dbx, updated_df, MCM_PERIODS_INFO_PATH):
@@ -126,6 +136,47 @@ def pco_dashboard(dbx):
                         st.rerun()
                     else:
                         st.error("Failed to save the new MCM period to Dropbox.")
+    # # ========================== CREATE MCM PERIOD TAB ==========================
+    # if selected_tab == "Create MCM Period":
+    #     st.markdown("<h3>Create New MCM Period</h3>", unsafe_allow_html=True)
+        
+    #     with st.form("create_period_form"):
+    #         current_year = datetime.datetime.now().year
+    #         years = list(range(current_year - 1, current_year + 3))
+    #         months = ["January", "February", "March", "April", "May", "June", 
+    #                   "July", "August", "September", "October", "November", "December"]
+            
+    #         col1, col2 = st.columns(2)
+    #         selected_year = col1.selectbox("Select Year", options=years, index=years.index(current_year))
+    #         selected_month = col2.selectbox("Select Month", options=months, index=datetime.datetime.now().month - 1)
+            
+    #         submitted = st.form_submit_button(f"Create MCM for {selected_month} {selected_year}", use_container_width=True)
+            
+    #         if submitted:
+    #             df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+    #             if df_periods is None:
+    #                 df_periods = pd.DataFrame()
+                
+    #             period_key = f"{selected_month}_{selected_year}"
+                
+    #             if not df_periods.empty and period_key in df_periods['key'].values:
+    #                 st.warning(f"MCM Period for {selected_month} {selected_year} already exists.")
+    #             else:
+    #                 new_period = pd.DataFrame([{
+    #                     "month_name": selected_month, 
+    #                     "year": selected_year, 
+    #                     "active": True, 
+    #                     "key": period_key
+    #                 }])
+    #                 updated_df = pd.concat([df_periods, new_period], ignore_index=True)
+                    
+    #                 if update_spreadsheet_from_df(dbx, updated_df, MCM_PERIODS_INFO_PATH):
+    #                     st.success(f"Successfully created and activated MCM period for {selected_month} {selected_year}!")
+    #                     st.balloons()
+    #                     time.sleep(1)
+    #                     st.rerun()
+    #                 else:
+    #                     st.error("Failed to save the new MCM period to Dropbox.")
 
     # ========================== MANAGE MCM PERIODS TAB ==========================
     elif selected_tab == "Manage MCM Periods":
