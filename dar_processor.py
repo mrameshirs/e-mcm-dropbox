@@ -52,24 +52,32 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
       "header": {{
         "audit_group_number": "integer or null (e.g., 'Group-VI' becomes 6)",
         "gstin": "string or null", "trade_name": "string or null", "category": "string ('Large', 'Medium', 'Small') or null",
-        "taxpayer_classification": "string or null. Choose one from: {TAXPAYER_CLASSIFICATION_OPTIONS}",
+        "taxpayer_classification": "string or null. Choose one from the following list: {TAXPAYER_CLASSIFICATION_OPTIONS}",
         "total_amount_detected_overall_rs": "float or null (in Rupees)",
         "total_amount_recovered_overall_rs": "float or null (in Rupees)",
         "risk_flags": "list of strings or null (e.g., ['P1', 'P04', 'P21'])"
       }},
       "audit_paras": [
         {{
-          "audit_para_number": "integer or null",
-          "audit_para_heading": "string or null",
-          "revenue_involved_rs": "float or null. CRITICAL: Find amounts like 'Rs. 5,50,000' in the text and convert to a number like 550000.0",
-          "revenue_recovered_rs": "float or null. CRITICAL: Find amounts like 'Rs. 1,25,000' and convert to a number like 125000.0",
-          "status_of_para": "string or null"
+          "audit_para_number": "integer or null (e.g., 'Para-1' becomes 1)",
+          "audit_para_heading": "string or null (title of the para)",
+          "revenue_involved_rs": "float or null ( in RUPEES)",
+          "revenue_recovered_rs": "float or null ( in RUPEES)",
+          "status_of_para": "string or null ('Agreed and Paid', 'Agreed yet to pay', 'Partially agreed and paid', 'Partially agreed, yet to pay', 'Not agreed')"
         }}
-      ]
+      ],
+      "parsing_errors": "string or null"
     }}
 
-    If a value for any field is not found, use null.
-
+    Key Instructions:
+    1.  Header Info: Find all header fields.
+    2.  Taxpayer Classification: Identify the taxpayer nature of business /activity/profile /serivce or goods provided  and Select the best fit for 'taxpayer_classification' from the provided list.
+    3.  Risk Flags: Find all risk parameter codes mentioned, which look like P1, P2, P3... P34. Ignore any numbers in parentheses like P1(1). Collect only the codes (e.g., "P1").
+    #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts in the text. These amounts are often written as 'Rs. X,XX,XXX' or 'in Rupees'. Extract ONLY the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**.
+    #4.  **CRITICAL FOR REVENUE**: For `revenue_involved_rs` and `revenue_recovered_rs`, find the corresponding monetary amounts mentioned after the audit para headings in the text.Convert into the numeric value as a float. **For example, if the text says 'revenue involved is Rs. 5,50,000', the value must be `550000.0`**
+    5.  If a value is not found, use null. All monetary values must be numbers (float).
+    6.  The 'audit_paras' list should contain one object per para. If none found, provide an empty list [].
+    
     DAR Text Content:
     --- START OF DAR TEXT ---
     {text_content}
