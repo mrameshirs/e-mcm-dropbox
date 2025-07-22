@@ -674,72 +674,72 @@ def mcm_agenda_tab(dbx):
                 status_message_area.empty()
                 progress_bar.empty()
 
- # --- NEW: Executive Summary PDF Generation Section ---
-st.markdown("---")
-st.markdown("### Generate Executive Summary PDF")
-st.markdown("Generate a PDF summary of the minutes, enriched with infographics from the PCO dashboard.")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
-        with st.spinner("Generating Short PDF Summary... Please wait."):
-            # 1. Fetch data and charts
-            vital_stats, charts = get_visualization_data(dbx, selected_period)
-            if not vital_stats or not charts:
-                st.error("Could not fetch visualization data to generate the report.")
-                return
-
-            # 2. Convert Plotly charts to images in memory
-            chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
-
-            # 3. Generate PDF
-            report_generator = PDFReportGenerator(
-                selected_period=selected_period,
-                vital_stats=vital_stats,
-                chart_images=chart_images
-            )
-            pdf_bytes = report_generator.run(detailed=False)
-
-            # 4. Provide Download Link
-            st.download_button(
-                label="⬇️ Download Short Summary PDF",
-                data=pdf_bytes,
-                file_name=f"MCM_Executive_Summary_Short_{selected_period.replace(' ', '_')}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
-            st.success("Short summary PDF is ready for download!")
-
-with col2:
-    if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
-        with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
-            # 1. Fetch data and charts
-            vital_stats, charts = get_visualization_data(dbx, selected_period)
-            if not vital_stats or not charts:
-                st.error("Could not fetch visualization data to generate the report.")
-                return
-
-            # 2. Convert Plotly charts to images in memory
-            chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
-
-            # 3. Generate PDF
-            report_generator = PDFReportGenerator(
-                selected_period=selected_period,
-                vital_stats=vital_stats,
-                chart_images=chart_images
-            )
-            pdf_bytes = report_generator.run(detailed=True)
-
-            # 4. Provide Download Link
-            st.download_button(
-                label="⬇️ Download Detailed Summary PDF",
-                data=pdf_bytes,
-                file_name=f"MCM_Executive_Summary_Detailed_{selected_period.replace(' ', '_')}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
-            st.success("Detailed summary PDF is ready for download!")
+     # --- NEW: Executive Summary PDF Generation Section ---
+    st.markdown("---")
+    st.markdown("### Generate Executive Summary PDF")
+    st.markdown("Generate a PDF summary of the minutes, enriched with infographics from the PCO dashboard.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
+            with st.spinner("Generating Short PDF Summary... Please wait."):
+                # 1. Fetch data and charts
+                vital_stats, charts = get_visualization_data(dbx, selected_period)
+                if not vital_stats or not charts:
+                    st.error("Could not fetch visualization data to generate the report.")
+                    return
+    
+                # 2. Convert Plotly charts to images in memory
+                chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
+    
+                # 3. Generate PDF
+                report_generator = PDFReportGenerator(
+                    selected_period=selected_period,
+                    vital_stats=vital_stats,
+                    chart_images=chart_images
+                )
+                pdf_bytes = report_generator.run(detailed=False)
+    
+                # 4. Provide Download Link
+                st.download_button(
+                    label="⬇️ Download Short Summary PDF",
+                    data=pdf_bytes,
+                    file_name=f"MCM_Executive_Summary_Short_{selected_period.replace(' ', '_')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+                st.success("Short summary PDF is ready for download!")
+    
+    with col2:
+        if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
+            with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
+                # 1. Fetch data and charts
+                vital_stats, charts = get_visualization_data(dbx, selected_period)
+                if not vital_stats or not charts:
+                    st.error("Could not fetch visualization data to generate the report.")
+                    return
+    
+                # 2. Convert Plotly charts to images in memory
+                chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
+    
+                # 3. Generate PDF
+                report_generator = PDFReportGenerator(
+                    selected_period=selected_period,
+                    vital_stats=vital_stats,
+                    chart_images=chart_images
+                )
+                pdf_bytes = report_generator.run(detailed=True)
+    
+                # 4. Provide Download Link
+                st.download_button(
+                    label="⬇️ Download Detailed Summary PDF",
+                    data=pdf_bytes,
+                    file_name=f"MCM_Executive_Summary_Detailed_{selected_period.replace(' ', '_')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+                st.success("Detailed summary PDF is ready for download!")
 # # ui_mcm_agenda.py
 # import streamlit as st
 # import pandas as pd
