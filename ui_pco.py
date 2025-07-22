@@ -536,55 +536,71 @@ def pco_dashboard(dbx):
                 major_code_agg['description'] = major_code_agg['major_code'].map(CLASSIFICATION_CODES_DESC)
 
                 fig_bar_paras = px.bar(major_code_agg, x='description', y='Para_Count', text_auto=True,
-                                       title="Number of Audit Paras by Categorisation",
+                                       title="Number of Audit Paras by Classification",
                                        labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                                        color_discrete_sequence=['#1f77b4'])
                 st.plotly_chart(fig_bar_paras, use_container_width=True)
 
                 fig_bar_det = px.bar(major_code_agg, x='description', y='Total_Detection', text_auto='.2f',
-                                     title="Detection Amount by Categorisation",
+                                     title="Detection Amount by Classification",
                                      labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
                                      color_discrete_sequence=['#ff7f0e'])
                 st.plotly_chart(fig_bar_det, use_container_width=True)
 
                 fig_bar_rec = px.bar(major_code_agg, x='description', y='Total_Recovery', text_auto='.2f',
-                                     title="Recovery Amount by Categorisation",
+                                     title="Recovery Amount by Classification",
                                      labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
                                      color_discrete_sequence=['#2ca02c'])
                 st.plotly_chart(fig_bar_rec, use_container_width=True)
 
             with nc_tab2:
-                st.markdown("<h5>Detection Analysis by Detailed Categorisation</h5>", unsafe_allow_html=True)
+                st.markdown("<h5>Detection Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
                 unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
                 for code in sorted(unique_major_codes_det):
                     df_filtered = df_paras[df_paras['major_code'] == code].copy()
                     df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
                     df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
                     
-                    fig = px.bar(df_agg, x='para_classification_code', y='Para Detection in Lakhs',
+                    fig = px.bar(df_agg, 
+                                 x='para_classification_code', 
+                                 y='Para Detection in Lakhs',
+                                 color='description',
                                  title=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                                 labels={'para_classification_code': 'Detailed Code', 'Para Detection in Lakhs': 'Detection (₹ Lakhs)'},
-                                 text_auto='.2f', hover_data=['description'])
-                    fig.update_traces(hovertemplate='<b>%{x}</b>: %{customdata[0]}<br>Detection: %{y:,.2f} Lakhs<extra></extra>')
+                                 labels={
+                                     'para_classification_code': 'Detailed Code', 
+                                     'Para Detection in Lakhs': 'Detection (₹ Lakhs)',
+                                     'description': 'Classification Description'
+                                 },
+                                 text_auto='.2f')
+                    fig.update_layout(legend_title_text='Classification Description', legend_traceorder="normal")
+                    fig.update_traces(textposition='outside')
                     st.plotly_chart(fig, use_container_width=True)
 
             with nc_tab3:
-                st.markdown("<h5>Recovery Analysis by Detailed Categorisation</h5>", unsafe_allow_html=True)
+                st.markdown("<h5>Recovery Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
                 unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
                 for code in sorted(unique_major_codes_rec):
                     df_filtered = df_paras[df_paras['major_code'] == code].copy()
                     df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
                     df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
 
-                    fig = px.bar(df_agg, x='para_classification_code', y='Para Recovery in Lakhs',
+                    fig = px.bar(df_agg, 
+                                 x='para_classification_code', 
+                                 y='Para Recovery in Lakhs',
+                                 color='description',
                                  title=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                                 labels={'para_classification_code': 'Detailed Code', 'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)'},
-                                 text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Plotly,
-                                 hover_data=['description'])
-                    fig.update_traces(hovertemplate='<b>%{x}</b>: %{customdata[0]}<br>Recovery: %{y:,.2f} Lakhs<extra></extra>')
+                                 labels={
+                                     'para_classification_code': 'Detailed Code', 
+                                     'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)',
+                                     'description': 'Classification Description'
+                                 },
+                                 text_auto='.2f')
+                    fig.update_layout(legend_title_text='Classification Description', legend_traceorder="normal")
+                    fig.update_traces(textposition='outside')
                     st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No classified audit para data available for this period.")
+
 
         # --- 6. Treemaps by Trade Name ---
         st.markdown("---")
