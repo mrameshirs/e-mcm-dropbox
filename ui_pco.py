@@ -377,366 +377,114 @@ def pco_dashboard(dbx):
     
         # --- 4. Monthly Performance Summary Metrics ---
         st.markdown("#### Monthly Performance Summary")
-        # num_dars = df_unique_reports['dar_pdf_path'].nunique()
-        # total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
-        # total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
-        # # You should already have this data prepared in 'summary_df'.
-        # categories_order = ['Large', 'Medium', 'Small']
-        # dar_summary = df_unique_reports.groupby('category').agg(
-        #     dars_submitted=('dar_pdf_path', 'nunique'),
-        #     total_detected=('Detection in Lakhs', 'sum'),
-        #     total_recovered=('Recovery in Lakhs', 'sum')
-        # )
-        # df_actual_paras = df_viz_data[df_viz_data['audit_para_number'].notna() & (~df_viz_data['audit_para_heading'].astype(str).isin(["N/A - Header Info Only (Add Paras Manually)", "Manual Entry Required", "Manual Entry - PDF Error", "Manual Entry - PDF Upload Failed"]))]
-        # para_summary = df_actual_paras.groupby('category').size().reset_index(name='num_audit_paras').set_index('category')
-        # summary_df = pd.concat([dar_summary, para_summary], axis=1).reindex(categories_order).fillna(0)
-        # summary_df.reset_index(inplace=True)
-        # total_row = {
-        #     'category': '🏆 Total (All)',
-        #     'dars_submitted': summary_df['dars_submitted'].sum(),
-        #     'num_audit_paras': summary_df['num_audit_paras'].sum(),
-        #     'total_detected': summary_df['total_detected'].sum(),
-        #     'total_recovered': summary_df['total_recovered'].sum()
-        # }
-        # summary_df = pd.concat([summary_df, pd.DataFrame([total_row])], ignore_index=True)
-        # summary_df.rename(columns={
-        #     'category': 'Category', 'dars_submitted': 'No. of DARs',
-        #     'num_audit_paras': 'No. of Audit Paras', 'total_detected': 'Total Detected (₹ L)',
-        #     'total_recovered': 'Total Recovered (₹ L)'
-        # }, inplace=True)
-        # summary_df['No. of DARs'] = summary_df['No. of DARs'].astype(int)
-        # summary_df['No. of Audit Paras'] = summary_df['No. of Audit Paras'].astype(int)
+        num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        # You should already have this data prepared in 'summary_df'.
+        categories_order = ['Large', 'Medium', 'Small']
+        dar_summary = df_unique_reports.groupby('category').agg(
+            dars_submitted=('dar_pdf_path', 'nunique'),
+            total_detected=('Detection in Lakhs', 'sum'),
+            total_recovered=('Recovery in Lakhs', 'sum')
+        )
+        df_actual_paras = df_viz_data[df_viz_data['audit_para_number'].notna() & (~df_viz_data['audit_para_heading'].astype(str).isin(["N/A - Header Info Only (Add Paras Manually)", "Manual Entry Required", "Manual Entry - PDF Error", "Manual Entry - PDF Upload Failed"]))]
+        para_summary = df_actual_paras.groupby('category').size().reset_index(name='num_audit_paras').set_index('category')
+        summary_df = pd.concat([dar_summary, para_summary], axis=1).reindex(categories_order).fillna(0)
+        summary_df.reset_index(inplace=True)
+        total_row = {
+            'category': '🏆 Total (All)',
+            'dars_submitted': summary_df['dars_submitted'].sum(),
+            'num_audit_paras': summary_df['num_audit_paras'].sum(),
+            'total_detected': summary_df['total_detected'].sum(),
+            'total_recovered': summary_df['total_recovered'].sum()
+        }
+        summary_df = pd.concat([summary_df, pd.DataFrame([total_row])], ignore_index=True)
+        summary_df.rename(columns={
+            'category': 'Category', 'dars_submitted': 'No. of DARs',
+            'num_audit_paras': 'No. of Audit Paras', 'total_detected': 'Total Detected (₹ L)',
+            'total_recovered': 'Total Recovered (₹ L)'
+        }, inplace=True)
+        summary_df['No. of DARs'] = summary_df['No. of DARs'].astype(int)
+        summary_df['No. of Audit Paras'] = summary_df['No. of Audit Paras'].astype(int)
         
-        # # --- Start of HTML Table Generation ---
+        # --- Start of HTML Table Generation ---
         
-        # # Build the HTML table string with embedded CSS
-        # html_body = ""
-        # for index, row in summary_df.iterrows():
-        #     html_body += f"""
-        #     <tr>
-        #         <td class="text-data">{row['Category']}</td>
-        #         <td class="num-data">{row['No. of DARs']}</td>
-        #         <td class="num-data">{row['No. of Audit Paras']}</td>
-        #         <td class="num-data">₹{row['Total Detected (₹ L)']:,.2f} L</td>
-        #         <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
-        #     </tr>
-        #     """
+        # Build the HTML table string with embedded CSS
+        html_body = ""
+        for index, row in summary_df.iterrows():
+            html_body += f"""
+            <tr>
+                <td class="text-data">{row['Category']}</td>
+                <td class="num-data">{row['No. of DARs']}</td>
+                <td class="num-data">{row['No. of Audit Paras']}</td>
+                <td class="num-data">₹{row['Total Detected (₹ L)']:,.2f} L</td>
+                <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
+            </tr>
+            """
         
-        # html_table = f"""
-        # <style>
-        #     .styled-table {{
-        #         border-collapse: collapse;
-        #         margin: 15px 0;
-        #         font-size: 0.9em;
-        #         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        #         width: 100%;
-        #         box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        #         border-radius: 8px;
-        #         overflow: hidden;
-        #     }}
-        #     .styled-table thead tr {{
-        #         background-color: #4A90E2; /* Blue Header */
-        #         color: #ffffff;
-        #         text-align: center;
-        #         font-weight: bold;
-        #     }}
-        #     .styled-table th, .styled-table td {{
-        #         padding: 12px 15px;
-        #     }}
-        #     .styled-table tbody tr {{
-        #         border-bottom: 1px solid #dddddd;
-        #     }}
-        #     .styled-table tbody tr:nth-of-type(even) {{
-        #         background-color: #f8f9fa;
-        #     }}
-        #     .styled-table tbody tr:last-of-type {{
-        #         border-top: 3px solid #4A90E2;
-        #         font-weight: bold;
-        #         background-color: #eaf2fb;
-        #     }}
-        #     .styled-table td.num-data {{
-        #         text-align: right;
-        #     }}
-        #     .styled-table td.text-data {{
-        #         text-align: left;
-        #     }}
-        # </style>
+        html_table = f"""
+        <style>
+            .styled-table {{
+                border-collapse: collapse;
+                margin: 15px 0;
+                font-size: 0.9em;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                width: 100%;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                overflow: hidden;
+            }}
+            .styled-table thead tr {{
+                background-color: #4A90E2; /* Blue Header */
+                color: #ffffff;
+                text-align: center;
+                font-weight: bold;
+            }}
+            .styled-table th, .styled-table td {{
+                padding: 12px 15px;
+            }}
+            .styled-table tbody tr {{
+                border-bottom: 1px solid #dddddd;
+            }}
+            .styled-table tbody tr:nth-of-type(even) {{
+                background-color: #f8f9fa;
+            }}
+            .styled-table tbody tr:last-of-type {{
+                border-top: 3px solid #4A90E2;
+                font-weight: bold;
+                background-color: #eaf2fb;
+            }}
+            .styled-table td.num-data {{
+                text-align: right;
+            }}
+            .styled-table td.text-data {{
+                text-align: left;
+            }}
+        </style>
         
-        # <table class="styled-table">
-        #     <thead>
-        #         <tr>
-        #             <th>Category</th>
-        #             <th>No. of DARs</th>
-        #             <th>No. of Audit Paras</th>
-        #             <th>Total Detected (₹ L)</th>
-        #             <th>Total Recovered (₹ L)</th>
-        #         </tr>
-        #     </thead>
-        #     <tbody>
-        #         {html_body}
-        #     </tbody>
-        # </table>
-        # """
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>No. of DARs</th>
+                    <th>No. of Audit Paras</th>
+                    <th>Total Detected (₹ L)</th>
+                    <th>Total Recovered (₹ L)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {html_body}
+            </tbody>
+        </table>
+        """
         
-        # st.markdown("#### Monthly Performance Summary")
-        # st.markdown(html_table, unsafe_allow_html=True)
-        # col1, col2, col3 = st.columns(3)
-        # col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
-        # col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
-        # col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
-        # --- 4. Monthly Performance Summary Metrics (FIXED VERSION) ---
-        # --- 4. Monthly Performance Summary Metrics (CLEAN VERSION) ---
-        # --- 4. Monthly Performance Summary with Beautiful HTML Table ---
-          # --- BEAUTIFUL HTML TABLE FOR MONTHLY PERFORMANCE SUMMARY ---
         st.markdown("#### Monthly Performance Summary")
-        
-        # Check if we have data
-        if df_unique_reports.empty:
-            st.info("No data available for this period.")
-        else:
-            try:
-                # Categories order
-                categories_order = ['Large', 'Medium', 'Small']
-                
-                # Calculate DAR summary by category
-                dar_summary = df_unique_reports.groupby('category').agg(
-                    dars_submitted=('dar_pdf_path', 'nunique'),
-                    total_detected=('Detection in Lakhs', 'sum'),
-                    total_recovered=('Recovery in Lakhs', 'sum')
-                ).reset_index()
-                
-                # Calculate para summary
-                df_actual_paras = df_viz_data[
-                    df_viz_data['audit_para_number'].notna() & 
-                    (~df_viz_data['audit_para_heading'].astype(str).isin([
-                        "N/A - Header Info Only (Add Paras Manually)", 
-                        "Manual Entry Required", 
-                        "Manual Entry - PDF Error", 
-                        "Manual Entry - PDF Upload Failed"
-                    ]))
-                ]
-                
-                para_summary = df_actual_paras.groupby('category').size().reset_index(name='num_audit_paras')
-                
-                # Merge summaries
-                summary_df = pd.merge(dar_summary, para_summary, on='category', how='outer')
-                summary_df = summary_df.fillna(0)
-                
-                # Reorder according to categories_order
-                summary_df_ordered = []
-                for cat in categories_order:
-                    cat_data = summary_df[summary_df['category'] == cat]
-                    if not cat_data.empty:
-                        summary_df_ordered.append(cat_data)
-                    else:
-                        # Add empty row for missing category
-                        summary_df_ordered.append(pd.DataFrame([{
-                            'category': cat, 
-                            'dars_submitted': 0, 
-                            'total_detected': 0, 
-                            'total_recovered': 0, 
-                            'num_audit_paras': 0
-                        }]))
-                
-                # Add any remaining categories
-                remaining_cats = summary_df[~summary_df['category'].isin(categories_order)]
-                if not remaining_cats.empty:
-                    summary_df_ordered.append(remaining_cats)
-                
-                # Concatenate all
-                if summary_df_ordered:
-                    summary_df = pd.concat(summary_df_ordered, ignore_index=True)
-                
-                # Add total row
-                total_row = pd.DataFrame([{
-                    'category': '🏆 Total (All)',
-                    'dars_submitted': summary_df['dars_submitted'].sum(),
-                    'num_audit_paras': summary_df['num_audit_paras'].sum(),
-                    'total_detected': summary_df['total_detected'].sum(),
-                    'total_recovered': summary_df['total_recovered'].sum()
-                }])
-                
-                summary_df = pd.concat([summary_df, total_row], ignore_index=True)
-                
-                # Convert to appropriate types
-                summary_df['dars_submitted'] = summary_df['dars_submitted'].astype(int)
-                summary_df['num_audit_paras'] = summary_df['num_audit_paras'].astype(int)
-                summary_df['total_detected'] = pd.to_numeric(summary_df['total_detected'], errors='coerce').fillna(0)
-                summary_df['total_recovered'] = pd.to_numeric(summary_df['total_recovered'], errors='coerce').fillna(0)
-                
-                # BUILD THE BEAUTIFUL HTML TABLE
-                html_rows = ""
-                for index, row in summary_df.iterrows():
-                    is_total_row = "Total" in str(row['category'])
-                    row_class = "total-row" if is_total_row else ""
-                    
-                    html_rows += f"""
-                    <tr class="{row_class}">
-                        <td class="text-data">{row['category']}</td>
-                        <td class="num-data">{int(row['dars_submitted'])}</td>
-                        <td class="num-data">{int(row['num_audit_paras'])}</td>
-                        <td class="num-data">₹{row['total_detected']:,.2f} L</td>
-                        <td class="num-data">₹{row['total_recovered']:,.2f} L</td>
-                    </tr>
-                    """
-                
-                # Beautiful HTML table with CSS
-                beautiful_table_html = f"""
-                <div style="margin: 20px 0; padding: 10px;">
-                    <style>
-                        .beautiful-performance-table {{
-                            border-collapse: collapse;
-                            margin: 25px 0;
-                            font-size: 0.95em;
-                            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-                            width: 100%;
-                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                            border-radius: 12px;
-                            overflow: hidden;
-                            background: #ffffff;
-                        }}
-                        
-                        .beautiful-performance-table thead tr {{
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: #ffffff;
-                            text-align: center;
-                            font-weight: 700;
-                            font-size: 0.9em;
-                            text-transform: uppercase;
-                            letter-spacing: 1px;
-                            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-                        }}
-                        
-                        .beautiful-performance-table th {{
-                            padding: 16px 20px;
-                            border: none;
-                        }}
-                        
-                        .beautiful-performance-table td {{
-                            padding: 14px 20px;
-                            border-bottom: 1px solid #f0f0f0;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr {{
-                            transition: all 0.3s ease;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr:nth-of-type(odd) {{
-                            background-color: #f9f9f9;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr:nth-of-type(even) {{
-                            background-color: #ffffff;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr:hover {{
-                            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%);
-                            transform: translateY(-2px);
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                        }}
-                        
-                        .beautiful-performance-table tbody tr.total-row {{
-                            border-top: 4px solid #667eea;
-                            font-weight: 700;
-                            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 50%, #fff9e6 100%) !important;
-                            color: #1a237e;
-                            font-size: 1.05em;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr.total-row:hover {{
-                            background: linear-gradient(135deg, #c8e6c9 0%, #e1f5fe 50%, #fff8e1 100%) !important;
-                            transform: translateY(-3px);
-                            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
-                        }}
-                        
-                        .beautiful-performance-table td.num-data {{
-                            text-align: right;
-                            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-                            font-weight: 600;
-                            color: #2c3e50;
-                        }}
-                        
-                        .beautiful-performance-table td.text-data {{
-                            text-align: left;
-                            font-weight: 600;
-                            color: #34495e;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr.total-row td.num-data {{
-                            color: #1565c0;
-                            font-weight: 700;
-                        }}
-                        
-                        .beautiful-performance-table tbody tr.total-row td.text-data {{
-                            color: #1565c0;
-                            font-weight: 700;
-                        }}
-                        
-                        .beautiful-performance-table thead tr {{
-                            position: relative;
-                            overflow: hidden;
-                        }}
-                        
-                        .beautiful-performance-table thead tr::before {{
-                            content: '';
-                            position: absolute;
-                            top: 0;
-                            left: -100%;
-                            width: 100%;
-                            height: 100%;
-                            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                            animation: shine 3s infinite;
-                        }}
-                        
-                        @keyframes shine {{
-                            0% {{ left: -100%; }}
-                            100% {{ left: 100%; }}
-                        }}
-                        
-                        @media (max-width: 768px) {{
-                            .beautiful-performance-table {{
-                                font-size: 0.8em;
-                            }}
-                            .beautiful-performance-table th, .beautiful-performance-table td {{
-                                padding: 10px 8px;
-                            }}
-                        }}
-                    </style>
-                    
-                    <table class="beautiful-performance-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>No. of DARs</th>
-                                <th>No. of Audit Paras</th>
-                                <th>Total Detected (₹ L)</th>
-                                <th>Total Recovered (₹ L)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {html_rows}
-                        </tbody>
-                    </table>
-                </div>
-                """
-                
-                # Display the beautiful HTML table
-                st.markdown(beautiful_table_html, unsafe_allow_html=True)
-                
-                # Display metrics below the table
-                num_dars = int(summary_df[summary_df['category'] == '🏆 Total (All)']['dars_submitted'].iloc[0])
-                total_detected = float(summary_df[summary_df['category'] == '🏆 Total (All)']['total_detected'].iloc[0])
-                total_recovered = float(summary_df[summary_df['category'] == '🏆 Total (All)']['total_recovered'].iloc[0])
-                
-                col1, col2, col3 = st.columns(3)
-                col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
-                col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
-                col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
-                
-            except Exception as e:
-                st.error(f"Error creating summary: {str(e)}")
-                # Show fallback regular table
-                st.dataframe(df_unique_reports.head(), use_container_width=True)
+        st.markdown(html_table, unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
+        col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
+        col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
+       
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
