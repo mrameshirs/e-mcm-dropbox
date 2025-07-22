@@ -536,25 +536,25 @@ def pco_dashboard(dbx):
                 major_code_agg['description'] = major_code_agg['major_code'].map(CLASSIFICATION_CODES_DESC)
 
                 fig_bar_paras = px.bar(major_code_agg, x='description', y='Para_Count', text_auto=True,
-                                       title="Number of Audit Paras by Classification",
+                                       title="Number of Audit Paras by Categorisation",
                                        labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                                        color_discrete_sequence=['#1f77b4'])
                 st.plotly_chart(fig_bar_paras, use_container_width=True)
 
                 fig_bar_det = px.bar(major_code_agg, x='description', y='Total_Detection', text_auto='.2f',
-                                     title="Detection Amount by Classification",
+                                     title="Detection Amount by Categorisation",
                                      labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
                                      color_discrete_sequence=['#ff7f0e'])
                 st.plotly_chart(fig_bar_det, use_container_width=True)
 
                 fig_bar_rec = px.bar(major_code_agg, x='description', y='Total_Recovery', text_auto='.2f',
-                                     title="Recovery Amount by Classification",
+                                     title="Recovery Amount by Categorisation",
                                      labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
                                      color_discrete_sequence=['#2ca02c'])
                 st.plotly_chart(fig_bar_rec, use_container_width=True)
 
             with nc_tab2:
-                st.markdown("<h5>Detection Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
+                st.markdown("<h5>Detection Analysis by Detailed Categorisation</h5>", unsafe_allow_html=True)
                 unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
                 for code in sorted(unique_major_codes_det):
                     df_filtered = df_paras[df_paras['major_code'] == code].copy()
@@ -569,7 +569,7 @@ def pco_dashboard(dbx):
                     st.plotly_chart(fig, use_container_width=True)
 
             with nc_tab3:
-                st.markdown("<h5>Recovery Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
+                st.markdown("<h5>Recovery Analysis by Detailed Categorisation</h5>", unsafe_allow_html=True)
                 unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
                 for code in sorted(unique_major_codes_rec):
                     df_filtered = df_paras[df_paras['major_code'] == code].copy()
