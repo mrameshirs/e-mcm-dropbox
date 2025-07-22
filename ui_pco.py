@@ -377,6 +377,15 @@ def pco_dashboard(dbx):
     
         # --- 4. Monthly Performance Summary Metrics ---
         st.markdown("#### Monthly Performance Summary")
+        # num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        # total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        # total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        
+        # col1, col2, col3 = st.columns(3)
+        # col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
+        # col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
+        # col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
+
         categories_order = ['Large', 'Medium', 'Small']
         dar_summary = df_unique_reports.groupby('category').agg(
             dars_submitted=('dar_pdf_path', 'nunique'),
