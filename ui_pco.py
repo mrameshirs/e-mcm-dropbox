@@ -812,6 +812,7 @@ def pco_dashboard(dbx):
                 st.error(f"Could not generate recovery treemap: {e}")
 
 
+      
         st.markdown("---")
         st.markdown("<h4>Risk Parameter Analysis</h4>", unsafe_allow_html=True)
         
@@ -862,24 +863,9 @@ def pco_dashboard(dbx):
         import json
         import numpy as np
 
-        # Debug: Check if risk_flags_data column exists
-        st.write("**Debug Info:**")
-        st.write(f"Available columns: {list(df_viz_data.columns)}")
-        
         if 'risk_flags_data' not in df_viz_data.columns:
-            st.error("❌ Column 'risk_flags_data' not found in the dataset.")
-            st.info("Available columns in the dataset:")
-            st.write(list(df_viz_data.columns))
-            st.warning("Skipping Risk Parameter Analysis due to missing risk data column.")
+            st.warning("Column 'risk_flags_data' not found. Skipping Risk Parameter Analysis.")
         else:
-            st.success("✅ Found 'risk_flags_data' column!")
-            
-            # Debug: Show sample risk data
-            sample_risk_data = df_viz_data['risk_flags_data'].dropna().head(3)
-            st.write("**Sample risk_flags_data values:**")
-            for i, sample in enumerate(sample_risk_data):
-                st.write(f"Sample {i+1}: {sample}")
-            
             risk_para_records = []
             valid_risk_data = df_viz_data[
                 df_viz_data['risk_flags_data'].notna() & 
@@ -888,10 +874,7 @@ def pco_dashboard(dbx):
                 (df_viz_data['risk_flags_data'].astype(str) != 'nan')
             ]
             
-            st.write(f"**Total records with risk data:** {len(valid_risk_data)}")
-            
             gstins_with_risk_data = valid_risk_data['gstin'].nunique()
-            st.write(f"**Unique GSTINs with risk data:** {gstins_with_risk_data}")
 
             # Process risk data
             for idx, row in valid_risk_data.iterrows():
@@ -931,23 +914,13 @@ def pco_dashboard(dbx):
                             "risk_flag": risk_flag
                         })
                         
-                except Exception as e:
-                    st.write(f"Error processing row {idx}: {str(e)}")
-                    st.write(f"Risk data: {row['risk_flags_data']}")
+                except Exception:
                     continue
             
-            st.write(f"**Total risk-para records created:** {len(risk_para_records)}")
-            
             if not risk_para_records:
-                st.warning("⚠️ No valid risk parameter data could be processed for this period.")
-                st.info("This could be due to:")
-                st.write("- Empty or null risk_flags_data values")
-                st.write("- Incorrect JSON format in risk_flags_data")
-                st.write("- Missing audit_para_number values")
+                st.info("No valid risk parameter data could be processed for this period.")
             else:
                 df_risk_long = pd.DataFrame(risk_para_records)
-                st.write("**Risk data sample:**")
-                st.dataframe(df_risk_long.head())
                 
                 # Convert audit_para_number to numeric
                 df_risk_long['audit_para_number'] = pd.to_numeric(df_risk_long['audit_para_number'], errors='coerce')
@@ -960,10 +933,8 @@ def pco_dashboard(dbx):
                     how='inner'
                 )
                 
-                st.write(f"**Records after merging:** {len(df_risk_analysis)}")
-                
                 if df_risk_analysis.empty:
-                    st.warning("⚠️ No matching records found after merging risk data with audit data.")
+                    st.info("No matching records found after merging risk data with audit data.")
                 else:
                     paras_with_risk_flags = df_risk_analysis[['gstin', 'audit_para_number']].drop_duplicates().shape[0]
 
@@ -982,11 +953,34 @@ def pco_dashboard(dbx):
                     risk_agg['description'] = risk_agg['risk_flag'].map(GST_RISK_PARAMETERS).fillna("Unknown Risk Code")
                     risk_agg['Percentage_Recovery'] = (risk_agg['Total_Recovery'] / risk_agg['Total_Detection'].replace(0, np.nan)).fillna(0) * 100
 
-                    st.write("**Risk aggregation data:**")
-                    st.dataframe(risk_agg)
+                    # Display Risk Aggregation Table
+                    st.markdown("#### 📊 Risk Parameter Summary")
+                    
+                    # Format the risk aggregation table for better display
+                    display_risk_agg = risk_agg.copy()
+                    display_risk_agg = display_risk_agg.rename(columns={
+                        'risk_flag': 'RISK FLAG',
+                        'Para_Count': 'NO. OF PARAS',
+                        'Total_Detection': 'TOTAL DETECTION (₹ L)',
+                        'Total_Recovery': 'TOTAL RECOVERY (₹ L)',
+                        'Percentage_Recovery': 'RECOVERY %',
+                        'description': 'RISK DESCRIPTION'
+                    })
+                    
+                    # Format currency columns
+                    display_risk_agg['TOTAL DETECTION (₹ L)'] = display_risk_agg['TOTAL DETECTION (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                    display_risk_agg['TOTAL RECOVERY (₹ L)'] = display_risk_agg['TOTAL RECOVERY (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                    display_risk_agg['RECOVERY %'] = display_risk_agg['RECOVERY %'].apply(lambda x: f"{x:.1f}%")
+                    
+                    # Sort by Para Count descending
+                    display_risk_agg = display_risk_agg.sort_values('NO. OF PARAS', ascending=False)
+                    
+                    st.table(display_risk_agg[['RISK FLAG', 'RISK DESCRIPTION', 'NO. OF PARAS', 'TOTAL DETECTION (₹ L)', 'TOTAL RECOVERY (₹ L)', 'RECOVERY %']])
 
                     # Chart 1: Audit Paras by Risk Flag
                     if not risk_agg.empty:
+                        st.markdown("#### 📈 Risk Parameter Analysis Charts")
+                        
                         risk_agg_sorted_count = risk_agg.sort_values('Para_Count', ascending=False).head(15)
                         fig_risk_paras = px.bar(
                             risk_agg_sorted_count, 
@@ -1083,6 +1077,7 @@ def pco_dashboard(dbx):
                             st.plotly_chart(fig_risk_percentage, use_container_width=True)
                         else:
                             st.info("No percentage recovery data available for risk analysis")
+
 
         # --- Para-wise Performance (uses original full data) ---
         st.markdown("---")
