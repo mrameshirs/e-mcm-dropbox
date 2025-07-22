@@ -388,7 +388,7 @@ def pco_dashboard(dbx):
 
  
         
-        st.markdown("#### Monthly Performance Summary")
+          st.markdown("#### Monthly Performance Summary")
         num_dars = df_unique_reports['dar_pdf_path'].nunique()
         total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
         total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
@@ -434,76 +434,117 @@ def pco_dashboard(dbx):
         display_df['TOTAL DETECTED'] = display_df['TOTAL DETECTED'].apply(lambda x: f"₹{x:,.2f} L")
         display_df['TOTAL RECOVERED'] = display_df['TOTAL RECOVERED'].apply(lambda x: f"₹{x:,.2f} L")
         
-        # Display the beautiful Streamlit table
-        st.markdown("#### 📊 Performance Breakdown by Category")
-        
-        # Custom CSS for better table styling
+        # Add colorful styling for st.table
         st.markdown("""
         <style>
-        div[data-testid="stDataFrame"] > div {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2px;
-            border-radius: 10px;
+        /* Style for st.table */
+        .stTable {
+            border: 4px solid;
+            border-image: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7, #DDA0DD) 1;
+            border-radius: 15px !important;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin: 20px 0;
         }
-        div[data-testid="stDataFrame"] table {
-            background: white;
-            border-radius: 8px;
+        
+        .stTable > div {
+            border-radius: 15px;
+            overflow: hidden;
         }
-        div[data-testid="stDataFrame"] th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        
+        /* Header styling */
+        .stTable table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
             color: white !important;
-            font-weight: bold !important;
+            font-weight: 900 !important;
+            font-size: 14px !important;
             text-align: center !important;
+            padding: 15px 10px !important;
             border: none !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        }
+        
+        /* Body cell styling */
+        .stTable table tbody td {
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 12px 10px !important;
+            text-align: center !important;
+            border-bottom: 2px solid #f0f2f6 !important;
+        }
+        
+        /* Alternating row colors */
+        .stTable table tbody tr:nth-child(odd) {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f5 100%) !important;
+        }
+        
+        .stTable table tbody tr:nth-child(even) {
+            background: linear-gradient(135deg, #fff8e1 0%, #f0f8ff 100%) !important;
+        }
+        
+        /* Special styling for Total row */
+        .stTable table tbody tr:last-child {
+            background: linear-gradient(135deg, #e8f5e8 0%, #fff3cd 50%, #f8d7da 100%) !important;
+            border-top: 3px solid #667eea !important;
+            font-weight: 900 !important;
+        }
+        
+        .stTable table tbody tr:last-child td {
+            font-weight: 900 !important;
+            font-size: 14px !important;
+            color: #1a237e !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+        }
+        
+        /* Hover effect */
+        .stTable table tbody tr:hover {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%) !important;
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Number cells - right align and bold */
+        .stTable table tbody td:nth-child(2),
+        .stTable table tbody td:nth-child(3),
+        .stTable table tbody td:nth-child(4),
+        .stTable table tbody td:nth-child(5) {
+            text-align: right !important;
+            font-family: 'Courier New', monospace !important;
+            font-weight: 800 !important;
+            color: #2c3e50 !important;
+        }
+        
+        /* Category column - left align */
+        .stTable table tbody td:nth-child(1) {
+            text-align: left !important;
+            font-weight: 800 !important;
+            color: #34495e !important;
+        }
+        
+        /* Add some animation */
+        .stTable table {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         </style>
         """, unsafe_allow_html=True)
         
-        st.dataframe(
-            display_df,
-            use_container_width=True,
-            hide_index=True,
-            height=250,  # Fixed height to prevent scrollbars
-            column_config={
-                "CATEGORY": st.column_config.TextColumn(
-                    "CATEGORY",
-                    help="Taxpayer categories",
-                    width="medium"
-                ),
-                "NO. OF DARS": st.column_config.NumberColumn(
-                    "NO. OF DARS",
-                    help="Number of DARs submitted",
-                    format="%d",
-                    width="small"
-                ),
-                "NO. OF AUDIT PARAS": st.column_config.NumberColumn(
-                    "NO. OF AUDIT PARAS", 
-                    help="Total audit paras identified",
-                    format="%d",
-                    width="small"
-                ),
-                "TOTAL DETECTED": st.column_config.TextColumn(
-                    "TOTAL DETECTED",
-                    help="Total amount detected in Lakhs",
-                    width="medium"
-                ),
-                "TOTAL RECOVERED": st.column_config.TextColumn(
-                    "TOTAL RECOVERED",
-                    help="Total amount recovered in Lakhs", 
-                    width="medium"
-                ),
-            }
-        )
-        
-        # Alternative: Use st.table for a more compact display
-        st.markdown("---")
-        st.markdown("#### 🎯 Summary Table")
-        
-        # Create a more compact version
-        compact_df = display_df.copy()
-        
-        # Use st.table for no scrollbars and clean display
-        st.table(compact_df)
+        # Display the beautiful Streamlit table
+        st.markdown("#### 🎯 **Performance Summary Table**")
+        st.table(display_df)
         
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
