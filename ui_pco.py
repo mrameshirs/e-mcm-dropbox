@@ -377,10 +377,6 @@ def pco_dashboard(dbx):
     
         # --- 4. Monthly Performance Summary Metrics ---
         st.markdown("#### Monthly Performance Summary")
-        num_dars = df_unique_reports['dar_pdf_path'].nunique()
-        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
-        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
-        # You should already have this data prepared in 'summary_df'.
         categories_order = ['Large', 'Medium', 'Small']
         dar_summary = df_unique_reports.groupby('category').agg(
             dars_submitted=('dar_pdf_path', 'nunique'),
@@ -406,10 +402,10 @@ def pco_dashboard(dbx):
         }, inplace=True)
         summary_df['No. of DARs'] = summary_df['No. of DARs'].astype(int)
         summary_df['No. of Audit Paras'] = summary_df['No. of Audit Paras'].astype(int)
+
+        # --- Start of HTML Table Generation (Corrected) ---
         
-        # --- Start of HTML Table Generation ---
-        
-        # Build the HTML table string with embedded CSS
+        # Build the HTML table body without extra <br> tags
         html_body = ""
         for index, row in summary_df.iterrows():
             html_body += f"""
@@ -421,7 +417,8 @@ def pco_dashboard(dbx):
                 <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
             </tr>
             """
-        
+
+        # Define the full HTML table with CSS, also without extra <br> tags
         html_table = f"""
         <style>
             .styled-table {{
@@ -478,13 +475,9 @@ def pco_dashboard(dbx):
         </table>
         """
         
+        # Display the single, correct summary table
         st.markdown("#### Monthly Performance Summary")
         st.markdown(html_table, unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
-        col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
-        col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
-       
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
