@@ -377,9 +377,9 @@ def pco_dashboard(dbx):
     
         # --- 4. Monthly Performance Summary Metrics ---
         st.markdown("#### Monthly Performance Summary")
-        num_dars = df_unique_reports['dar_pdf_path'].nunique()
-        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
-        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        # num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        # total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        # total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
         # # You should already have this data prepared in 'summary_df'.
         # categories_order = ['Large', 'Medium', 'Small']
         # dar_summary = df_unique_reports.groupby('category').agg(
@@ -487,16 +487,17 @@ def pco_dashboard(dbx):
         # --- 4. Monthly Performance Summary Metrics (FIXED VERSION) ---
         # --- 4. Monthly Performance Summary Metrics (CLEAN VERSION) ---
         # --- 4. Monthly Performance Summary with Beautiful HTML Table ---
+          # --- BEAUTIFUL HTML TABLE FOR MONTHLY PERFORMANCE SUMMARY ---
         st.markdown("#### Monthly Performance Summary")
         
         # Check if we have data
         if df_unique_reports.empty:
             st.info("No data available for this period.")
         else:
-            # Categories order
-            categories_order = ['Large', 'Medium', 'Small']
-            
             try:
+                # Categories order
+                categories_order = ['Large', 'Medium', 'Small']
+                
                 # Calculate DAR summary by category
                 dar_summary = df_unique_reports.groupby('category').agg(
                     dars_submitted=('dar_pdf_path', 'nunique'),
@@ -537,7 +538,7 @@ def pco_dashboard(dbx):
                             'num_audit_paras': 0
                         }]))
                 
-                # Add any remaining categories not in the predefined order
+                # Add any remaining categories
                 remaining_cats = summary_df[~summary_df['category'].isin(categories_order)]
                 if not remaining_cats.empty:
                     summary_df_ordered.append(remaining_cats)
@@ -564,10 +565,8 @@ def pco_dashboard(dbx):
                 summary_df['total_recovered'] = pd.to_numeric(summary_df['total_recovered'], errors='coerce').fillna(0)
                 
                 # BUILD THE BEAUTIFUL HTML TABLE
-                # Create table rows
                 html_rows = ""
                 for index, row in summary_df.iterrows():
-                    # Check if this is the total row
                     is_total_row = "Total" in str(row['category'])
                     row_class = "total-row" if is_total_row else ""
                     
@@ -581,7 +580,7 @@ def pco_dashboard(dbx):
                     </tr>
                     """
                 
-                # Complete HTML with beautiful styling
+                # Beautiful HTML table with CSS
                 beautiful_table_html = f"""
                 <div style="margin: 20px 0; padding: 10px;">
                     <style>
@@ -589,7 +588,7 @@ def pco_dashboard(dbx):
                             border-collapse: collapse;
                             margin: 25px 0;
                             font-size: 0.95em;
-                            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', sans-serif;
+                            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
                             width: 100%;
                             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
                             border-radius: 12px;
@@ -620,7 +619,6 @@ def pco_dashboard(dbx):
                         
                         .beautiful-performance-table tbody tr {{
                             transition: all 0.3s ease;
-                            border-bottom: 1px solid #f0f0f0;
                         }}
                         
                         .beautiful-performance-table tbody tr:nth-of-type(odd) {{
@@ -653,7 +651,7 @@ def pco_dashboard(dbx):
                         
                         .beautiful-performance-table td.num-data {{
                             text-align: right;
-                            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+                            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
                             font-weight: 600;
                             color: #2c3e50;
                         }}
@@ -674,7 +672,6 @@ def pco_dashboard(dbx):
                             font-weight: 700;
                         }}
                         
-                        /* Add some sparkle with subtle animations */
                         .beautiful-performance-table thead tr {{
                             position: relative;
                             overflow: hidden;
@@ -696,7 +693,6 @@ def pco_dashboard(dbx):
                             100% {{ left: 100%; }}
                         }}
                         
-                        /* Responsive design */
                         @media (max-width: 768px) {{
                             .beautiful-performance-table {{
                                 font-size: 0.8em;
@@ -739,7 +735,8 @@ def pco_dashboard(dbx):
                 
             except Exception as e:
                 st.error(f"Error creating summary: {str(e)}")
-                st.info("Please check if the required data columns exist in your dataset.")
+                # Show fallback regular table
+                st.dataframe(df_unique_reports.head(), use_container_width=True)
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
