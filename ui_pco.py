@@ -535,6 +535,186 @@ def pco_dashboard(dbx):
         st.markdown("#### 🎯 **Performance Summary Table**")
         st.table(display_df)
         
+        # --- Status of Para Analysis ---
+        st.markdown("---")
+        st.markdown("<h4>📊 Status of Para Analysis</h4>", unsafe_allow_html=True)
+        
+        # Check if status_of_para column exists
+        if 'status_of_para' not in df_viz_data.columns:
+            st.warning("Column 'status_of_para' not found in the dataset. Skipping Status of Para Analysis.")
+        else:
+            # Filter out records without para status
+            df_status_analysis = df_viz_data[
+                df_viz_data['status_of_para'].notna() & 
+                (df_viz_data['status_of_para'] != '') &
+                df_viz_data['audit_para_number'].notna()
+            ].copy()
+            
+            if df_status_analysis.empty:
+                st.info("No audit paras with status information found for this period.")
+            else:
+                # Aggregate data by status
+                status_agg = df_status_analysis.groupby('status_of_para').agg(
+                    Para_Count=('status_of_para', 'count'),
+                    Total_Detection=('Para Detection in Lakhs', 'sum'),
+                    Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                ).reset_index()
+                
+                # Sort by para count for better visualization
+                status_agg_sorted_count = status_agg.sort_values('Para_Count', ascending=False)
+                status_agg_sorted_detection = status_agg.sort_values('Total_Detection', ascending=False)
+                
+                # Create two columns for side-by-side charts
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Chart 1: Number of Audit Paras vs Status
+                    fig_status_count = px.bar(
+                        status_agg_sorted_count,
+                        x='status_of_para',
+                        y='Para_Count',
+                        title="Number of Audit Paras by Status",
+                        text_auto=True,
+                        color_discrete_sequence=px.colors.qualitative.Set3,
+                        labels={
+                            'status_of_para': 'Status of Para',
+                            'Para_Count': 'Number of Paras'
+                        }
+                    )
+                    fig_status_count.update_layout(
+                        title_x=0.5,
+                        height=450,
+                        xaxis_title="Status of Para",
+                        yaxis_title="Number of Paras",
+                        xaxis={'tickangle': 45}
+                    )
+                    fig_status_count.update_traces(textposition="outside", cliponaxis=False)
+                    st.plotly_chart(fig_status_count, use_container_width=True)
+                
+                with col2:
+                    # Chart 2: Detection Amount vs Status
+                    fig_status_detection = px.bar(
+                        status_agg_sorted_detection,
+                        x='status_of_para',
+                        y='Total_Detection',
+                        title="Detection Amount by Status",
+                        text_auto='.2f',
+                        color_discrete_sequence=px.colors.qualitative.Pastel1,
+                        labels={
+                            'status_of_para': 'Status of Para',
+                            'Total_Detection': 'Detection Amount (₹ Lakhs)'
+                        }
+                    )
+                    fig_status_detection.update_layout(
+                        title_x=0.5,
+                        height=450,
+                        xaxis_title="Status of Para",
+                        yaxis_title="Detection Amount (₹ Lakhs)",
+                        xaxis={'tickangle': 45}
+                    )
+                    fig_status_detection.update_traces(textposition="outside", cliponaxis=False)
+                    st.plotly_chart(fig_status_detection, use_container_width=True)
+                
+                # Summary table for status analysis
+                st.markdown("#### 📋 Status Summary Table")
+                
+                # Format the status summary table
+                display_status_agg = status_agg.copy()
+                display_status_agg = display_status_agg.rename(columns={
+                    'status_of_para': 'STATUS OF PARA',
+                    'Para_Count': 'NO. OF PARAS',
+                    'Total_Detection': 'TOTAL DETECTION (₹ L)',
+                    'Total_Recovery': 'TOTAL RECOVERY (₹ L)'
+                })
+                
+                # Calculate recovery percentage
+                display_status_agg['RECOVERY %'] = (
+                    display_status_agg['TOTAL RECOVERY (₹ L)'] / 
+                    display_status_agg['TOTAL DETECTION (₹ L)'].replace(0, np.nan)
+                ).fillna(0) * 100
+                
+                # Format currency and percentage columns
+                display_status_agg['TOTAL DETECTION (₹ L)'] = display_status_agg['TOTAL DETECTION (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                display_status_agg['TOTAL RECOVERY (₹ L)'] = display_status_agg['TOTAL RECOVERY (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                display_status_agg['RECOVERY %'] = display_status_agg['RECOVERY %'].apply(lambda x: f"{x:.1f}%")
+                
+                # Sort by number of paras descending
+                display_status_agg = display_status_agg.sort_values('NO. OF PARAS', ascending=False)
+                
+                st.table(display_status_agg)
+                
+                # Top 5 Paras with largest detection amount under "Agreed yet to pay" status
+                st.markdown("---")
+                st.markdown("#### 🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'")
+                
+                # Filter for "Agreed yet to pay" status (case insensitive search)
+                agreed_yet_to_pay_paras = df_status_analysis[
+                    df_status_analysis['status_of_para'].str.contains('Agreed yet to pay', case=False, na=False)
+                ].copy()
+                
+                if agreed_yet_to_pay_paras.empty:
+                    # Try alternative search terms
+                    agreed_yet_to_pay_paras = df_status_analysis[
+                        df_status_analysis['status_of_para'].str.contains('agreed.*pay|yet.*pay|pending.*payment', case=False, na=False)
+                    ].copy()
+                
+                if agreed_yet_to_pay_paras.empty:
+                    st.info("No audit paras found with status 'Agreed yet to pay' or similar.")
+                    st.write("**Available status values:**")
+                    unique_statuses = df_status_analysis['status_of_para'].unique()
+                    for status in sorted(unique_statuses):
+                        st.write(f"- {status}")
+                else:
+                    # Get top 5 by detection amount
+                    top_5_agreed = agreed_yet_to_pay_paras.nlargest(5, 'Para Detection in Lakhs')
+                    
+                    # Prepare display columns
+                    display_columns = [
+                        'audit_group_number_str', 'trade_name', 'gstin', 
+                        'audit_para_number', 'audit_para_heading', 
+                        'Para Detection in Lakhs', 'Para Recovery in Lakhs', 'status_of_para'
+                    ]
+                    
+                    # Filter columns that exist in the dataframe
+                    available_columns = [col for col in display_columns if col in top_5_agreed.columns]
+                    
+                    # Create a clean display dataframe
+                    display_top_5 = top_5_agreed[available_columns].copy()
+                    
+                    # Rename columns for better display
+                    column_rename_map = {
+                        'audit_group_number_str': 'Audit Group',
+                        'trade_name': 'Trade Name',
+                        'gstin': 'GSTIN',
+                        'audit_para_number': 'Para No.',
+                        'audit_para_heading': 'Para Heading',
+                        'Para Detection in Lakhs': 'Detection (₹ L)',
+                        'Para Recovery in Lakhs': 'Recovery (₹ L)',
+                        'status_of_para': 'Status'
+                    }
+                    
+                    for old_col, new_col in column_rename_map.items():
+                        if old_col in display_top_5.columns:
+                            display_top_5 = display_top_5.rename(columns={old_col: new_col})
+                    
+                    # Format currency columns
+                    if 'Detection (₹ L)' in display_top_5.columns:
+                        display_top_5['Detection (₹ L)'] = display_top_5['Detection (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                    if 'Recovery (₹ L)' in display_top_5.columns:
+                        display_top_5['Recovery (₹ L)'] = display_top_5['Recovery (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                    
+                    # Display the table
+                    st.dataframe(display_top_5, use_container_width=True, hide_index=True)
+                    
+                    # Summary metrics for "Agreed yet to pay"
+                    total_agreed_paras = len(agreed_yet_to_pay_paras)
+                    total_agreed_detection = agreed_yet_to_pay_paras['Para Detection in Lakhs'].sum()
+                    total_agreed_recovery = agreed_yet_to_pay_paras['Para Recovery in Lakhs'].sum()
+                    
+                    col1, col2, col3 = st.columns(3)
+                    col1.metric("Total 'Agreed yet to pay' Paras", f"{total_agreed_paras}")
+                    col2.metric("Total Detection Amount", f"₹{total_agreed_detection:,.2f} L")
+                    col3.metric("Total Recovery Amount", f"₹{total_agreed_recovery:,.2f}
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
