@@ -486,6 +486,7 @@ def pco_dashboard(dbx):
         # col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
         # --- 4. Monthly Performance Summary Metrics (FIXED VERSION) ---
         # --- 4. Monthly Performance Summary Metrics (CLEAN VERSION) ---
+        # --- 4. Monthly Performance Summary with Beautiful HTML Table ---
         st.markdown("#### Monthly Performance Summary")
         
         # Check if we have data
@@ -562,35 +563,171 @@ def pco_dashboard(dbx):
                 summary_df['total_detected'] = pd.to_numeric(summary_df['total_detected'], errors='coerce').fillna(0)
                 summary_df['total_recovered'] = pd.to_numeric(summary_df['total_recovered'], errors='coerce').fillna(0)
                 
-                # Create and display the styled dataframe (simpler approach)
-                display_df = summary_df.copy()
-                display_df = display_df.rename(columns={
-                    'category': 'CATEGORY',
-                    'dars_submitted': 'NO. OF DARS', 
-                    'num_audit_paras': 'NO. OF AUDIT PARAS',
-                    'total_detected': 'TOTAL DETECTED (₹ L)',
-                    'total_recovered': 'TOTAL RECOVERED (₹ L)'
-                })
+                # BUILD THE BEAUTIFUL HTML TABLE
+                # Create table rows
+                html_rows = ""
+                for index, row in summary_df.iterrows():
+                    # Check if this is the total row
+                    is_total_row = "Total" in str(row['category'])
+                    row_class = "total-row" if is_total_row else ""
+                    
+                    html_rows += f"""
+                    <tr class="{row_class}">
+                        <td class="text-data">{row['category']}</td>
+                        <td class="num-data">{int(row['dars_submitted'])}</td>
+                        <td class="num-data">{int(row['num_audit_paras'])}</td>
+                        <td class="num-data">₹{row['total_detected']:,.2f} L</td>
+                        <td class="num-data">₹{row['total_recovered']:,.2f} L</td>
+                    </tr>
+                    """
                 
-                # Format the numeric columns
-                display_df['TOTAL DETECTED (₹ L)'] = display_df['TOTAL DETECTED (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
-                display_df['TOTAL RECOVERED (₹ L)'] = display_df['TOTAL RECOVERED (₹ L)'].apply(lambda x: f"₹{x:,.2f} L")
+                # Complete HTML with beautiful styling
+                beautiful_table_html = f"""
+                <div style="margin: 20px 0; padding: 10px;">
+                    <style>
+                        .beautiful-performance-table {{
+                            border-collapse: collapse;
+                            margin: 25px 0;
+                            font-size: 0.95em;
+                            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', sans-serif;
+                            width: 100%;
+                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                            border-radius: 12px;
+                            overflow: hidden;
+                            background: #ffffff;
+                        }}
+                        
+                        .beautiful-performance-table thead tr {{
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: #ffffff;
+                            text-align: center;
+                            font-weight: 700;
+                            font-size: 0.9em;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                        }}
+                        
+                        .beautiful-performance-table th {{
+                            padding: 16px 20px;
+                            border: none;
+                        }}
+                        
+                        .beautiful-performance-table td {{
+                            padding: 14px 20px;
+                            border-bottom: 1px solid #f0f0f0;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr {{
+                            transition: all 0.3s ease;
+                            border-bottom: 1px solid #f0f0f0;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr:nth-of-type(odd) {{
+                            background-color: #f9f9f9;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr:nth-of-type(even) {{
+                            background-color: #ffffff;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr:hover {{
+                            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%);
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                        }}
+                        
+                        .beautiful-performance-table tbody tr.total-row {{
+                            border-top: 4px solid #667eea;
+                            font-weight: 700;
+                            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 50%, #fff9e6 100%) !important;
+                            color: #1a237e;
+                            font-size: 1.05em;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr.total-row:hover {{
+                            background: linear-gradient(135deg, #c8e6c9 0%, #e1f5fe 50%, #fff8e1 100%) !important;
+                            transform: translateY(-3px);
+                            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+                        }}
+                        
+                        .beautiful-performance-table td.num-data {{
+                            text-align: right;
+                            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+                            font-weight: 600;
+                            color: #2c3e50;
+                        }}
+                        
+                        .beautiful-performance-table td.text-data {{
+                            text-align: left;
+                            font-weight: 600;
+                            color: #34495e;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr.total-row td.num-data {{
+                            color: #1565c0;
+                            font-weight: 700;
+                        }}
+                        
+                        .beautiful-performance-table tbody tr.total-row td.text-data {{
+                            color: #1565c0;
+                            font-weight: 700;
+                        }}
+                        
+                        /* Add some sparkle with subtle animations */
+                        .beautiful-performance-table thead tr {{
+                            position: relative;
+                            overflow: hidden;
+                        }}
+                        
+                        .beautiful-performance-table thead tr::before {{
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            left: -100%;
+                            width: 100%;
+                            height: 100%;
+                            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                            animation: shine 3s infinite;
+                        }}
+                        
+                        @keyframes shine {{
+                            0% {{ left: -100%; }}
+                            100% {{ left: 100%; }}
+                        }}
+                        
+                        /* Responsive design */
+                        @media (max-width: 768px) {{
+                            .beautiful-performance-table {{
+                                font-size: 0.8em;
+                            }}
+                            .beautiful-performance-table th, .beautiful-performance-table td {{
+                                padding: 10px 8px;
+                            }}
+                        }}
+                    </style>
+                    
+                    <table class="beautiful-performance-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>No. of DARs</th>
+                                <th>No. of Audit Paras</th>
+                                <th>Total Detected (₹ L)</th>
+                                <th>Total Recovered (₹ L)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {html_rows}
+                        </tbody>
+                    </table>
+                </div>
+                """
                 
-                # Apply custom styling using st.dataframe
-                st.dataframe(
-                    display_df,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "CATEGORY": st.column_config.TextColumn("CATEGORY", width="medium"),
-                        "NO. OF DARS": st.column_config.NumberColumn("NO. OF DARS", width="small"),
-                        "NO. OF AUDIT PARAS": st.column_config.NumberColumn("NO. OF AUDIT PARAS", width="small"),
-                        "TOTAL DETECTED (₹ L)": st.column_config.TextColumn("TOTAL DETECTED (₹ L)", width="medium"),
-                        "TOTAL RECOVERED (₹ L)": st.column_config.TextColumn("TOTAL RECOVERED (₹ L)", width="medium")
-                    }
-                )
+                # Display the beautiful HTML table
+                st.markdown(beautiful_table_html, unsafe_allow_html=True)
                 
-                # Display metrics
+                # Display metrics below the table
                 num_dars = int(summary_df[summary_df['category'] == '🏆 Total (All)']['dars_submitted'].iloc[0])
                 total_detected = float(summary_df[summary_df['category'] == '🏆 Total (All)']['total_detected'].iloc[0])
                 total_recovered = float(summary_df[summary_df['category'] == '🏆 Total (All)']['total_recovered'].iloc[0])
