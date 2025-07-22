@@ -521,15 +521,51 @@ def pco_dashboard(dbx):
             else:
                 st.info("Taxpayer classification data not available for this period.")
 
-        # --- Section 4: Nature of Compliance Analysis (New) ---
         st.markdown("---")
         st.markdown("<h4>Nature of Compliance Analysis for Audit Paras</h4>", unsafe_allow_html=True)
         
+        CLASSIFICATION_CODES_DESC = {
+            'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
+            'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
+            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
+            'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
+            'PG': 'PENALTY & GENERAL COMPLIANCE'
+        }
+        
+        DETAILED_CLASSIFICATION_DESC = {
+            'TP01': 'Output Tax Short Payment - GSTR Discrepancies', 'TP02': 'Output Tax on Other Income',
+            'TP03': 'Output Tax on Asset Sales', 'TP04': 'Export & SEZ Related Issues',
+            'TP05': 'Credit Note Adjustment Errors', 'TP06': 'Turnover Reconciliation Issues',
+            'TP07': 'Scheme Migration Issues', 'TP08': 'Other Tax Payment Issues',
+            'RC01': 'RCM on Transportation Services', 'RC02': 'RCM on Professional Services',
+            'RC03': 'RCM on Administrative Services', 'RC04': 'RCM on Import of Services',
+            'RC05': 'RCM Reconciliation Issues', 'RC06': 'RCM on Other Services', 'RC07': 'Other RCM Issues',
+            'IT01': 'Blocked Credit Claims (Sec 17(5))', 'IT02': 'Ineligible ITC Claims (Sec 16)',
+            'IT03': 'Excess ITC - GSTR Reconciliation', 'IT04': 'Supplier Registration Issues',
+            'IT05': 'ITC Reversal - 180 Day Rule', 'IT06': 'ITC Reversal - Other Reasons',
+            'IT07': 'Proportionate ITC Issues (Rule 42)', 'IT08': 'RCM ITC Mismatches',
+            'IT09': 'Import IGST ITC Issues', 'IT10': 'Migration Related ITC Issues', 'IT11': 'Other ITC Issues',
+            'IN01': 'Interest on Delayed Tax Payment', 'IN02': 'Interest on Delayed Filing',
+            'IN03': 'Interest on ITC - 180 Day Rule', 'IN04': 'Interest on ITC Reversals',
+            'IN05': 'Interest on Time of Supply Issues', 'IN06': 'Interest on Self-Assessment (DRC-03)',
+            'IN07': 'Other Interest Issues', 'RF01': 'GSTR-1 Late Filing Fees', 'RF02': 'GSTR-3B Late Filing Fees',
+            'RF03': 'GSTR-9 Late Filing Fees', 'RF04': 'GSTR-9C Late Filing Fees',
+            'RF05': 'ITC-04 Non-Filing', 'RF06': 'General Return Filing Issues', 'RF07': 'Other Return Filing Issues',
+            'PD01': 'Return Reconciliation Mismatches', 'PD02': 'Documentation Deficiencies',
+            'PD03': 'Cash Payment Violations (Rule 86B)', 'PD04': 'Record Maintenance Issues', 'PD05': 'Other Procedural Issues',
+            'CV01': 'Service Classification Errors', 'CV02': 'Rate Classification Errors',
+            'CV03': 'Place of Supply Issues', 'CV04': 'Other Classification Issues',
+            'SS01': 'Construction/Real Estate Issues', 'SS02': 'Job Work Related Issues',
+            'SS03': 'Inter-Company Transaction Issues', 'SS04': 'Composition Scheme Issues', 'SS05': 'Other Special Situations',
+            'PG01': 'Statutory Penalties (Sec 123)', 'PG02': 'Stock & Physical Verification Issues',
+            'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
+        }
+
         df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
         if not df_paras.empty:
             df_paras['major_code'] = df_paras['para_classification_code'].str[:2]
         
-            nc_tab1, nc_tab2, nc_tab3 = st.tabs(["Major Code Summary", "Detection by Detailed Code", "Recovery by Detailed Code"])
+            nc_tab1, nc_tab2, nc_tab3 = st.tabs(["Classification Code Summary", "Detection by Detailed Code", "Recovery by Detailed Code"])
 
             with nc_tab1:
                 major_code_agg = df_paras.groupby('major_code').agg(
@@ -537,40 +573,59 @@ def pco_dashboard(dbx):
                     Total_Detection=('Para Detection in Lakhs', 'sum'),
                     Total_Recovery=('Para Recovery in Lakhs', 'sum')
                 ).reset_index()
+                major_code_agg['description'] = major_code_agg['major_code'].map(CLASSIFICATION_CODES_DESC)
 
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    st.metric("Paras by Major Code", "")
-                    fig_bar_paras = px.bar(major_code_agg, x='major_code', y='Para_Count', text_auto=True, color_discrete_sequence=['#1f77b4'])
-                    st.plotly_chart(fig_bar_paras, use_container_width=True)
-                with c2:
-                    st.metric("Detection by Major Code", "")
-                    fig_bar_det = px.bar(major_code_agg, x='major_code', y='Total_Detection', text_auto='.2f', color_discrete_sequence=['#ff7f0e'])
-                    st.plotly_chart(fig_bar_det, use_container_width=True)
-                with c3:
-                    st.metric("Recovery by Major Code", "")
-                    fig_bar_rec = px.bar(major_code_agg, x='major_code', y='Total_Recovery', text_auto='.2f', color_discrete_sequence=['#2ca02c'])
-                    st.plotly_chart(fig_bar_rec, use_container_width=True)
+                fig_bar_paras = px.bar(major_code_agg, x='description', y='Para_Count', text_auto=True,
+                                       title="Number of Audit Paras by Classification",
+                                       labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
+                                       color_discrete_sequence=['#1f77b4'])
+                st.plotly_chart(fig_bar_paras, use_container_width=True)
+
+                fig_bar_det = px.bar(major_code_agg, x='description', y='Total_Detection', text_auto='.2f',
+                                     title="Detection Amount by Classification",
+                                     labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
+                                     color_discrete_sequence=['#ff7f0e'])
+                st.plotly_chart(fig_bar_det, use_container_width=True)
+
+                fig_bar_rec = px.bar(major_code_agg, x='description', y='Total_Recovery', text_auto='.2f',
+                                     title="Recovery Amount by Classification",
+                                     labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
+                                     color_discrete_sequence=['#2ca02c'])
+                st.plotly_chart(fig_bar_rec, use_container_width=True)
 
             with nc_tab2:
-                detailed_det = df_paras.groupby(['major_code', 'para_classification_code'])['Para Detection in Lakhs'].sum().reset_index()
-                detailed_det = detailed_det[detailed_det['Para Detection in Lakhs'] > 0]
-
-                fig_stack_det = px.bar(detailed_det, x='major_code', y='Para Detection in Lakhs', color='para_classification_code', barmode='stack',
-                                       title="Detection by Detailed Classification", labels={'major_code': 'Major Code', 'Para Detection in Lakhs': 'Detection (₹ Lakhs)', 'para_classification_code': 'Detailed Code'},
-                                       color_discrete_sequence=px.colors.qualitative.Pastel)
-                st.plotly_chart(fig_stack_det, use_container_width=True)
+                st.markdown("<h5>Detection Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
+                unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
+                for code in sorted(unique_major_codes_det):
+                    df_filtered = df_paras[df_paras['major_code'] == code].copy()
+                    df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
+                    df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                    
+                    fig = px.bar(df_agg, x='para_classification_code', y='Para Detection in Lakhs',
+                                 title=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                                 labels={'para_classification_code': 'Detailed Code', 'Para Detection in Lakhs': 'Detection (₹ Lakhs)'},
+                                 text_auto='.2f', hover_data=['description'])
+                    fig.update_traces(hovertemplate='<b>%{x}</b>: %{customdata[0]}<br>Detection: %{y:,.2f} Lakhs<extra></extra>')
+                    st.plotly_chart(fig, use_container_width=True)
 
             with nc_tab3:
-                detailed_rec = df_paras.groupby(['major_code', 'para_classification_code'])['Para Recovery in Lakhs'].sum().reset_index()
-                detailed_rec = detailed_rec[detailed_rec['Para Recovery in Lakhs'] > 0]
+                st.markdown("<h5>Recovery Analysis by Detailed Classification</h5>", unsafe_allow_html=True)
+                unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
+                for code in sorted(unique_major_codes_rec):
+                    df_filtered = df_paras[df_paras['major_code'] == code].copy()
+                    df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
+                    df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
 
-                fig_stack_rec = px.bar(detailed_rec, x='major_code', y='Para Recovery in Lakhs', color='para_classification_code', barmode='stack',
-                                       title="Recovery by Detailed Classification", labels={'major_code': 'Major Code', 'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)', 'para_classification_code': 'Detailed Code'},
-                                       color_discrete_sequence=px.colors.qualitative.Set2)
-                st.plotly_chart(fig_stack_rec, use_container_width=True)
+                    fig = px.bar(df_agg, x='para_classification_code', y='Para Recovery in Lakhs',
+                                 title=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                                 labels={'para_classification_code': 'Detailed Code', 'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)'},
+                                 text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Plotly,
+                                 hover_data=['description'])
+                    fig.update_traces(hovertemplate='<b>%{x}</b>: %{customdata[0]}<br>Recovery: %{y:,.2f} Lakhs<extra></extra>')
+                    st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No classified audit para data available for this period.")
+
         # --- 6. Treemaps by Trade Name ---
         st.markdown("---")
         st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
