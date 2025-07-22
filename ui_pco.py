@@ -714,7 +714,7 @@ def pco_dashboard(dbx):
                     col1, col2, col3 = st.columns(3)
                     col1.metric("Total 'Agreed yet to pay' Paras", f"{total_agreed_paras}")
                     col2.metric("Total Detection Amount", f"₹{total_agreed_detection:,.2f} L")
-                    col3.metric("Total Recovery Amount", f"₹{total_agreed_recovery:,.2f}
+                    col3.metric("Total Recovery Amount", f"₹{total_agreed_recovery:,.2f}L")
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
