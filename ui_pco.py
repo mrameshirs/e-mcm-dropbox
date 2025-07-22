@@ -384,10 +384,10 @@ def pco_dashboard(dbx):
             st.info(f"No data to visualize for {selected_period}.")
             return
     
-        # --- 3. Data Cleaning and Preparation ---
+        # --- Data Cleaning and Preparation (Consolidated) ---
         amount_cols = [
             'total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs',
-            'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs'
+            'revenue_involved_rs', 'revenue_recovered_rs'
         ]
         for col in amount_cols:
             if col in df_viz_data.columns:
@@ -395,6 +395,8 @@ def pco_dashboard(dbx):
     
         df_viz_data['Detection in Lakhs'] = df_viz_data.get('total_amount_detected_overall_rs', 0) / 100000.0
         df_viz_data['Recovery in Lakhs'] = df_viz_data.get('total_amount_recovered_overall_rs', 0) / 100000.0
+        df_viz_data['Para Detection in Lakhs'] = df_viz_data.get('revenue_involved_rs', 0) / 100000.0
+        df_viz_data['Para Recovery in Lakhs'] = df_viz_data.get('revenue_recovered_rs', 0) / 100000.0
         
         df_viz_data['audit_group_number'] = pd.to_numeric(df_viz_data.get('audit_group_number'), errors='coerce').fillna(0).astype(int)
         df_viz_data['audit_circle_number'] = pd.to_numeric(df_viz_data.get('audit_circle_number'), errors='coerce').fillna(0).astype(int)
@@ -403,13 +405,15 @@ def pco_dashboard(dbx):
         
         df_viz_data['category'] = df_viz_data.get('category', 'Unknown').fillna('Unknown')
         df_viz_data['trade_name'] = df_viz_data.get('trade_name', 'Unknown Trade Name').fillna('Unknown Trade Name')
-        df_viz_data['status_of_para'] = df_viz_data.get('status_of_para', 'Unknown').fillna('Unknown')
-    
+        df_viz_data['taxpayer_classification'] = df_viz_data.get('taxpayer_classification', 'Unknown').fillna('Unknown')
+        df_viz_data['para_classification_code'] = df_viz_data.get('para_classification_code', 'UNCLASSIFIED').fillna('UNCLASSIFIED')
+
+        # Unique reports for DAR-level analysis
         if 'dar_pdf_path' in df_viz_data.columns and df_viz_data['dar_pdf_path'].notna().any():
             df_unique_reports = df_viz_data.drop_duplicates(subset=['dar_pdf_path']).copy()
         else:
-            st.warning("⚠️ 'dar_pdf_path' column not found. Report-level sums might be inflated.", icon=" ")
-            df_unique_reports = df_viz_data.copy()
+            df_unique_reports = df_viz_data.drop_duplicates(subset=['gstin']).copy()
+    
     
         # --- 4. Monthly Performance Summary Metrics ---
         st.markdown("#### Monthly Performance Summary")
@@ -468,7 +472,105 @@ def pco_dashboard(dbx):
                 fig_rec_circle = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.G10)
                 fig_rec_circle = style_chart(fig_rec_circle, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
                 st.plotly_chart(fig_rec_circle, use_container_width=True)
-    
+              # --- Section 3: Taxpayer Classification Analysis (New) ---
+        st.markdown("---")
+        st.markdown("<h4>Taxpayer Classification Analysis</h4>", unsafe_allow_html=True)
+
+        tc_tab1, tc_tab2 = st.tabs(["DARs by Classification", "Detection & Recovery by Classification"])
+
+        with tc_tab1:
+            if 'taxpayer_classification' in df_unique_reports.columns:
+                class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
+                class_counts.columns = ['classification', 'count']
+                
+                fig_pie_dars = px.pie(class_counts, names='classification', values='count',
+                                      title="Distribution of DARs by Taxpayer Classification",
+                                      color_discrete_sequence=px.colors.sequential.Blues_r,
+                                      labels={'classification': 'Taxpayer Classification', 'count': 'Number of DARs'})
+                fig_pie_dars.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05]*len(class_counts))
+                fig_pie_dars.update_layout(legend_title="Classification", title_x=0.5)
+                st.plotly_chart(fig_pie_dars, use_container_width=True)
+            else:
+                st.info("Taxpayer classification data not available for this period.")
+
+        with tc_tab2:
+            if 'taxpayer_classification' in df_unique_reports.columns:
+                class_agg = df_unique_reports.groupby('taxpayer_classification').agg(
+                    Total_Detection=('Detection in Lakhs', 'sum'),
+                    Total_Recovery=('Recovery in Lakhs', 'sum')
+                ).reset_index()
+
+                col_det, col_rec = st.columns(2)
+                with col_det:
+                    fig_pie_det = px.pie(class_agg, names='taxpayer_classification', values='Total_Detection',
+                                         title="Detection Amount by Taxpayer Classification",
+                                         color_discrete_sequence=px.colors.sequential.Reds_r,
+                                         labels={'taxpayer_classification': 'Classification', 'Total_Detection': 'Detection (₹ Lakhs)'})
+                    fig_pie_det.update_traces(textposition='inside', textinfo='percent+label')
+                    fig_pie_det.update_layout(legend_title="Classification", title_x=0.5)
+                    st.plotly_chart(fig_pie_det, use_container_width=True)
+                
+                with col_rec:
+                    fig_pie_rec = px.pie(class_agg, names='taxpayer_classification', values='Total_Recovery',
+                                         title="Recovery Amount by Taxpayer Classification",
+                                         color_discrete_sequence=px.colors.sequential.Purples_r,
+                                         labels={'taxpayer_classification': 'Classification', 'Total_Recovery': 'Recovery (₹ Lakhs)'})
+                    fig_pie_rec.update_traces(textposition='inside', textinfo='percent+label')
+                    fig_pie_rec.update_layout(legend_title="Classification", title_x=0.5)
+                    st.plotly_chart(fig_pie_rec, use_container_width=True)
+            else:
+                st.info("Taxpayer classification data not available for this period.")
+
+        # --- Section 4: Nature of Compliance Analysis (New) ---
+        st.markdown("---")
+        st.markdown("<h4>Nature of Compliance Analysis for Audit Paras</h4>", unsafe_allow_html=True)
+        
+        df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
+        if not df_paras.empty:
+            df_paras['major_code'] = df_paras['para_classification_code'].str[:2]
+        
+            nc_tab1, nc_tab2, nc_tab3 = st.tabs(["Major Code Summary", "Detection by Detailed Code", "Recovery by Detailed Code"])
+
+            with nc_tab1:
+                major_code_agg = df_paras.groupby('major_code').agg(
+                    Para_Count=('major_code', 'count'),
+                    Total_Detection=('Para Detection in Lakhs', 'sum'),
+                    Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                ).reset_index()
+
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    st.metric("Paras by Major Code", "")
+                    fig_bar_paras = px.bar(major_code_agg, x='major_code', y='Para_Count', text_auto=True, color_discrete_sequence=['#1f77b4'])
+                    st.plotly_chart(fig_bar_paras, use_container_width=True)
+                with c2:
+                    st.metric("Detection by Major Code", "")
+                    fig_bar_det = px.bar(major_code_agg, x='major_code', y='Total_Detection', text_auto='.2f', color_discrete_sequence=['#ff7f0e'])
+                    st.plotly_chart(fig_bar_det, use_container_width=True)
+                with c3:
+                    st.metric("Recovery by Major Code", "")
+                    fig_bar_rec = px.bar(major_code_agg, x='major_code', y='Total_Recovery', text_auto='.2f', color_discrete_sequence=['#2ca02c'])
+                    st.plotly_chart(fig_bar_rec, use_container_width=True)
+
+            with nc_tab2:
+                detailed_det = df_paras.groupby(['major_code', 'para_classification_code'])['Para Detection in Lakhs'].sum().reset_index()
+                detailed_det = detailed_det[detailed_det['Para Detection in Lakhs'] > 0]
+
+                fig_stack_det = px.bar(detailed_det, x='major_code', y='Para Detection in Lakhs', color='para_classification_code', barmode='stack',
+                                       title="Detection by Detailed Classification", labels={'major_code': 'Major Code', 'Para Detection in Lakhs': 'Detection (₹ Lakhs)', 'para_classification_code': 'Detailed Code'},
+                                       color_discrete_sequence=px.colors.qualitative.Pastel)
+                st.plotly_chart(fig_stack_det, use_container_width=True)
+
+            with nc_tab3:
+                detailed_rec = df_paras.groupby(['major_code', 'para_classification_code'])['Para Recovery in Lakhs'].sum().reset_index()
+                detailed_rec = detailed_rec[detailed_rec['Para Recovery in Lakhs'] > 0]
+
+                fig_stack_rec = px.bar(detailed_rec, x='major_code', y='Para Recovery in Lakhs', color='para_classification_code', barmode='stack',
+                                       title="Recovery by Detailed Classification", labels={'major_code': 'Major Code', 'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)', 'para_classification_code': 'Detailed Code'},
+                                       color_discrete_sequence=px.colors.qualitative.Set2)
+                st.plotly_chart(fig_stack_rec, use_container_width=True)
+        else:
+            st.info("No classified audit para data available for this period.")
         # --- 6. Treemaps by Trade Name ---
         st.markdown("---")
         st.markdown("<h4>Analysis by Trade Name</h4>", unsafe_allow_html=True)
