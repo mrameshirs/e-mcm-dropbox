@@ -388,6 +388,16 @@ def pco_dashboard(dbx):
 
  
         
+        st.markdown("#### Monthly Performance Summary")
+        num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
+        col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
+        col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
+
         # --- This block prepares the data for the table ---
         categories_order = ['Large', 'Medium', 'Small']
         dar_summary = df_unique_reports.groupby('category').agg(
@@ -407,83 +417,93 @@ def pco_dashboard(dbx):
             'total_recovered': summary_df['total_recovered'].sum()
         }
         summary_df = pd.concat([summary_df, pd.DataFrame([total_row])], ignore_index=True)
-        summary_df.rename(columns={
-            'category': 'Category', 'dars_submitted': 'No. of DARs',
-            'num_audit_paras': 'No. of Audit Paras', 'total_detected': 'Total Detected (₹ L)',
-            'total_recovered': 'Total Recovered (₹ L)'
+        
+        # Format the dataframe for display
+        display_df = summary_df.copy()
+        display_df.rename(columns={
+            'category': 'CATEGORY',
+            'dars_submitted': 'NO. OF DARS',
+            'num_audit_paras': 'NO. OF AUDIT PARAS',
+            'total_detected': 'TOTAL DETECTED',
+            'total_recovered': 'TOTAL RECOVERED'
         }, inplace=True)
-        summary_df['No. of DARs'] = summary_df['No. of DARs'].astype(int)
-        summary_df['No. of Audit Paras'] = summary_df['No. of Audit Paras'].astype(int)
-        st.markdown("#### Monthly Performance Summary")
-        html_body = ""
-        for index, row in summary_df.iterrows():
-            html_body += f"""
-            <tr>
-                <td class="text-data">{row['Category']}</td>
-                <td class="num-data">{row['No. of DARs']}</td>
-                <td class="num-data">{row['No. of Audit Paras']}</td>
-                <td class="num-data">₹{row['Total Detected (₹ L)']:,.2f} L</td>
-                <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
-            </tr>
-            """
         
-        html_table = f"""
+        # Convert to integers and format currency
+        display_df['NO. OF DARS'] = display_df['NO. OF DARS'].astype(int)
+        display_df['NO. OF AUDIT PARAS'] = display_df['NO. OF AUDIT PARAS'].astype(int)
+        display_df['TOTAL DETECTED'] = display_df['TOTAL DETECTED'].apply(lambda x: f"₹{x:,.2f} L")
+        display_df['TOTAL RECOVERED'] = display_df['TOTAL RECOVERED'].apply(lambda x: f"₹{x:,.2f} L")
+        
+        # Display the beautiful Streamlit table
+        st.markdown("#### 📊 Performance Breakdown by Category")
+        
+        # Custom CSS for better table styling
+        st.markdown("""
         <style>
-            .styled-table {{
-                border-collapse: collapse;
-                margin: 15px 0;
-                font-size: 0.9em;
-                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                width: 100%;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-                border-radius: 8px;
-                overflow: hidden;
-            }}
-            .styled-table thead tr {{
-                background-color: #4A90E2;
-                color: #ffffff;
-                text-align: center;
-                font-weight: bold;
-            }}
-            .styled-table th, .styled-table td {{
-                padding: 12px 15px;
-            }}
-            .styled-table tbody tr {{
-                border-bottom: 1px solid #dddddd;
-            }}
-            .styled-table tbody tr:nth-of-type(even) {{
-                background-color: #f8f9fa;
-            }}
-            .styled-table tbody tr:last-of-type {{
-                border-top: 3px solid #4A90E2;
-                font-weight: bold;
-                background-color: #eaf2fb;
-            }}
-            .styled-table td.num-data {{
-                text-align: right;
-            }}
-            .styled-table td.text-data {{
-                text-align: left;
-            }}
+        div[data-testid="stDataFrame"] > div {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2px;
+            border-radius: 10px;
+        }
+        div[data-testid="stDataFrame"] table {
+            background: white;
+            border-radius: 8px;
+        }
+        div[data-testid="stDataFrame"] th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            border: none !important;
+        }
         </style>
+        """, unsafe_allow_html=True)
         
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>No. of DARs</th>
-                    <th>No. of Audit Paras</th>
-                    <th>Total Detected (₹ L)</th>
-                    <th>Total Recovered (₹ L)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {html_body}
-            </tbody>
-        </table>
-        """
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True,
+            height=250,  # Fixed height to prevent scrollbars
+            column_config={
+                "CATEGORY": st.column_config.TextColumn(
+                    "CATEGORY",
+                    help="Taxpayer categories",
+                    width="medium"
+                ),
+                "NO. OF DARS": st.column_config.NumberColumn(
+                    "NO. OF DARS",
+                    help="Number of DARs submitted",
+                    format="%d",
+                    width="small"
+                ),
+                "NO. OF AUDIT PARAS": st.column_config.NumberColumn(
+                    "NO. OF AUDIT PARAS", 
+                    help="Total audit paras identified",
+                    format="%d",
+                    width="small"
+                ),
+                "TOTAL DETECTED": st.column_config.TextColumn(
+                    "TOTAL DETECTED",
+                    help="Total amount detected in Lakhs",
+                    width="medium"
+                ),
+                "TOTAL RECOVERED": st.column_config.TextColumn(
+                    "TOTAL RECOVERED",
+                    help="Total amount recovered in Lakhs", 
+                    width="medium"
+                ),
+            }
+        )
         
-        st.markdown(html_table, unsafe_allow_html=True)
+        # Alternative: Use st.table for a more compact display
+        st.markdown("---")
+        st.markdown("#### 🎯 Summary Table")
+        
+        # Create a more compact version
+        compact_df = display_df.copy()
+        
+        # Use st.table for no scrollbars and clean display
+        st.table(compact_df)
         
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
