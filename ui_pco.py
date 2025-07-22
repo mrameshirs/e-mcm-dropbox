@@ -376,119 +376,17 @@ def pco_dashboard(dbx):
     
     
         # --- 4. Monthly Performance Summary Metrics ---
-        # st.markdown("#### Monthly Performance Summary")
-        # # num_dars = df_unique_reports['dar_pdf_path'].nunique()
-        # # total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
-        # # total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
-        
-        # # col1, col2, col3 = st.columns(3)
-        # # col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
-        # # col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
-        # # col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
-
-        # categories_order = ['Large', 'Medium', 'Small']
-        # dar_summary = df_unique_reports.groupby('category').agg(
-        #     dars_submitted=('dar_pdf_path', 'nunique'),
-        #     total_detected=('Detection in Lakhs', 'sum'),
-        #     total_recovered=('Recovery in Lakhs', 'sum')
-        # )
-        # df_actual_paras = df_viz_data[df_viz_data['audit_para_number'].notna() & (~df_viz_data['audit_para_heading'].astype(str).isin(["N/A - Header Info Only (Add Paras Manually)", "Manual Entry Required", "Manual Entry - PDF Error", "Manual Entry - PDF Upload Failed"]))]
-        # para_summary = df_actual_paras.groupby('category').size().reset_index(name='num_audit_paras').set_index('category')
-        # summary_df = pd.concat([dar_summary, para_summary], axis=1).reindex(categories_order).fillna(0)
-        # summary_df.reset_index(inplace=True)
-        # total_row = {
-        #     'category': '🏆 Total (All)',
-        #     'dars_submitted': summary_df['dars_submitted'].sum(),
-        #     'num_audit_paras': summary_df['num_audit_paras'].sum(),
-        #     'total_detected': summary_df['total_detected'].sum(),
-        #     'total_recovered': summary_df['total_recovered'].sum()
-        # }
-        # summary_df = pd.concat([summary_df, pd.DataFrame([total_row])], ignore_index=True)
-        # summary_df.rename(columns={
-        #     'category': 'Category', 'dars_submitted': 'No. of DARs',
-        #     'num_audit_paras': 'No. of Audit Paras', 'total_detected': 'Total Detected (₹ L)',
-        #     'total_recovered': 'Total Recovered (₹ L)'
-        # }, inplace=True)
-        # summary_df['No. of DARs'] = summary_df['No. of DARs'].astype(int)
-        # summary_df['No. of Audit Paras'] = summary_df['No. of Audit Paras'].astype(int)
-
-        # # --- Start of HTML Table Generation (Corrected) ---
-        
-        # # Build the HTML table body without extra <br> tags
-        # html_body = ""
-        # for index, row in summary_df.iterrows():
-        #     html_body += f"""
-        #     <tr>
-        #         <td class="text-data">{row['Category']}</td>
-        #         <td class="num-data">{row['No. of DARs']}</td>
-        #         <td class="num-data">{row['No. of Audit Paras']}</td>
-        #         <td class="num-data">₹{row['Total Detected (₹ L)']:,.2f} L</td>
-        #         <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
-        #     </tr>
-        #     """
-
-        # # Define the full HTML table with CSS, also without extra <br> tags
-        # html_table = f"""
-        # <style>
-        #     .styled-table {{
-        #         border-collapse: collapse;
-        #         margin: 15px 0;
-        #         font-size: 0.9em;
-        #         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        #         width: 100%;
-        #         box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        #         border-radius: 8px;
-        #         overflow: hidden;
-        #     }}
-        #     .styled-table thead tr {{
-        #         background-color: #4A90E2; /* Blue Header */
-        #         color: #ffffff;
-        #         text-align: center;
-        #         font-weight: bold;
-        #     }}
-        #     .styled-table th, .styled-table td {{
-        #         padding: 12px 15px;
-        #     }}
-        #     .styled-table tbody tr {{
-        #         border-bottom: 1px solid #dddddd;
-        #     }}
-        #     .styled-table tbody tr:nth-of-type(even) {{
-        #         background-color: #f8f9fa;
-        #     }}
-        #     .styled-table tbody tr:last-of-type {{
-        #         border-top: 3px solid #4A90E2;
-        #         font-weight: bold;
-        #         background-color: #eaf2fb;
-        #     }}
-        #     .styled-table td.num-data {{
-        #         text-align: right;
-        #     }}
-        #     .styled-table td.text-data {{
-        #         text-align: left;
-        #     }}
-        # </style>
-        
-        # <table class="styled-table">
-        #     <thead>
-        #         <tr>
-        #             <th>Category</th>
-        #             <th>No. of DARs</th>
-        #             <th>No. of Audit Paras</th>
-        #             <th>Total Detected (₹ L)</th>
-        #             <th>Total Recovered (₹ L)</th>
-        #         </tr>
-        #     </thead>
-        #     <tbody>
-        #         {html_body}
-        #     </tbody>
-        # </table>
-        # """
-        
-        # # Display the single, correct summary table
-        # st.markdown("#### Monthly Performance Summary")
-        # st.markdown(html_table, unsafe_allow_html=True)
-        # --- 4. Monthly Performance Summary ---
         st.markdown("#### Monthly Performance Summary")
+        num_dars = df_unique_reports['dar_pdf_path'].nunique()
+        total_detected = df_unique_reports.get('Detection in Lakhs', 0).sum()
+        total_recovered = df_unique_reports.get('Recovery in Lakhs', 0).sum()
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric(label="✅ DARs Submitted", value=f"{num_dars}")
+        col2.metric(label="💰 Revenue Involved", value=f"₹{total_detected:.2f} L")
+        col3.metric(label="🏆 Revenue Recovered", value=f"₹{total_recovered:.2f} L")
+
+ 
         
         # --- This block prepares the data for the table ---
         categories_order = ['Large', 'Medium', 'Small']
@@ -586,57 +484,7 @@ def pco_dashboard(dbx):
         """
         
         st.markdown(html_table, unsafe_allow_html=True)
-        # # --- This block builds and displays the final HTML table ---
-        # html_body = ""
-        # for index, row in summary_df.iterrows():
-        #     html_body += f"""
-        #     <tr>
-        #         <td class="text-data">{row['Category']}</td>
-        #         <td class="num-data">{row['No. of DARs']}</td>
-        #         <td class="num-data">{row['No. of Audit Paras']}</td>
-        #         <td class="num-data">₹{row['Total Detected (₹ L)']:,.2f} L</td>
-        #         <td class="num-data">₹{row['Total Recovered (₹ L)']:,.2f} L</td>
-        #     </tr>
-        #     """
         
-        # html_table = f"""
-        # <style>
-        #     .styled-table {{
-        #         border-collapse: collapse; margin: 15px 0; font-size: 0.9em;
-        #         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        #         width: 100%; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        #         border-radius: 8px; overflow: hidden;
-        #     }}
-        #     .styled-table thead tr {{
-        #         background-color: #4A90E2; color: #ffffff; text-align: center; font-weight: bold;
-        #     }}
-        #     .styled-table th, .styled-table td {{ padding: 12px 15px; }}
-        #     .styled-table tbody tr {{ border-bottom: 1px solid #dddddd; }}
-        #     .styled-table tbody tr:nth-of-type(even) {{ background-color: #f8f9fa; }}
-        #     .styled-table tbody tr:last-of-type {{
-        #         border-top: 3px solid #4A90E2; font-weight: bold; background-color: #eaf2fb;
-        #     }}
-        #     .styled-table td.num-data {{ text-align: right; }}
-        #     .styled-table td.text-data {{ text-align: left; }}
-        # </style>
-        # <table class="styled-table">
-        #     <thead>
-        #         <tr>
-        #             <th>Category</th>
-        #             <th>No. of DARs</th>
-        #             <th>No. of Audit Paras</th>
-        #             <th>Total Detected (₹ L)</th>
-        #             <th>Total Recovered (₹ L)</th>
-        #         </tr>
-        #     </thead>
-        #     <tbody>
-        #         {html_body}
-        #     </tbody>
-        # </table>
-        # """
-        
-        # # Display the single, correct summary table
-        # st.markdown(html_table, unsafe_allow_html=True)
         # --- 5. Group & Circle Performance Bar Charts ---
         st.markdown("---")
         st.markdown("<h4>Group & Circle Performance</h4>", unsafe_allow_html=True)
