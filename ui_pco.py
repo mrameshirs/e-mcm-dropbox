@@ -809,6 +809,107 @@ def pco_dashboard(dbx):
                 st.plotly_chart(fig_tree_rec, use_container_width=True)
             except Exception as e:
                 st.error(f"Could not generate recovery treemap: {e}")
+
+
+        # --- [UPDATED] Risk Parameter Analysis ---
+        st.markdown("---")
+        st.markdown("<h4>Risk Parameter Analysis</h4>", unsafe_allow_html=True)
+        
+        st.markdown("""
+        This section analyzes audit performance based on pre-defined GST risk parameters. 
+        It helps identify which risks are most frequently associated with audit observations and which ones 
+        contribute most to revenue detection and recovery. The charts are sorted to highlight the most significant parameters.
+        """)
+
+        GST_RISK_PARAMETERS = {
+            "P01": "Sale turnover (GSTR-3B) is less than the purchase turnover", "P03": "High ratio of nil-rated/exempt supplies to total turnover",
+            "P04": "High ratio of zero-rated supplies to total turnover", "P09": "Decline in average monthly taxable turnover in GSTR-3B",
+            "P10": "High ratio of non-GST supplies to total turnover", "P21": "High ratio of zero-rated supply to SEZ to total GST turnover",
+            "P22": "High ratio of deemed exports to total GST turnover", "P23": "High ratio of zero-rated supply (other than exports) to total supplies",
+            "P29": "High ratio of taxable turnover as per ITC-04 vs. total turnover in GSTR-3B", "P31": "High ratio of Credit Notes to total taxable turnover value",
+            "P32": "High ratio of Debit Notes to total taxable turnover value", "P02": "IGST paid on import is more than the ITC availed in GSTR-3B",
+            "P05": "High ratio of inward supplies liable to reverse charge to total turnover", "P06": "Mismatch between RCM liability declared and ITC claimed on RCM",
+            "P07": "High ratio of tax paid through ITC to total tax payable", "P14": "Positive difference between ITC availed in GSTR-3B and ITC available in GSTR-2A",
+            "P15": "Positive difference between ITC on import of goods (GSTR-3B) and IGST paid at Customs", "P16": "Low ratio of tax paid under RCM compared to ITC claimed on RCM",
+            "P17": "High ratio of ISD credit to total ITC availed", "P18": "Low ratio of ITC reversed to total ITC availed",
+            "P19": "Mismatch between the proportion of exempt supplies and the proportion of ITC reversed", "P08": "Low ratio of tax payment in cash to total tax liability",
+            "P11": "Taxpayer has filed more than six GST returns late", "P12": "Taxpayer has not filed three consecutive GSTR-3B returns",
+            "P30": "Taxpayer was selected for audit on risk criteria last year but was not audited", "P13": "Taxpayer has both SEZ and non-SEZ registrations with the same PAN in the same state",
+            "P20": "Mismatch between the taxable value of exports in GSTR-1 and the IGST value in shipping bills (Customs data)", "P24": "Risk associated with other linked GSTINs of the same PAN",
+            "P28": "Taxpayer is flagged in Red Flag Reports of DGARM", "P33": "Substantial difference between turnover in GSTR-3B and turnover in Income Tax Return (ITR)",
+            "P34": "Negligible income tax payment despite substantial turnover in GSTR-3B", "P25": "High amount of IGST Refund claimed (for Risky Exporters)",
+            "P26": "High amount of LUT Export Refund claimed (for Risky Exporters)", "P27": "High amount of Refund claimed due to inverted duty structure (for Risky Exporters)"
+        }
+
+        if 'risk_flags_data' not in df_viz_data.columns:
+            st.warning("Column 'risk_flags_data' not found. Skipping Risk Parameter Analysis.")
+        else:
+            risk_para_records = []
+            valid_risk_data = df_viz_data[df_viz_data['risk_flags_data'].notna() & (df_viz_data['risk_flags_data'] != '') & (df_viz_data['risk_flags_data'] != '[]')]
+            gstins_with_risk_data = valid_risk_data['gstin'].nunique()
+
+            for _, row in valid_risk_data.iterrows():
+                try:
+                    risk_list = json.loads(row['risk_flags_data'])
+                    for risk_item in risk_list:
+                        paras = risk_item.get("paras", [])
+                        if risk_item.get("risk_flag") and paras:
+                            for para_num in paras:
+                                risk_para_records.append({"gstin": row['gstin'], "audit_para_number": para_num, "risk_flag": risk_item["risk_flag"]})
+                except (json.JSONDecodeError, TypeError):
+                    continue
+            
+            if not risk_para_records:
+                st.info("No valid risk parameter data could be processed for this period.")
+            else:
+                df_risk_long = pd.DataFrame(risk_para_records)
+                df_risk_long['audit_para_number'] = pd.to_numeric(df_risk_long['audit_para_number'], errors='coerce')
+
+                df_risk_analysis = pd.merge(df_viz_data.dropna(subset=['audit_para_number']), df_risk_long, on=['gstin', 'audit_para_number'], how='inner')
+                
+                paras_with_risk_flags = df_risk_analysis[['gstin', 'audit_para_number']].drop_duplicates().shape[0]
+
+                # Display summary metrics
+                col1, col2 = st.columns(2)
+                col1.metric("GSTINs with Risk Data", f"{gstins_with_risk_data}")
+                col2.metric("Paras Linked to Risks", f"{paras_with_risk_flags}")
+                
+                if not df_risk_analysis.empty:
+                    risk_agg = df_risk_analysis.groupby('risk_flag').agg(
+                        Para_Count=('risk_flag', 'count'),
+                        Total_Detection=('Para Detection in Lakhs', 'sum'),
+                        Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                    ).reset_index()
+
+                    risk_agg['description'] = risk_agg['risk_flag'].map(GST_RISK_PARAMETERS).fillna("Unknown Risk Code")
+                    risk_agg['Percentage_Recovery'] = (risk_agg['Total_Recovery'] / risk_agg['Total_Detection'].replace(0, np.nan)).fillna(0) * 100
+
+                    # Chart 1: Audit Paras
+                    risk_agg_sorted_count = risk_agg.sort_values('Para_Count', ascending=False)
+                    fig_risk_paras = px.bar(risk_agg_sorted_count, x='risk_flag', y='Para_Count', text_auto=True, hover_name='description', hover_data={'risk_flag': False, 'description': True, 'Para_Count': True}, color_discrete_sequence=px.colors.qualitative.Bold)
+                    style_chart(fig_risk_paras, "Number of Audit Paras by Risk Flag", "Number of Paras", "Risk Flag")
+                    st.plotly_chart(fig_risk_paras, use_container_width=True)
+
+                    # Chart 2 & 3
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        risk_agg_sorted_det = risk_agg.sort_values('Total_Detection', ascending=False)
+                        fig_risk_detection = px.bar(risk_agg_sorted_det, x='risk_flag', y='Total_Detection', text_auto='.2f', hover_name='description', hover_data={'risk_flag': False}, color_discrete_sequence=px.colors.qualitative.Prism)
+                        style_chart(fig_risk_detection, "Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
+                        st.plotly_chart(fig_risk_detection, use_container_width=True)
+                    with col2:
+                        risk_agg_sorted_rec = risk_agg.sort_values('Total_Recovery', ascending=False)
+                        fig_risk_recovery = px.bar(risk_agg_sorted_rec, x='risk_flag', y='Total_Recovery', text_auto='.2f', hover_name='description', hover_data={'risk_flag': False}, color_discrete_sequence=px.colors.qualitative.Safe)
+                        style_chart(fig_risk_recovery, "Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
+                        st.plotly_chart(fig_risk_recovery, use_container_width=True)
+
+                    # Chart 4: Percentage Recovery
+                    risk_agg_sorted_perc = risk_agg.sort_values('Percentage_Recovery', ascending=False)
+                    fig_risk_percentage = px.bar(risk_agg_sorted_perc, x='risk_flag', y='Percentage_Recovery', hover_name='description', hover_data={'risk_flag': False}, color='Percentage_Recovery', color_continuous_scale=px.colors.sequential.Greens)
+                    fig_risk_percentage.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
+                    style_chart(fig_risk_percentage, "Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag")
+                    fig_risk_percentage.update_layout(coloraxis_showscale=False)
+                    st.plotly_chart(fig_risk_percentage, use_container_width=True)
         # --- Para-wise Performance (uses original full data) ---
         st.markdown("---")
         st.markdown("<h4>Para-wise Performance</h4>", unsafe_allow_html=True)
