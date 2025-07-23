@@ -292,9 +292,36 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold', 
                 leading=50
             )
+            title3_style = ParagraphStyle(
+                name='Title', 
+                fontSize=38, 
+                textColor=colors.HexColor("#f5ddc1"),
+                alignment=TA_LEFT, 
+                fontName='Helvetica-Oblique', 
+                leading=50
+            )
+             # Check if Hindi font is available
+            try:
+                # Test if HindiFont is registered
+                pdfmetrics.getFont('HindiFont')
+                hindi_font = 'HindiFont'
+            except:
+                hindi_font = 'Helvetica-Bold'
+                
+            hindi_style = ParagraphStyle(
+                name='HindiTitle', 
+                parent=title_style, 
+                fontName=hindi_font, 
+                fontSize=24
+            )
+                    
             self.story.append(Paragraph("MONITORING COMMITTEE MEETING", title_style))
+            self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
             self.story.append(Paragraph("JULY 2025", title2_style))
-            self.story.append(Spacer(1, 2.5 * inch))
+            self.story.append(Spacer(1, 0.5 * inch))
+            self.story.append(Paragraph("EXECUTIVE SUMMARY REPORT", title3_style))
+            
+            self.story.append(Spacer(1, 1.5 * inch))
 
             contact_style = ParagraphStyle(
                 name='Contact', 
