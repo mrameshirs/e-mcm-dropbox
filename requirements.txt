@@ -16,5 +16,5 @@ xlsxwriter
 openpyxl
 dropbox
 plotly==5.22.0
-python-kaleido==0.2.1
+kaleido==0.2.1
 svglib==1.5.1
