@@ -284,8 +284,16 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold', 
                 leading=50
             )
-            self.story.append(Paragraph("REPORT EXECUTIVE", title_style))
-            self.story.append(Paragraph("COVER PAGE", title_style))
+             title2_style = ParagraphStyle(
+                name='Title', 
+                fontSize=36, 
+                textColor=colors.HexColor("#f5ddc1"),
+                alignment=TA_CENTER, 
+                fontName='Helvetica-Bold', 
+                leading=50
+            )
+            self.story.append(Paragraph("MONITORING COMMITTEE MEETING", title_style))
+            self.story.append(Paragraph("JULY 2025", title2_style))
             self.story.append(Spacer(1, 2.5 * inch))
 
             contact_style = ParagraphStyle(
