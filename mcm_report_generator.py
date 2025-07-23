@@ -38,7 +38,7 @@ class PDFReportGenerator:
             # Fallback if font is not found
             pdfmetrics.registerFont(TTFont('HindiFont', 'Helvetica-Bold'))
                                     
-   def run(self, detailed=False):
+    def run(self, detailed=False):
         charts_to_include = self.chart_images if detailed else self.chart_images[:3]
         
         # --- NEW: Build the document with a custom page drawer ---
