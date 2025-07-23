@@ -376,7 +376,7 @@ class PDFReportGenerator:
                                        alignment=TA_CENTER, fontName='Helvetica-Bold', leading=46)
             title2_style = ParagraphStyle(name='Title2', parent=title_style, fontSize=34)
             title3_style = ParagraphStyle(name='Title3', parent=title_style, fontSize=26, textColor=colors.HexColor("#B76E79"),fontName='Helvetica-Oblique')
-            title4_style = ParagraphStyle(name='Title4', parent=title_style, fontSize=20,textColor=colors.HexColor("#B76E79") fontName='Helvetica-Oblique')
+            title4_style = ParagraphStyle(name='Title4', parent=title_style, fontSize=20,textColor=colors.HexColor("#B76E79") ,fontName='Helvetica-Oblique')
             hindi_style = ParagraphStyle(name='HindiTitle', parent=title_style, fontName='HindiFont', fontSize=24)
             
             self.story.append(Paragraph("MONITORING COMMITTEE MEETING", title_style))
