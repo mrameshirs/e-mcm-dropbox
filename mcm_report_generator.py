@@ -36,7 +36,7 @@ class PDFReportGenerator:
             pdfmetrics.registerFont(TTFont('HindiFont', 'NotoSansDevanagari-VariableFont_wdth,wght.ttf'))
         except:
             # Fallback if font is not found
-            pdfmetrics.registerFont(TTFont('HindiFont', 'Helvetica-Bold')
+            pdfmetrics.registerFont(TTFont('HindiFont', 'Helvetica-Bold'))
                                     
    def run(self, detailed=False):
         charts_to_include = self.chart_images if detailed else self.chart_images[:3]
