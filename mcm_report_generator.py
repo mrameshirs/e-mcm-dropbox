@@ -6,7 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
 from io import BytesIO
-
+from svglib.svglib import svg2rlg
 class PDFReportGenerator:
     """
     A class to generate a professional PDF report for the Monitoring Committee Meeting (MCM),
@@ -169,14 +169,21 @@ class PDFReportGenerator:
         """
         for i, img_bytes in enumerate(chart_images):
             try:
-                # Reset buffer position
                 img_bytes.seek(0)
-                img = Image(img_bytes, width=6*inch, height=3*inch)
-                img.hAlign = 'CENTER'
-                self.story.append(img)
+
+                # Use svg2rlg to convert SVG to a ReportLab Drawing object
+                drawing = svg2rlg(img_bytes)
+
+                # Scale drawing to fit if needed (optional but recommended)
+                render_width = 6 * inch
+                scale = render_width / drawing.width
+                drawing.width = render_width
+                drawing.height = drawing.height * scale
+
+                drawing.hAlign = 'CENTER'
+                self.story.append(drawing)
                 self.story.append(Spacer(1, 0.25 * inch))
-                
-                # Add page break after every 2 charts to avoid overcrowding
+
                 if (i + 1) % 2 == 0 and i < len(chart_images) - 1:
                     self.story.append(PageBreak())
             except Exception as e:
