@@ -16,4 +16,4 @@ streamlit-aggrid
 xlsxwriter
 openpyxl
 dropbox
-kaleido
+svglib
