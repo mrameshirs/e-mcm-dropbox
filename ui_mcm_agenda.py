@@ -23,7 +23,7 @@ from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
 
 # --- NEW IMPORTS for Report Generation ---
 from mcm_report_generator import PDFReportGenerator
-from visualization_utils import get_visualization_data # Import the helper function
+from visualisation_utils import get_visualization_data # Import the helper function
 
 # --- HELPER FUNCTION FOR INDIAN NUMBERING ---
 def format_inr(n):
