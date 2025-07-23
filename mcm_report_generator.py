@@ -284,7 +284,7 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold', 
                 leading=50
             )
-             title2_style = ParagraphStyle(
+            title2_style = ParagraphStyle(
                 name='Title', 
                 fontSize=36, 
                 textColor=colors.HexColor("#f5ddc1"),
