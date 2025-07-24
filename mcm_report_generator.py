@@ -163,7 +163,7 @@ class PDFReportGenerator:
         try:
             title_style = ParagraphStyle(
                 name='MainTitle', 
-                fontSize=28, 
+                fontSize=24, 
                 textColor=colors.HexColor("#1F3A4D"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica-Bold'
@@ -180,10 +180,11 @@ class PDFReportGenerator:
                 name='HindiTitle', 
                 parent=title_style, 
                 fontName=hindi_font, 
-                fontSize=24
+                fontSize=22
             )
             
             self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
+            self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
             self.story.append(Spacer(1, 0.5 * inch))
 
@@ -210,19 +211,25 @@ class PDFReportGenerator:
                 fontName='Helvetica'
             )
 
-            self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps))
+            self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps)
             self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph("(Auto generated through e-MCM App)", summary_italic_style))
             self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph("Audit 1 Commissionerate, Mumbai CGST Zone", summary_footer_style))
             self.story.append(Spacer(1, 0.4 * inch))
 
-            # Add introduction paragraph
+                 # Add introduction paragraph
             intro_text = f"""
-            This executive summary presents the key findings and statistical analysis for the {self.selected_period} period. 
-            The report contains comprehensive charts and visualizations that highlight performance metrics, trends, and 
-            insights across various audit groups and operational areas. Each chart is accompanied by detailed analysis 
-            to provide context and actionable insights for decision-making.
+            This executive summary presents the Infographical analysis of Audit Performance submitted during Monitoring Committee meeting for the {self.selected_period} period. 
+            The report contains comprehensive charts and visualizations that highlight<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(i) <b>Overall Audit Performance</b> for the month, across Small, Medium, Large Categories<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ii) <b>Status of Para Analysis</b>, based on Tax Recovery Status and pending recovery potential<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iii) <b>Sectoral Analysis</b>, based on Trader, Manufacturer and Service sectors<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iv) <b>Nature of Non Compliance Analysis</b>, using Audit Para Categorisation Coding System of Audit-1 commissionerate<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v) <b>Risk Parameter Analysis</b><br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(vi) <b>Top Audit Group and Circle Performance</b><br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(vii) <b>Top Taxpayers of Detection and Recovery</b><br/><br/>
+            The report covers the <b>Summary of Taxpayer wise Audit paras raised and the decision taken during MCM</b>, encompassing all the Draft Audit Reports submitted before Monitoring Committee.
             """
             
             intro_style = ParagraphStyle(
