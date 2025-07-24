@@ -86,6 +86,41 @@ def get_visualization_data(dbx, selected_period):
         summary_df = pd.concat([dar_summary, para_summary], axis=1).reindex(categories_order).fillna(0)
         summary_df.reset_index(inplace=True)
         
+        # Add Status Analysis Data (around line 200)
+        
+        status_summary = []
+        agreed_yet_to_pay_analysis = None
+        
+        if 'status_of_para' in df_viz_data.columns:
+            df_status_analysis = df_viz_data[
+                df_viz_data['status_of_para'].notna() & 
+                (df_viz_data['status_of_para'] != '') &
+                df_viz_data['audit_para_number'].notna()
+            ].copy()
+            
+            if not df_status_analysis.empty:
+                status_agg = df_status_analysis.groupby('status_of_para').agg(
+                    Para_Count=('status_of_para', 'count'),
+                    Total_Detection=('Para Detection in Lakhs', 'sum'),
+                    Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                ).reset_index()
+                
+                status_agg['Recovery_Percentage'] = (status_agg['Total_Recovery'] / status_agg['Total_Detection'].replace(0, np.nan)).fillna(0) * 100
+                status_summary = status_agg.to_dict('records')
+                
+                # Get "Agreed yet to pay" analysis
+                agreed_yet_to_pay_paras = df_status_analysis[
+                    df_status_analysis['status_of_para'].str.contains('Agreed yet to pay', case=False, na=False)
+                ].copy()
+                
+                if not agreed_yet_to_pay_paras.empty:
+                    top_5_agreed = agreed_yet_to_pay_paras.nlargest(5, 'Para Detection in Lakhs')
+                    agreed_yet_to_pay_analysis = {
+                        'top_5_paras': top_5_agreed,
+                        'total_paras': len(agreed_yet_to_pay_paras),
+                        'total_detection': agreed_yet_to_pay_paras['Para Detection in Lakhs'].sum(),
+                        'total_recovery': agreed_yet_to_pay_paras['Para Recovery in Lakhs'].sum()
+                    }
         # --- 5. Generate ALL Charts (COMPREHENSIVE REPLICA) ---
         charts = []
         
@@ -159,29 +194,7 @@ def get_visualization_data(dbx, selected_period):
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
       
-        # def style_chart(fig, title_text, y_title, x_title):
-        #     fig.update_layout(
-        #         title_text=f"<b>{title_text}</b>", title_x=0.5,
-        #         yaxis_title=f"<b>{y_title}</b>", xaxis_title=f"<b>{x_title}</b>",
-                
-        #         # FIX: Set individual font sizes for detailed control
-        #         title_font_size=12,
-        #         xaxis_title_font_size=8,
-        #         yaxis_title_font_size=8,
-        #         font=dict(family="sans-serif", color="#333", size=6), # Base size for tick labels
-        #          # FIX: Add this line to reduce padding around the chart
-        #         margin=dict(l=40, r=40, t=50, b=40), # l=left, r=right, t=top, b=bottom
-        #         #margin=dict(l=20, r=20, t=25, b=20), # l=left, r=right, t=top, b=bottom
-
-        #         paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
-        #         xaxis_type='category',
-        #         yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
-        #         xaxis=dict(showgrid=False), height=400
-        #     )
-        #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
-        #     return fig
-        
-        # In visualization_utils.py, replace the old style_chart function with this one.
+      
 
         def style_chart(fig, title_text, y_title, x_title):
             """
@@ -460,6 +473,9 @@ def get_visualization_data(dbx, selected_period):
             "P33": "Substantial difference between turnover in GSTR-3B and turnover in Income Tax Return (ITR)",
             "P34": "Negligible income tax payment despite substantial turnover in GSTR-3B"
         }
+        risk_summary = []
+        gstins_with_risk_data = 0
+        paras_linked_to_risks = 0
         
         if 'risk_flags_data' in df_viz_data.columns:
             risk_para_records = []
@@ -605,9 +621,28 @@ def get_visualization_data(dbx, selected_period):
                             coloraxis_showscale=False
                         )
                         charts.append(fig18)
-        
+         
+                    risk_agg = df_risk_analysis.groupby('risk_flag').agg(
+                        Para_Count=('risk_flag', 'count'),
+                        Total_Detection=('Para Detection in Lakhs', 'sum'),
+                        Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                    ).reset_index()
+                    
+                    risk_agg['Percentage_Recovery'] = (risk_agg['Total_Recovery'] / risk_agg['Total_Detection'].replace(0, np.nan)).fillna(0) * 100
+                    risk_agg['description'] = risk_agg['risk_flag'].map(GST_RISK_PARAMETERS).fillna("Unknown Risk Code")
+                    risk_summary = risk_agg.to_dict('records')
+                    
+                    gstins_with_risk_data = valid_risk_data['gstin'].nunique()
+                    paras_linked_to_risks = df_risk_analysis[['gstin', 'audit_para_number']].drop_duplicates().shape[0]
+                
+
         # Add additional summary data for detailed analysis
         vital_stats.update({
+            'status_summary': status_summary,
+            'agreed_yet_to_pay_analysis': agreed_yet_to_pay_analysis,
+            'risk_summary': risk_summary,
+            'gstins_with_risk_data': gstins_with_risk_data,
+            'paras_linked_to_risks': paras_linked_to_risks,
             'categories_summary': summary_df.to_dict('records') if not summary_df.empty else [],
             'status_analysis_available': 'status_of_para' in df_viz_data.columns,
             'classification_analysis_available': not df_paras.empty if 'df_paras' in locals() else False,
