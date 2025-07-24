@@ -75,7 +75,46 @@ class PDFReportGenerator:
             })
             
         return metadata
-
+        
+    def add_section_highlight_bar(self, section_title, bar_color="#FAD6a5"):
+        """Add a highlight bar for section separation"""
+        try:
+            # Create a table with colored background to act as highlight bar
+            highlight_data = [[section_title]]
+            highlight_table = Table(highlight_data, colWidths=[7*inch])
+            
+            # Style the highlight bar
+            highlight_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(bar_color)),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 16),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            
+            self.story.append(highlight_table)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+        except Exception as e:
+            print(f"Error adding section highlight bar: {e}")
+            # Fallback to regular header if highlight bar fails
+            fallback_style = ParagraphStyle(
+                name='FallbackHeader',
+                parent=self.styles['Heading2'],
+                fontSize=16,
+                textColor=colors.HexColor(bar_color),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=16,
+                spaceBefore=16
+            )
+            self.story.append(Paragraph(section_title, fallback_style))
+        
     def _setup_custom_styles(self):
         """Setup custom paragraph styles for different content types"""
         self.chart_title_style = ParagraphStyle(
@@ -664,8 +703,8 @@ class PDFReportGenerator:
                 spaceAfter=16,
                 spaceBefore=16
             )
-            
-            self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
+            self.add_section_highlight_bar("I. Monthly Performance Summary")
+            #self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
             
             # Extract metrics from vital_stats - using the correct keys from visualisation_utils.py
             dars_submitted = self.vital_stats.get('num_dars', 0)
