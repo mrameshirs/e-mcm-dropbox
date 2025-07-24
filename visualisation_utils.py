@@ -413,7 +413,10 @@ def get_visualization_data(dbx, selected_period):
                 xaxis_title_font_size=8,
                 yaxis_title_font_size=8,
                 font=dict(family="sans-serif", color="#333", size=6), # Base size for tick labels
-        
+                 # FIX: Add this line to reduce padding around the chart
+                #margin=dict(l=40, r=40, t=50, b=40), # l=left, r=right, t=top, b=bottom
+                margin=dict(l=20, r=20, t=25, b=20), # l=left, r=right, t=top, b=bottom
+
                 paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
                 xaxis_type='category',
                 yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
