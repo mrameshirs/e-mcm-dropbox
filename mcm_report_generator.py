@@ -691,7 +691,7 @@ class PDFReportGenerator:
                 ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 1), (-1, 1), 24),
                 #('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#1134A6")),
-                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#0f52ba"))
+                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#0f52ba")),
                 
                 # Spacing
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
