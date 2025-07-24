@@ -983,7 +983,7 @@ class PDFReportGenerator:
                 name='TopParasHeader',
                 parent=self.styles['Heading3'],
                 fontSize=14,
-                textColor=colors.HexColor("#1134A6""),
+                textColor=colors.HexColor("#1134A6"),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
