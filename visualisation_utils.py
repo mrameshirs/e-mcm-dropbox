@@ -435,7 +435,7 @@ def get_visualization_data(dbx, selected_period):
                     if current_max > max_y:
                         max_y = current_max
             # Use a small minimum range in case all values are zero
-            y_range_top = max_y * 1.20 if max_y > 0 else 1
+            y_range_top = max_y * 1.50 if max_y > 0 else 1
         
             fig.update_layout(
                 # FIX 3: Fine-tune title position to lock it inside the header.
