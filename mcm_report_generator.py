@@ -211,7 +211,7 @@ class PDFReportGenerator:
                 fontName='Helvetica'
             )
 
-            self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps)
+            self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps))
             self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph("(Auto generated through e-MCM App)", summary_italic_style))
             self.story.append(Spacer(1, 0.1 * inch))
