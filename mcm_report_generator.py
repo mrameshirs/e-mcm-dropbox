@@ -767,7 +767,7 @@ class PDFReportGenerator:
             
             # Create table with custom column widths
             #col_widths = [1.4*inch, 0.9*inch, 1.2*inch, 1.2*inch, 1.3*inch]
-            col_widths = [1*inch, 1.0*inch, 1.4*inch, 1.4*inch, 1.4*inch]
+            col_widths = [1*inch, 1.2*inch, 1.8*inch, 1.8*inch, 1.8*inch]
             performance_table = Table(performance_data, colWidths=col_widths)
             
             # Apply table styling
