@@ -1104,7 +1104,7 @@ class PDFReportGenerator:
                 name='RiskHeader',
                 parent=self.styles['Heading2'],
                 fontSize=18,
-                textColor=colors.HexColor("#1134A6""),
+                textColor=colors.HexColor("#1134A6"),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
