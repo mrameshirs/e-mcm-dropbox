@@ -675,7 +675,7 @@ class PDFReportGenerator:
                 ['✅ DARs Submitted', '💰 Revenue Involved', '💎 Revenue Recovered'],
                 [f'{dars_submitted}', f'Rs.{revenue_involved:.2f} L', f'Rs.{revenue_recovered:.2f} L']
             ]
-            metrics_table = Table(metrics_data, colWidths=[2.7*inch, 2.7*inch, 2.7*inch])
+            metrics_table = Table(metrics_data, colWidths=[3*inch, 3*inch, 3*inch])
             #metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
             metrics_table.setStyle(TableStyle([
                 # Header row styling
