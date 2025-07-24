@@ -360,7 +360,7 @@ class PDFReportGenerator:
             #self.story.append(Spacer(1, 1.0 * inch))
             try:
                 # Attempt to add the CBIC logo image
-                cbic_logo = Image('cbic_logo.png', width=1.5*inch, height=1.5*inch)
+                cbic_logo = Image('cbic_logo.png', width=1.6*inch, height=1.6*inch)
                 cbic_logo.hAlign = 'CENTER'
                 self.story.append(cbic_logo)
             except Exception as e:
@@ -397,7 +397,7 @@ class PDFReportGenerator:
                 Paragraph("Office of the Commissioner of CGST & Central Excise", org_style),
                 Paragraph("Audit-I Commissionerate, Mumbai", org_style),
                 Spacer(1, 0.2 * inch),
-                Paragraph("Ph: 022-22617504 | Email: adcaudit1mum@gov.in", contact_style)
+                Paragraph("Ph: 022-22617504 | Email: audit1mum@gov.in", contact_style)
             ]
 
             # Prepare the image for the left column
