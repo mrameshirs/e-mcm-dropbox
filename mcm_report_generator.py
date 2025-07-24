@@ -183,10 +183,10 @@ class PDFReportGenerator:
                 fontSize=22
             )
             
-            self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
-            self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
-            self.story.append(Spacer(1, 0.5 * inch))
+            # self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
+            # self.story.append(Spacer(1, 0.1 * inch))
+            # self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
+            # self.story.append(Spacer(1, 0.5 * inch))
 
             # Summary styles
             summary_style_caps = ParagraphStyle(
@@ -205,7 +205,7 @@ class PDFReportGenerator:
             )
             summary_footer_style = ParagraphStyle(
                 name='SummaryFooter', 
-                fontSize=11, 
+                fontSize=12, 
                 textColor=colors.HexColor("#1F3A4D"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica'
@@ -222,7 +222,7 @@ class PDFReportGenerator:
             intro_text = f"""
             This executive summary presents the Infographical analysis of Audit Performance submitted during Monitoring Committee meeting for the {self.selected_period} period. 
             The report contains comprehensive charts and visualizations that highlight<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(i) <b>Overall Audit Performance</b> for the month, across Small, Medium, Large Categories<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(i) <b>Overall Audit Performance</b> for the month, across Small, Medium, Large Categories<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ii) <b>Status of Para Analysis</b>, based on Tax Recovery Status and pending recovery potential<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iii) <b>Sectoral Analysis</b>, based on Trader, Manufacturer and Service sectors<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iv) <b>Nature of Non Compliance Analysis</b>, using Audit Para Categorisation Coding System of Audit-1 commissionerate<br/>
