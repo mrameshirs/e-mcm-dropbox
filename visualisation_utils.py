@@ -416,33 +416,34 @@ def get_visualization_data(dbx, selected_period):
         #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
         #     return fig
         
+        # In visualization_utils.py, replace the old style_chart function with this one.
+
         def style_chart(fig, title_text, y_title, x_title):
             """
             Applies a professional, report-style theme to a Plotly chart with corrected layout.
             """
-            header_color = '#6F2E2E'   # A deep, muted red for the header
-            plot_bg_color = '#FDFBF5'   # A very light cream for the plot background
-            border_color = '#5A4A4A'    # A darker brown for borders and text
-            font_color = 'white'       # Color for the title text
+            header_color = '#6F2E2E'
+            plot_bg_color = '#FDFBF5'
+            border_color = '#5A4A4A'
+            font_color = 'white'
         
-            # FIX 1: Add padding to the y-axis to prevent bars from overlapping the header.
-            # We find the max y-value in the data and extend the range by 10%.
+            # FIX 1: Increase y-axis padding to 20% to prevent TEXT LABELS from overlapping.
             max_y = 0
             for trace in fig.data:
-                # Ensure trace.y is not empty before finding the max
                 if trace.y is not None and len(trace.y) > 0:
                     current_max = max(trace.y)
                     if current_max > max_y:
                         max_y = current_max
-            y_range_top = max_y * 1.10 # Add 10% padding
+            # Use a small minimum range in case all values are zero
+            y_range_top = max_y * 1.20 if max_y > 0 else 1
         
             fig.update_layout(
-                # FIX 3: Use a more robust 'title' dictionary for precise positioning and styling.
+                # FIX 3: Fine-tune title position to lock it inside the header.
                 title=dict(
                     text=f'<b>{title_text}</b>',
                     x=0.5,
-                    y=0.95,
-                    yanchor='middle',
+                    y=0.97,
+                    yanchor='top', # Anchor from the top of the text
                     font=dict(
                         family="serif",
                         size=18,
@@ -453,8 +454,6 @@ def get_visualization_data(dbx, selected_period):
                 paper_bgcolor=plot_bg_color,
                 plot_bgcolor=plot_bg_color,
                 font=dict(family="serif", color=border_color, size=12),
-                xaxis_title_font_size=14,
-                yaxis_title_font_size=14,
                 margin=dict(l=60, r=40, t=80, b=60),
         
                 shapes=[
@@ -472,16 +471,15 @@ def get_visualization_data(dbx, selected_period):
                     )
                 ],
                 
-                # FIX 2: Explicitly set the x-axis type to 'category'.
                 xaxis_type='category',
-                
-                yaxis=dict(
-                    gridcolor='#D3D3D3',
-                    range=[0, y_range_top] # Apply the padded range here
-                ),
+                yaxis=dict(gridcolor='#D3D3D3', range=[0, y_range_top]),
                 xaxis=dict(showgrid=False),
                 legend=dict(x=0.05, y=0.85, bgcolor='rgba(0,0,0,0)')
             )
+            
+            # FIX 2: Use a more direct method to set axis titles, preventing raw column names.
+            fig.update_xaxes(title_text=f'<b>{x_title}</b>', title_font_family="serif", title_font_size=14)
+            fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14)
             
             fig.update_traces(
                 marker_line_color=border_color,
