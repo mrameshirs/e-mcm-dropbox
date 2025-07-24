@@ -207,7 +207,7 @@ class PDFReportGenerator:
             summary_footer_style = ParagraphStyle(
                 name='SummaryFooter', 
                 fontSize=12, 
-                textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#0E4C92"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica'
             )
@@ -657,7 +657,8 @@ class PDFReportGenerator:
                 name='PerfHeader',
                 parent=self.styles['Heading2'],
                 fontSize=18,
-                textColor=colors.HexColor("#1F3A4D"),
+                # textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#0E4C92"),
                 alignment=TA_CENTER,
                 fontName='Helvetica-Bold',
                 spaceAfter=16,
@@ -689,7 +690,8 @@ class PDFReportGenerator:
                 # Data row styling
                 ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 1), (-1, 1), 24),
-                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#1134A6")),
+                #('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#1134A6")),
+                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#0f52ba"))
                 
                 # Spacing
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
