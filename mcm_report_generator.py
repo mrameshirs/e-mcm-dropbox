@@ -645,6 +645,8 @@ class PDFReportGenerator:
 
             self.story.append(bottom_table)
             self.story.append(Spacer(1, 0.2 * inch))
+        except Exception as e:
+            print(f"Error creating cover page: {e}")
 
     def add_monthly_performance_summary(self):
         """Add Monthly Performance Summary section with metrics and table"""
