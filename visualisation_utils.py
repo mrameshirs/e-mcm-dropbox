@@ -442,7 +442,7 @@ def get_visualization_data(dbx, selected_period):
                 title=dict(
                     text=f'<b>{title_text}</b>',
                     x=0.5,
-                    y=0.97,
+                    y=0.90,
                     yanchor='top', # Anchor from the top of the text
                     font=dict(
                         family="serif",
