@@ -438,23 +438,11 @@ def get_visualization_data(dbx, selected_period):
             y_range_top = max_y * 1.50 if max_y > 0 else 1
         
             fig.update_layout(
-                # FIX 3: Fine-tune title position to lock it inside the header.
-                title=dict(
-                    text=f'<b>{title_text}</b>',
-                    x=0.5,
-                    y=0.90,
-                    yanchor='top', # Anchor from the top of the text
-                    font=dict(
-                        family="serif",
-                        size=18,
-                        color=font_color
-                    )
-                ),
-                
                 paper_bgcolor=plot_bg_color,
                 plot_bgcolor=plot_bg_color,
                 font=dict(family="serif", color=border_color, size=12),
                 margin=dict(l=60, r=40, t=80, b=60),
+                showlegend=False,  # Remove default title area
         
                 shapes=[
                     dict(
@@ -468,6 +456,18 @@ def get_visualization_data(dbx, selected_period):
                         layer="below",
                         line=dict(color=border_color, width=2),
                         fillcolor=plot_bg_color
+                    )
+                ],
+                
+                # Add title as annotation instead
+                annotations=[
+                    dict(
+                        text=f'<b>{title_text}</b>',
+                        x=0.5, y=0.95,
+                        xref='paper', yref='paper',
+                        xanchor='center', yanchor='middle',
+                        font=dict(family="serif", size=18, color=font_color),
+                        showarrow=False
                     )
                 ],
                 
