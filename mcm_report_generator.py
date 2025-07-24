@@ -25,10 +25,10 @@ class PDFReportGenerator:
         self.doc = SimpleDocTemplate(
             self.buffer, 
             pagesize=letter, 
-            leftMargin=0.5*inch, 
-            rightMargin=0.5*inch,
-            topMargin=0.5*inch,
-            bottomMargin=0.5*inch
+            leftMargin=0.25*inch, 
+            rightMargin=0.25*inch,
+            topMargin=0.25*inch,
+            bottomMargin=0.25*inch
         )
         self.story = []
         self.styles = getSampleStyleSheet()
