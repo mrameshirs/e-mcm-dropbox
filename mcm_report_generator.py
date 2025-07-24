@@ -242,12 +242,12 @@ class PDFReportGenerator:
             if doc.page == 1:
                 # Cover Page Background
                 canvas.setFillColor(colors.HexColor("#193041"))  # Dark Blue
-                canvas.rect(0, self.height * 0.25, self.width, self.height, stroke=0, fill=1)
+                canvas.rect(0, self.height * 0.20, self.width, self.height, stroke=0, fill=1)
                 canvas.setFillColor(colors.HexColor("#C8B59E"))  # Gold
-                canvas.rect(0, 0, self.width, self.height * 0.25, stroke=0, fill=1)
+                canvas.rect(0, 0, self.width, self.height * 0.20, stroke=0, fill=1)
                 canvas.setStrokeColor(colors.HexColor("#C8B59E"))
                 canvas.setLineWidth(3)
-                canvas.line(0, self.height * 0.25, self.width, self.height * 0.25)
+                canvas.line(0, self.height * 0.20, self.width, self.height * 0.20)
 
                 # Draw static lines for the cover page
                 canvas.setStrokeColor(colors.HexColor("#f5ddc1"))
@@ -257,7 +257,7 @@ class PDFReportGenerator:
                 canvas.line(self.width - 3.25*inch, logo_y_pos, self.width - 1.5*inch, logo_y_pos)  # Right line
             else:
                 # Background for all other pages
-                canvas.setFillColor(colors.HexColor("#F5F5DC"))  # Light beige
+                canvas.setFillColor(colors.HexColor("#FAEBD7"))  # Light beige
                 canvas.rect(0, 0, self.width, self.height, stroke=0, fill=1)
             
             canvas.restoreState()
