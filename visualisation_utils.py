@@ -466,7 +466,7 @@ def get_visualization_data(dbx, selected_period):
                         x=0.5, y=0.95,
                         xref='paper', yref='paper',
                         xanchor='center', yanchor='middle',
-                        font=dict(family="Helvetica , size=14, color=font_color),
+                        font=dict(family="Helvetica" , size=14, color=font_color),
                         showarrow=False
                     )
                 ],
