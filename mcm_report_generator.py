@@ -184,9 +184,9 @@ class PDFReportGenerator:
                 fontSize=24
             )
             
-            self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
-            self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
-            self.story.append(Spacer(1, 0.5 * inch))
+            # self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
+            # self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
+            # self.story.append(Spacer(1, 0.5 * inch))
 
             # Summary styles
             summary_style_caps = ParagraphStyle(
@@ -205,7 +205,7 @@ class PDFReportGenerator:
             )
             summary_footer_style = ParagraphStyle(
                 name='SummaryFooter', 
-                fontSize=11, 
+                fontSize=12, 
                 textColor=colors.HexColor("#1F3A4D"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica'
