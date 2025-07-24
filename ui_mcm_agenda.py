@@ -694,7 +694,7 @@ def mcm_agenda_tab(dbx):
                 # AFTER
                 #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
                 #chart_images = [BytesIO(chart.to_image(format="svg", width=720, height=450)) for chart in charts]
-                chart_images = [BytesIO(chart.to_image(format="svg", width=420, height=200)) for chart in charts]
+                chart_images = [BytesIO(chart.to_image(format="svg", width=520, height=300)) for chart in charts]
                 #chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
     
                 # 3. Generate PDF
