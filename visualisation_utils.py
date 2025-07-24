@@ -416,7 +416,7 @@ def get_visualization_data(dbx, selected_period):
         #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
         #     return fig
         
-       def style_chart(fig, title_text, y_title, x_title):
+        def style_chart(fig, title_text, y_title, x_title):
             """
             Applies a professional, report-style theme to a Plotly chart with corrected layout.
             """
