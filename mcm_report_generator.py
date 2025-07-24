@@ -76,7 +76,7 @@ class PDFReportGenerator:
             
         return metadata
         
-    def add_section_highlight_bar(self, section_title, bar_color="#FAD6a5"):
+    def add_section_highlight_bar(self, section_title,text_color, bar_color="#FAD6a5"):
         """Add a highlight bar for section separation"""
         try:
             # Create a table with colored background to act as highlight bar
@@ -86,7 +86,7 @@ class PDFReportGenerator:
             # Style the highlight bar
             highlight_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(bar_color)),
-                ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor(text_color)),
                 ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, -1), 16),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -703,7 +703,7 @@ class PDFReportGenerator:
                 spaceAfter=16,
                 spaceBefore=16
             )
-            self.add_section_highlight_bar("I. Monthly Performance Summary1")
+            self.add_section_highlight_bar("I. Monthly Performance Summary1",text_color="#0E4C92")
             #self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
             
             # Extract metrics from vital_stats - using the correct keys from visualisation_utils.py
