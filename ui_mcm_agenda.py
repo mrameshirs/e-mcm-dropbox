@@ -692,7 +692,8 @@ def mcm_agenda_tab(dbx):
     
                 # 2. Convert Plotly charts to images in memory
                 # AFTER
-                chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
+                #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
+                chart_images = [BytesIO(chart.to_image(format="svg", width=720, height=450)) for chart in charts]
                 #chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
     
                 # 3. Generate PDF
