@@ -393,13 +393,31 @@ def get_visualization_data(dbx, selected_period):
                     charts.append(fig3)
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
+        # def style_chart(fig, title_text, y_title, x_title):
+        #     fig.update_layout(
+        #         title_text=f"<b>{title_text}</b>", title_x=0.5, yaxis_title=f"<b>{y_title}</b>",
+        #         xaxis_title=f"<b>{x_title}</b>", font=dict(family="sans-serif", color="#333"),
+        #         font=dict(family="sans-serif", color="#333", size=6),
+        #         paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF', xaxis_type='category',
+        #         yaxis=dict(showgrid=True, gridcolor='#e5e5e5'), xaxis=dict(showgrid=False), height=400
+        #     )
+        #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
+        #     return fig
         def style_chart(fig, title_text, y_title, x_title):
             fig.update_layout(
-                title_text=f"<b>{title_text}</b>", title_x=0.5, yaxis_title=f"<b>{y_title}</b>",
-                xaxis_title=f"<b>{x_title}</b>", font=dict(family="sans-serif", color="#333"),
-                font=dict(family="sans-serif", color="#333", size=12),
-                paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF', xaxis_type='category',
-                yaxis=dict(showgrid=True, gridcolor='#e5e5e5'), xaxis=dict(showgrid=False), height=400
+                title_text=f"<b>{title_text}</b>", title_x=0.5,
+                yaxis_title=f"<b>{y_title}</b>", xaxis_title=f"<b>{x_title}</b>",
+                
+                # FIX: Set individual font sizes for detailed control
+                title_font_size=12,
+                xaxis_title_font_size=8,
+                yaxis_title_font_size=8,
+                font=dict(family="sans-serif", color="#333", size=6), # Base size for tick labels
+        
+                paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
+                xaxis_type='category',
+                yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
+                xaxis=dict(showgrid=False), height=400
             )
             fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
             return fig
