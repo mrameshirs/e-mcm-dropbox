@@ -703,7 +703,7 @@ class PDFReportGenerator:
                 spaceAfter=16,
                 spaceBefore=16
             )
-            self.add_section_highlight_bar("I. Monthly Performance Summary")
+            self.add_section_highlight_bar("I. Monthly Performance Summary1")
             #self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
             
             # Extract metrics from vital_stats - using the correct keys from visualisation_utils.py
