@@ -38,43 +38,69 @@ class PDFReportGenerator:
         
         # Chart metadata structure: [{"title": "Chart Title", "description": "Chart description", "page_break_after": True}, ...]
         self.chart_metadata = chart_metadata or self._generate_default_metadata()
-
+        # Create chart registry for easy access
+        self.chart_registry = self._create_chart_registry()
         # Register fonts with proper error handling
         self._register_fonts()
         self._setup_custom_styles()
 
     def _generate_default_metadata(self):
-        """Generate default metadata if none provided"""
-        default_titles = [
-            "Audit Group Performance Analysis",
-            "Recovery Amount Distribution", 
-            "Monthly Compliance Trends",
-            "Department-wise Statistics",
-            "Geographic Distribution Analysis",
-            "Year-over-Year Comparison"
+        """Generate enhanced default metadata with IDs and section mappings"""
+        chart_configs = [
+            {
+                "id": "performance_overview",
+                "title": "Monthly Performance Overview",
+                "description": "Overall audit performance metrics across different categories showing DARs submitted, detection, and recovery amounts.",
+                "section": "performance_summary",
+                "position": "after_metrics",
+                "size": "large"
+            },
+            {
+                "id": "category_breakdown", 
+                "title": "Category-wise Breakdown",
+                "description": "Detailed breakdown of audit performance by taxpayer categories (Large, Medium, Small).",
+                "section": "performance_summary",
+                "position": "after_table",
+                "size": "medium"
+            },
+            {
+                "id": "status_analysis",
+                "title": "Status of Audit Paras",
+                "description": "Analysis of audit para status showing agreed, partially agreed, and disputed cases with recovery percentages.",
+                "section": "status_analysis", 
+                "position": "after_header",
+                "size": "large"
+            },
+            {
+                "id": "recovery_trends",
+                "title": "Recovery Trends Analysis", 
+                "description": "Monthly trends showing recovery patterns and effectiveness of audit interventions.",
+                "section": "status_analysis",
+                "position": "after_table",
+                "size": "medium"
+            },
+            {
+                "id": "risk_distribution",
+                "title": "Risk Parameter Distribution",
+                "description": "Distribution of audit observations across different risk parameters with impact analysis.",
+                "section": "risk_analysis",
+                "position": "after_header",
+                "size": "large"
+            }
         ]
         
-        default_descriptions = [
-            "This chart displays the performance metrics across different audit groups, highlighting key areas of focus and achievement levels during the selected period.",
-            "Analysis of recovery amounts showing the distribution pattern and concentration of financial recoveries across various categories and departments.",
-            "Monthly trends in compliance activities, demonstrating the progression and seasonal variations in audit and compliance operations.",
-            "Departmental breakdown of key performance indicators, providing insights into the operational efficiency of different organizational units.",
-            "Geographic analysis showing the distribution of audit activities and outcomes across different regions and territories under jurisdiction.",
-            "Comparative analysis between current period and previous periods, highlighting growth patterns and areas requiring attention."
-        ]
-        
-        metadata = []
-        for i in range(len(self.chart_images)):
-            title_idx = i % len(default_titles)
-            desc_idx = i % len(default_descriptions)
-            
-            metadata.append({
-                "title": default_titles[title_idx],
-                "description": default_descriptions[desc_idx],
-                "page_break_after": (i + 1) % 2 == 0 and i < len(self.chart_images) - 1  # Page break after every 2 charts
+        # Extend or truncate based on available charts
+        while len(chart_configs) < len(self.chart_images):
+            chart_configs.append({
+                "id": f"additional_chart_{len(chart_configs)+1}",
+                "title": f"Additional Analysis {len(chart_configs)+1}",
+                "description": "Additional analysis and insights from the audit data.",
+                "section": "additional",
+                "position": "standalone", 
+                "size": "medium"
             })
             
-        return metadata
+        return chart_configs[:len(self.chart_images)]
         
     def add_section_highlight_bar(self, section_title,text_color, bar_color="#FAD6a5"):
         """Add a highlight bar for section separation"""
@@ -120,6 +146,32 @@ class PDFReportGenerator:
         self.chart_title_style = ParagraphStyle(
             name='ChartTitle',
             parent=self.styles['Heading2'],
+            fontSize=14,  # CHANGED from 16
+            textColor=colors.HexColor("#1F3A4D"),
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=6,   # CHANGED from 8
+            spaceBefore=10  # CHANGED from 12
+        )
+        
+        self.chart_description_style = ParagraphStyle(
+            name='ChartDescription',
+            parent=self.styles['Normal'],
+            fontSize=10,    # CHANGED from 11
+            textColor=colors.HexColor("#2C2C2C"),
+            alignment=TA_JUSTIFY,
+            fontName='Helvetica',
+            spaceAfter=8,   # CHANGED from 16
+            spaceBefore=4,  # CHANGED from 8
+            leftIndent=0.25*inch,
+            rightIndent=0.25*inch,
+            leading=12,     # CHANGED from 13
+            wordWrap='LTR'
+        )
+        """Setup custom paragraph styles for different content types"""
+        self.chart_title_style = ParagraphStyle(
+            name='ChartTitle',
+            parent=self.styles['Heading2'],
             fontSize=16,
             textColor=colors.HexColor("#1F3A4D"),
             alignment=TA_CENTER,
@@ -153,7 +205,79 @@ class PDFReportGenerator:
             spaceAfter=16,
             spaceBefore=24
         )
+        
+    def _create_chart_registry(self):
+        """Create a registry of charts with IDs for easy access"""
+        registry = {}
+        for i, chart_data in enumerate(self.chart_metadata):
+            chart_id = chart_data.get('id', f'chart_{i+1}')
+            registry[chart_id] = {
+                'index': i,
+                'image': self.chart_images[i] if i < len(self.chart_images) else None,
+                'metadata': chart_data
+            }
+        return registry
 
+    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
+        """Insert a specific chart by its ID with customizable options"""
+        try:
+            if chart_id not in self.chart_registry:
+                print(f"Chart '{chart_id}' not found in registry")
+                return False
+    
+            chart_info = self.chart_registry[chart_id]
+            chart_data = chart_info['metadata']
+            img_bytes = chart_info['image']
+    
+            if img_bytes is None:
+                print(f"No image data for chart '{chart_id}'")
+                return False
+    
+            # Add title if requested
+            if add_title:
+                self.story.append(Paragraph(chart_data['title'], self.chart_title_style))
+    
+            # Add description if requested  
+            if add_description:
+                self.story.append(Paragraph(chart_data['description'], self.chart_description_style))
+    
+            # Create and add the chart
+            drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
+            if error:
+                print(f"Chart '{chart_id}' error: {error}")
+                return False
+    
+            if drawing is None:
+                print(f"Could not create drawing for chart '{chart_id}'")
+                return False
+    
+            # Scale based on size parameter
+            size_configs = {
+                "small": 4.5 * inch,
+                "medium": 6.0 * inch, 
+                "large": 7.0 * inch,
+                "full": 7.5 * inch
+            }
+            
+            render_width = size_configs.get(size, 6.0 * inch)
+            scale_factor = render_width / drawing.width
+            drawing.width = render_width
+            drawing.height = drawing.height * scale_factor
+            drawing.hAlign = 'CENTER'
+            
+            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(drawing)
+            self.story.append(Spacer(1, 0.15 * inch))
+            
+            print(f"Successfully inserted chart '{chart_id}'")
+            return True
+            
+        except Exception as e:
+            print(f"Error inserting chart '{chart_id}': {e}")
+            return False
+
+    
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
@@ -185,8 +309,9 @@ class PDFReportGenerator:
             # 2. Create summary header
             self.create_summary_header()
             
-            # 3. Add structured chart sections
-            self.create_structured_chart_sections()
+          
+            # 3. Add comprehensive monthly performance summary with charts
+            self.add_monthly_performance_summary()
             
             # 4. Build the document
             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
@@ -332,10 +457,10 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph(conclusion_text, intro_style))
             
-            # Add Monthly Performance Summary section
-            self.story.append(Spacer(1, 0.3 * inch))
-            self.add_monthly_performance_summary()
-            self.story.append(Spacer(1, 0.3 * inch))
+            # # Add Monthly Performance Summary section
+            # self.story.append(Spacer(1, 0.3 * inch))
+            # self.add_monthly_performance_summary()
+            # self.story.append(Spacer(1, 0.3 * inch))
                 
         except Exception as e:
             print(f"Error creating summary header: {e}")
@@ -860,6 +985,14 @@ class PDFReportGenerator:
             self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
+            # INSERT STATUS ANALYSIS CHART
+            self.insert_chart_by_id("status_analysis", size="large")
+            
+            if self.vital_stats.get('status_analysis_available', False):
+                self.add_status_summary_table()
+                
+            # INSERT RECOVERY TRENDS CHART
+            self.insert_chart_by_id("recovery_trends", size="medium")
             
             # Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
