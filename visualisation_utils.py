@@ -397,6 +397,7 @@ def get_visualization_data(dbx, selected_period):
             fig.update_layout(
                 title_text=f"<b>{title_text}</b>", title_x=0.5, yaxis_title=f"<b>{y_title}</b>",
                 xaxis_title=f"<b>{x_title}</b>", font=dict(family="sans-serif", color="#333"),
+                font=dict(family="sans-serif", color="#333", size=12),
                 paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF', xaxis_type='category',
                 yaxis=dict(showgrid=True, gridcolor='#e5e5e5'), xaxis=dict(showgrid=False), height=400
             )
