@@ -688,7 +688,7 @@ class PDFReportGenerator:
                 # Data row styling
                 ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 1), (-1, 1), 24),
-                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#1F3A4D")),
+                ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor("#1134A6")),
                 
                 # Spacing
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
@@ -780,8 +780,8 @@ class PDFReportGenerator:
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
                 # Data rows styling
-                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -2), 9),
+                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 1), (-1, -2), 10),
                 ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
                 ('TEXTCOLOR', (0, 1), (-1, -2), colors.HexColor("#333333")),
                 
