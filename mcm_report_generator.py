@@ -191,7 +191,7 @@ class PDFReportGenerator:
             # Summary styles
             summary_style_caps = ParagraphStyle(
                 name='SummaryCaps', 
-                fontSize=16, 
+                fontSize=18, 
                 # textColor=colors.HexColor("#1F3A4D"),
                 textColor=colors.HexColor("#0E4C92"),
                 alignment=TA_CENTER, 
@@ -199,17 +199,17 @@ class PDFReportGenerator:
             )
             summary_italic_style = ParagraphStyle(
                 name='SummaryItalic', 
-                fontSize=9, 
+                fontSize=10, 
                 textColor=colors.HexColor("#1F3A4D"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica-Oblique'
             )
             summary_footer_style = ParagraphStyle(
                 name='SummaryFooter', 
-                fontSize=12, 
+                fontSize=14, 
                 textColor=colors.HexColor("#0E4C92"),
                 alignment=TA_CENTER, 
-                fontName='Helvetica'
+                fontName='Helvetica-Bold'
             )
 
             self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps))
@@ -665,7 +665,7 @@ class PDFReportGenerator:
                 spaceBefore=16
             )
             
-            self.story.append(Paragraph("Monthly Performance Summary", perf_header_style))
+            self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
             
             # Extract metrics from vital_stats - using the correct keys from visualisation_utils.py
             dars_submitted = self.vital_stats.get('num_dars', 0)
@@ -1439,24 +1439,24 @@ class PDFReportGenerator:
 #             # Summary styles
 #             summary_style_caps = ParagraphStyle(
 #                 name='SummaryCaps', 
-#                 fontSize=16, 
+#                 fontSize=18, 
 #                 textColor=colors.HexColor("#1F3A4D"),
 #                 alignment=TA_CENTER, 
 #                 fontName='Helvetica-Bold'
 #             )
 #             summary_italic_style = ParagraphStyle(
 #                 name='SummaryItalic', 
-#                 fontSize=9, 
+#                 fontSize=10, 
 #                 textColor=colors.HexColor("#1F3A4D"),
 #                 alignment=TA_CENTER, 
 #                 fontName='Helvetica-Oblique'
 #             )
 #             summary_footer_style = ParagraphStyle(
 #                 name='SummaryFooter', 
-#                 fontSize=12, 
+#                 fontSize=14, 
 #                 textColor=colors.HexColor("#1F3A4D"),
 #                 alignment=TA_CENTER, 
-#                 fontName='Helvetica'
+#                 fontName='Helvetica-Bold'
 #             )
 
 #             self.story.append(Paragraph("EXECUTIVE SUMMARY", summary_style_caps))
