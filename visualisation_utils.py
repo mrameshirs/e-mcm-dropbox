@@ -416,66 +416,73 @@ def get_visualization_data(dbx, selected_period):
         #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
         #     return fig
         
-        def style_chart(fig, title_text, y_title, x_title):
+       def style_chart(fig, title_text, y_title, x_title):
             """
-            Applies a professional, report-style theme to a Plotly chart.
+            Applies a professional, report-style theme to a Plotly chart with corrected layout.
             """
             header_color = '#6F2E2E'   # A deep, muted red for the header
             plot_bg_color = '#FDFBF5'   # A very light cream for the plot background
             border_color = '#5A4A4A'    # A darker brown for borders and text
             font_color = 'white'       # Color for the title text
         
+            # FIX 1: Add padding to the y-axis to prevent bars from overlapping the header.
+            # We find the max y-value in the data and extend the range by 10%.
+            max_y = 0
+            for trace in fig.data:
+                # Ensure trace.y is not empty before finding the max
+                if trace.y is not None and len(trace.y) > 0:
+                    current_max = max(trace.y)
+                    if current_max > max_y:
+                        max_y = current_max
+            y_range_top = max_y * 1.10 # Add 10% padding
+        
             fig.update_layout(
-                # --- Title and Font ---
-                title_text=f'<b>{title_text}</b>',
-                title_x=0.5,                        # Center the title
-                title_y=0.96,                       # Position it inside the header shape
-                title_font_color=font_color,
-                title_font_size=18,
+                # FIX 3: Use a more robust 'title' dictionary for precise positioning and styling.
+                title=dict(
+                    text=f'<b>{title_text}</b>',
+                    x=0.5,
+                    y=0.95,
+                    yanchor='middle',
+                    font=dict(
+                        family="serif",
+                        size=18,
+                        color=font_color
+                    )
+                ),
+                
+                paper_bgcolor=plot_bg_color,
+                plot_bgcolor=plot_bg_color,
                 font=dict(family="serif", color=border_color, size=12),
                 xaxis_title_font_size=14,
                 yaxis_title_font_size=14,
+                margin=dict(l=60, r=40, t=80, b=60),
         
-                # --- Colors ---
-                paper_bgcolor=plot_bg_color,        # The outer background of the entire image
-                plot_bgcolor=plot_bg_color,         # The inner background of the plotting area
-        
-                # --- Margins ---
-                margin=dict(l=60, r=40, t=80, b=60), # Top margin provides space for the header
-        
-                # --- Shapes for Header and Border ---
                 shapes=[
-                    # Shape 1: The colored header rectangle
                     dict(
-                        type="rect",
-                        xref="paper", yref="paper", # Use 'paper' to reference the whole figure
-                        x0=0, y0=0.9, x1=1, y1=1,   # Positioned at the top 10% of the figure
-                        fillcolor=header_color,
-                        layer="below",              # Draw below gridlines
-                        line_width=0,
+                        type="rect", xref="paper", yref="paper",
+                        x0=0, y0=0.9, x1=1, y1=1,
+                        fillcolor=header_color, layer="below", line_width=0,
                     ),
-                    # Shape 2: The border around the plot area
                     dict(
-                        type="rect",
-                        xref="paper", yref="paper",
-                        x0=0, y0=0, x1=1, y1=0.9,   # Covers the area below the header
+                        type="rect", xref="paper", yref="paper",
+                        x0=0, y0=0, x1=1, y1=0.9,
                         layer="below",
                         line=dict(color=border_color, width=2),
-                        fillcolor=plot_bg_color # Ensure plot background is inside border
+                        fillcolor=plot_bg_color
                     )
                 ],
-                # --- Axes and Gridlines ---
-                yaxis=dict(gridcolor='#D3D3D3'), # Light grey horizontal gridlines
-                xaxis=dict(showgrid=False),
                 
-                # --- Legend (if applicable) ---
-                legend=dict(
-                    x=0.05, y=0.85,             # Position legend inside the top-left of the plot
-                    bgcolor='rgba(0,0,0,0)'     # Transparent background for the legend
-                )
+                # FIX 2: Explicitly set the x-axis type to 'category'.
+                xaxis_type='category',
+                
+                yaxis=dict(
+                    gridcolor='#D3D3D3',
+                    range=[0, y_range_top] # Apply the padded range here
+                ),
+                xaxis=dict(showgrid=False),
+                legend=dict(x=0.05, y=0.85, bgcolor='rgba(0,0,0,0)')
             )
             
-            # --- Marker/Bar Styling ---
             fig.update_traces(
                 marker_line_color=border_color,
                 marker_line_width=1.5,
