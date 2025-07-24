@@ -703,7 +703,7 @@ class PDFReportGenerator:
                 spaceAfter=16,
                 spaceBefore=16
             )
-            self.add_section_highlight_bar("I. Monthly Performance Summary1",text_color="#0E4C92")
+            self.add_section_highlight_bar("I. Monthly Performance Summary",text_color="#0E4C92")
             #self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
             
             # Extract metrics from vital_stats - using the correct keys from visualisation_utils.py
@@ -857,6 +857,7 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.3 * inch))
             
             # Add Status Summary Table if available
+            self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             
@@ -884,7 +885,7 @@ class PDFReportGenerator:
                 name='StatusHeader',
                 parent=self.styles['Heading3'],
                 fontSize=14,
-                textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#1134A6""),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
@@ -926,7 +927,7 @@ class PDFReportGenerator:
             
             # Create the status table
             #status_col_widths = [2.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 1.0*inch]
-            status_col_widths = [1.8*inch, 1*inch, 1.4*inch, 1.4*inch, 1.0*inch]
+            status_col_widths = [1.8*inch, 1*inch, 1.8*inch, 1.8*inch, 1.8*inch]
             status_table = Table(status_data, colWidths=status_col_widths)
             
             # Apply colorful styling similar to the image
@@ -982,7 +983,7 @@ class PDFReportGenerator:
                 name='TopParasHeader',
                 parent=self.styles['Heading3'],
                 fontSize=14,
-                textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#1134A6""),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
@@ -1103,7 +1104,7 @@ class PDFReportGenerator:
                 name='RiskHeader',
                 parent=self.styles['Heading2'],
                 fontSize=18,
-                textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#1134A6""),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
