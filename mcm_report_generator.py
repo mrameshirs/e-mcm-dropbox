@@ -163,7 +163,7 @@ class PDFReportGenerator:
         try:
             title_style = ParagraphStyle(
                 name='MainTitle', 
-                fontSize=24, 
+                fontSize=28, 
                 textColor=colors.HexColor("#1F3A4D"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica-Bold'
@@ -180,11 +180,10 @@ class PDFReportGenerator:
                 name='HindiTitle', 
                 parent=title_style, 
                 fontName=hindi_font, 
-                fontSize=22
+                fontSize=24
             )
             
             # self.story.append(Paragraph("Monitoring Committee Meeting (MCM)", title_style))
-            # self.story.append(Spacer(1, 0.1 * inch))
             # self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
             # self.story.append(Spacer(1, 0.5 * inch))
 
@@ -218,17 +217,25 @@ class PDFReportGenerator:
             self.story.append(Paragraph("Audit 1 Commissionerate, Mumbai CGST Zone", summary_footer_style))
             self.story.append(Spacer(1, 0.4 * inch))
 
-                 # Add introduction paragraph
-            intro_text = f"""
+            # Add introduction paragraph - first part
+            intro_text_part1 = f"""
             This executive summary presents the Infographical analysis of Audit Performance submitted during Monitoring Committee meeting for the {self.selected_period} period. 
-            The report contains comprehensive charts and visualizations that highlight<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(i) <b>Overall Audit Performance</b> for the month, across Small, Medium, Large Categories<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ii) <b>Status of Para Analysis</b>, based on Tax Recovery Status and pending recovery potential<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iii) <b>Sectoral Analysis</b>, based on Trader, Manufacturer and Service sectors<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(iv) <b>Nature of Non Compliance Analysis</b>, using Audit Para Categorisation Coding System of Audit-1 commissionerate<br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(v) <b>Risk Parameter Analysis</b><br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(vi) <b>Top Audit Group and Circle Performance</b><br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(vii) <b>Top Taxpayers of Detection and Recovery</b><br/><br/>
+            The report contains comprehensive charts and visualizations that highlight:
+            """
+            
+            # Create bullet points as separate paragraphs for better alignment
+            bullet_points = [
+                "(i) <b>Overall Audit Performance</b> for the month, across Small, Medium, Large Categories",
+                "(ii) <b>Status of Para Analysis</b>, based on Tax Recovery Status and pending recovery potential", 
+                "(iii) <b>Sectoral Analysis</b>, based on Trader, Manufacturer and Service sectors",
+                "(iv) <b>Nature of Non Compliance Analysis</b>, using Audit Para Categorisation Coding System of Audit-1 commissionerate",
+                "(v) <b>Risk Parameter Analysis</b>",
+                "(vi) <b>Top Audit Group and Circle Performance</b>",
+                "(vii) <b>Top Taxpayers of Detection and Recovery</b>"
+            ]
+            
+            # Final part
+            conclusion_text = """
             The report covers the <b>Summary of Taxpayer wise Audit paras raised and the decision taken during MCM</b>, encompassing all the Draft Audit Reports submitted before Monitoring Committee.
             """
             
@@ -245,7 +252,44 @@ class PDFReportGenerator:
                 spaceAfter=20
             )
             
-            self.story.append(Paragraph(intro_text, intro_style))
+            intro_style = ParagraphStyle(
+                name='IntroStyle',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.5*inch,
+                rightIndent=0.5*inch,
+                leading=16,
+                spaceAfter=12
+            )
+            
+            # Create bullet point style with proper indentation
+            bullet_style = ParagraphStyle(
+                name='BulletStyle',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_LEFT,
+                fontName='Helvetica',
+                leftIndent=0.75*inch,  # Fixed left indent for alignment
+                rightIndent=0.5*inch,
+                leading=16,
+                spaceAfter=4,
+                spaceBefore=2
+            )
+            
+            # Add the introduction parts
+            self.story.append(Paragraph(intro_text_part1, intro_style))
+            
+            # Add each bullet point as a separate paragraph
+            for bullet in bullet_points:
+                self.story.append(Paragraph(bullet, bullet_style))
+            
+            # Add conclusion
+            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(Paragraph(conclusion_text, intro_style))
             self.story.append(Spacer(1, 0.3 * inch))
                 
         except Exception as e:
