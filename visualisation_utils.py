@@ -393,38 +393,95 @@ def get_visualization_data(dbx, selected_period):
                     charts.append(fig3)
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
+      
         # def style_chart(fig, title_text, y_title, x_title):
         #     fig.update_layout(
-        #         title_text=f"<b>{title_text}</b>", title_x=0.5, yaxis_title=f"<b>{y_title}</b>",
-        #         xaxis_title=f"<b>{x_title}</b>", font=dict(family="sans-serif", color="#333"),
-        #         font=dict(family="sans-serif", color="#333", size=6),
-        #         paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF', xaxis_type='category',
-        #         yaxis=dict(showgrid=True, gridcolor='#e5e5e5'), xaxis=dict(showgrid=False), height=400
+        #         title_text=f"<b>{title_text}</b>", title_x=0.5,
+        #         yaxis_title=f"<b>{y_title}</b>", xaxis_title=f"<b>{x_title}</b>",
+                
+        #         # FIX: Set individual font sizes for detailed control
+        #         title_font_size=12,
+        #         xaxis_title_font_size=8,
+        #         yaxis_title_font_size=8,
+        #         font=dict(family="sans-serif", color="#333", size=6), # Base size for tick labels
+        #          # FIX: Add this line to reduce padding around the chart
+        #         margin=dict(l=40, r=40, t=50, b=40), # l=left, r=right, t=top, b=bottom
+        #         #margin=dict(l=20, r=20, t=25, b=20), # l=left, r=right, t=top, b=bottom
+
+        #         paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
+        #         xaxis_type='category',
+        #         yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
+        #         xaxis=dict(showgrid=False), height=400
         #     )
         #     fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
         #     return fig
-        def style_chart(fig, title_text, y_title, x_title):
-            fig.update_layout(
-                title_text=f"<b>{title_text}</b>", title_x=0.5,
-                yaxis_title=f"<b>{y_title}</b>", xaxis_title=f"<b>{x_title}</b>",
-                
-                # FIX: Set individual font sizes for detailed control
-                title_font_size=12,
-                xaxis_title_font_size=8,
-                yaxis_title_font_size=8,
-                font=dict(family="sans-serif", color="#333", size=6), # Base size for tick labels
-                 # FIX: Add this line to reduce padding around the chart
-                margin=dict(l=40, r=40, t=50, b=40), # l=left, r=right, t=top, b=bottom
-                #margin=dict(l=20, r=20, t=25, b=20), # l=left, r=right, t=top, b=bottom
-
-                paper_bgcolor='#F0F2F6', plot_bgcolor='#FFFFFF',
-                xaxis_type='category',
-                yaxis=dict(showgrid=True, gridcolor='#e5e5e5'),
-                xaxis=dict(showgrid=False), height=400
-            )
-            fig.update_traces(marker_line=dict(width=1.5, color='#333'), textposition="outside", cliponaxis=False)
-            return fig
         
+        def style_chart(fig, title_text, y_title, x_title):
+            """
+            Applies a professional, report-style theme to a Plotly chart.
+            """
+            header_color = '#6F2E2E'   # A deep, muted red for the header
+            plot_bg_color = '#FDFBF5'   # A very light cream for the plot background
+            border_color = '#5A4A4A'    # A darker brown for borders and text
+            font_color = 'white'       # Color for the title text
+        
+            fig.update_layout(
+                # --- Title and Font ---
+                title_text=f'<b>{title_text}</b>',
+                title_x=0.5,                        # Center the title
+                title_y=0.96,                       # Position it inside the header shape
+                title_font_color=font_color,
+                title_font_size=18,
+                font=dict(family="serif", color=border_color, size=12),
+                xaxis_title_font_size=14,
+                yaxis_title_font_size=14,
+        
+                # --- Colors ---
+                paper_bgcolor=plot_bg_color,        # The outer background of the entire image
+                plot_bgcolor=plot_bg_color,         # The inner background of the plotting area
+        
+                # --- Margins ---
+                margin=dict(l=60, r=40, t=80, b=60), # Top margin provides space for the header
+        
+                # --- Shapes for Header and Border ---
+                shapes=[
+                    # Shape 1: The colored header rectangle
+                    dict(
+                        type="rect",
+                        xref="paper", yref="paper", # Use 'paper' to reference the whole figure
+                        x0=0, y0=0.9, x1=1, y1=1,   # Positioned at the top 10% of the figure
+                        fillcolor=header_color,
+                        layer="below",              # Draw below gridlines
+                        line_width=0,
+                    ),
+                    # Shape 2: The border around the plot area
+                    dict(
+                        type="rect",
+                        xref="paper", yref="paper",
+                        x0=0, y0=0, x1=1, y1=0.9,   # Covers the area below the header
+                        layer="below",
+                        line=dict(color=border_color, width=2),
+                        fillcolor=plot_bg_color # Ensure plot background is inside border
+                    )
+                ],
+                # --- Axes and Gridlines ---
+                yaxis=dict(gridcolor='#D3D3D3'), # Light grey horizontal gridlines
+                xaxis=dict(showgrid=False),
+                
+                # --- Legend (if applicable) ---
+                legend=dict(
+                    x=0.05, y=0.85,             # Position legend inside the top-left of the plot
+                    bgcolor='rgba(0,0,0,0)'     # Transparent background for the legend
+                )
+            )
+            
+            # --- Marker/Bar Styling ---
+            fig.update_traces(
+                marker_line_color=border_color,
+                marker_line_width=1.5,
+                textposition="outside"
+            )
+            return fig
         # Group Detection Performance
         group_detection = df_unique_reports.groupby('audit_group_number_str')['Detection in Lakhs'].sum().nlargest(10).reset_index()
         # FIX: Filter zero values
