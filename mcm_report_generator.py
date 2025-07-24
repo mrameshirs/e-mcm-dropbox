@@ -192,7 +192,8 @@ class PDFReportGenerator:
             summary_style_caps = ParagraphStyle(
                 name='SummaryCaps', 
                 fontSize=16, 
-                textColor=colors.HexColor("#1F3A4D"),
+                # textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#0E4C92"),
                 alignment=TA_CENTER, 
                 fontName='Helvetica-Bold'
             )
@@ -705,7 +706,8 @@ class PDFReportGenerator:
                 name='TableHeader',
                 parent=self.styles['Heading3'],
                 fontSize=14,
-                textColor=colors.HexColor("#1F3A4D"),
+                # textColor=colors.HexColor("#1F3A4D"),
+                textColor=colors.HexColor("#1134A6"),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
                 spaceAfter=12,
