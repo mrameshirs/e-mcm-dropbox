@@ -1210,23 +1210,23 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.3 * inch))
                 
         except Exception as e:
-            print(f"Error adding risk parameter analysis: {e}")0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+              print(f"Error adding risk parameter analysis: {e}")#0, 0), (-1, -1), 'MIDDLE'),
+        #     ]))
             
-            self.story.append(performance_table)
-            self.story.append(Spacer(1, 0.3 * inch))
+        #     self.story.append(performance_table)
+        #     self.story.append(Spacer(1, 0.3 * inch))
             
-        except Exception as e:
-            print(f"Error adding monthly performance summary: {e}")
-            # Add error message if table creation fails
-            error_style = ParagraphStyle(
-                name='TableError',
-                parent=self.styles['Normal'],
-                fontSize=10,
-                textColor=colors.red,
-                alignment=TA_CENTER
-            )
-            self.story.append(Paragraph("Error loading performance summary table", error_style))
+        # except Exception as e:
+        #     print(f"Error adding monthly performance summary: {e}")
+        #     # Add error message if table creation fails
+        #     error_style = ParagraphStyle(
+        #         name='TableError',
+        #         parent=self.styles['Normal'],
+        #         fontSize=10,
+        #         textColor=colors.red,
+        #         alignment=TA_CENTER
+        #     )
+        #     self.story.append(Paragraph("Error loading performance summary table", error_style))
 
 
 # Usage example:
