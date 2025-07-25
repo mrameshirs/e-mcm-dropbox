@@ -190,7 +190,8 @@ def get_visualization_data(dbx, selected_period):
             fig.update_traces(
                 marker_line_color=border_color,
                 marker_line_width=1.5,
-                textposition="outside"
+                textposition="outside",
+                cliponaxis=False
             )
             return fig
         # CHART 1: Performance Summary by Category (Bar Chart)
