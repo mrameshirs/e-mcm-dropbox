@@ -275,10 +275,19 @@ class PDFReportGenerator:
                 
             # ENSURE CENTER ALIGNMENT
             drawing.hAlign = 'CENTER'
+            # After creating the drawing, wrap it in a centered table
+            chart_table = Table([[drawing]], colWidths=[7*inch])
+            chart_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
             
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(drawing)
+            self.story.append(chart_table)  # Use table instead of drawing directly
             self.story.append(Spacer(1, 0.15 * inch))
+            # self.story.append(Spacer(1, 0.1 * inch))
+            # self.story.append(drawing)
+            # self.story.append(Spacer(1, 0.15 * inch))
             
             print(f"Successfully inserted chart '{chart_id}' with size {size} ({render_width})")
             return True
