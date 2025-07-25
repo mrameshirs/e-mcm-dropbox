@@ -141,7 +141,7 @@ def get_visualization_data(dbx, selected_period):
                         max_y = current_max
             # Use a small minimum range in case all values are zero
             #y_range_top = max_y * 1.50 if max_y > 0 else 1
-            y_range_top = max_y * 1.15 if max_y > 0 else 1
+            y_range_top = max_y * 1.25 if max_y > 0 else 1
             fig.update_layout(
                 paper_bgcolor=plot_bg_color,
                 plot_bgcolor=plot_bg_color,
