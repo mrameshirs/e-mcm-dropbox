@@ -255,8 +255,8 @@ class PDFReportGenerator:
     
             # Scale based on size parameter
             size_configs = {
-                "small": 4.5 * inch,
-                "medium": 6.0 * inch, 
+                "small": 4 * inch,
+                "medium": 5.0 * inch, 
                 "large": 7.0 * inch,
                 "full": 7.5 * inch
             }
