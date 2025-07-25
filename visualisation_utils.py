@@ -134,16 +134,18 @@ def get_visualization_data(dbx, selected_period):
                              color='category',
                              text_auto='.2f',
                              color_discrete_sequence=['#3A86FF', '#3DCCC7', '#90E0EF'])
-                fig1.update_layout(
-                    title_x=0.5, 
-                    xaxis_title="Category", 
-                    yaxis_title="Detection (₹ Lakhs)",
-                    paper_bgcolor='#F0F2F6', 
-                    plot_bgcolor='#FFFFFF',
-                    font=dict(family="sans-serif", color="#333")
-                )
-                fig1.update_traces(textposition="outside", cliponaxis=False)
+                fig1 = style_chart(fig1, "Detection Amount by Taxpayer Category", "Detection (₹ Lakhs)", "Category")
                 charts.append(fig1)
+                # fig1.update_layout(
+                #     title_x=0.5, 
+                #     xaxis_title="Category", 
+                #     yaxis_title="Detection (₹ Lakhs)",
+                #     paper_bgcolor='#F0F2F6', 
+                #     plot_bgcolor='#FFFFFF',
+                #     font=dict(family="sans-serif", color="#333")
+                # )
+                # fig1.update_traces(textposition="outside", cliponaxis=False)
+                # charts.append(fig1)
         
         # CHART 2 & 3: Status of Para Analysis (EXACT REPLICA)
         if 'status_of_para' in df_viz_data.columns:
@@ -171,9 +173,10 @@ def get_visualization_data(dbx, selected_period):
                         color_discrete_sequence=px.colors.qualitative.Set3,
                         labels={'status_of_para': 'Status of Para', 'Para_Count': 'Number of Paras'}
                     )
-                    fig2.update_layout(title_x=0.5, height=450, xaxis_title="Status of Para",
-                                     yaxis_title="Number of Paras", xaxis={'tickangle': 45})
-                    fig2.update_traces(textposition="outside", cliponaxis=False)
+                    # fig2.update_layout(title_x=0.5, height=450, xaxis_title="Status of Para",
+                    #                  yaxis_title="Number of Paras", xaxis={'tickangle': 45})
+                    # fig2.update_traces(textposition="outside", cliponaxis=False)
+                    fig2 = style_chart(fig2, "Number of Audit Paras by Status", "Number of Paras", "Status of Para")
                     charts.append(fig2)
                 
                 # Status Detection Chart
@@ -187,9 +190,10 @@ def get_visualization_data(dbx, selected_period):
                         color_discrete_sequence=px.colors.qualitative.Pastel1,
                         labels={'status_of_para': 'Status of Para', 'Total_Detection': 'Detection Amount (₹ Lakhs)'}
                     )
-                    fig3.update_layout(title_x=0.5, height=450, xaxis_title="Status of Para",
-                                     yaxis_title="Detection Amount (₹ Lakhs)", xaxis={'tickangle': 45})
-                    fig3.update_traces(textposition="outside", cliponaxis=False)
+                    # fig3.update_layout(title_x=0.5, height=450, xaxis_title="Status of Para",
+                    #                  yaxis_title="Detection Amount (₹ Lakhs)", xaxis={'tickangle': 45})
+                    # fig3.update_traces(textposition="outside", cliponaxis=False)
+                    fig3 = style_chart(fig3, "Detection Amount by Status", "Detection Amount (₹ Lakhs)", "Status of Para")
                     charts.append(fig3)
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
@@ -315,8 +319,14 @@ def get_visualization_data(dbx, selected_period):
                              title="Distribution of DARs by Taxpayer Classification",
                              color_discrete_sequence=px.colors.sequential.Blues_r,
                              labels={'classification': 'Taxpayer Classification', 'count': 'Number of DARs'})
+                fig8.update_layout(
+                    title=dict(text="<b>Distribution of DARs by Taxpayer Classification</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    paper_bgcolor='#FDFBF5',
+                    font=dict(family="serif", color='#5A4A4A', size=12),
+                    margin=dict(l=40, r=20, t=20, b=40)
+                )
                 fig8.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05]*len(class_counts))
-                fig8.update_layout(legend_title="Classification", title_x=0.5)
+                #fig8.update_layout(legend_title="Classification", title_x=0.5)
                 charts.append(fig8)
             
             # Detection Amount by Classification
@@ -331,6 +341,13 @@ def get_visualization_data(dbx, selected_period):
                              title="Detection Amount by Taxpayer Classification",
                              color_discrete_sequence=px.colors.sequential.Reds_r,
                              labels={'taxpayer_classification': 'Classification', 'Total_Detection': 'Detection (₹ Lakhs)'})
+                # Apply basic styling for pie charts
+                fig9.update_layout(
+                    title=dict(text="<b>Detection Amount by Taxpayer Classification</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    paper_bgcolor='#FDFBF5',
+                    font=dict(family="serif", color='#5A4A4A', size=12),
+                    margin=dict(l=60, r=40, t=70, b=60)
+                )
                 fig9.update_traces(textposition='inside', textinfo='percent+label')
                 fig9.update_layout(legend_title="Classification", title_x=0.5)
                 charts.append(fig9)      
@@ -358,8 +375,9 @@ def get_visualization_data(dbx, selected_period):
                           title="Number of Audit Paras by Classification",
                           labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                           color_discrete_sequence=['#1f77b4'])
-            fig10.update_layout(title_x=0.5, xaxis_title="Classification Code", yaxis_title="Number of Paras")
-            fig10.update_traces(textposition="outside", cliponaxis=False)
+            # fig10.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Number of Paras")
+            # fig10.update_traces(textposition="outside", cliponaxis=False)
+            fig10 = style_chart(fig10, "Number of Audit Paras by Categorisation", "Number of Paras", "Categorisation Code")
             charts.append(fig10)
             
             # Detection by Classification
@@ -367,8 +385,9 @@ def get_visualization_data(dbx, selected_period):
                           title="Detection Amount by Classification",
                           labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
                           color_discrete_sequence=['#ff7f0e'])
-            fig11.update_layout(title_x=0.5, xaxis_title="Classification Code", yaxis_title="Detection (₹ Lakhs)")
-            fig11.update_traces(textposition="outside", cliponaxis=False)
+            # fig11.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Detection (₹ Lakhs)")
+            # fig11.update_traces(textposition="outside", cliponaxis=False)
+            fig11 = style_chart(fig11, "Detection Amount by Categorisation", "Detection (₹ Lakhs)", "Categorisation Code")
             charts.append(fig11)
             
             # Recovery by Classification
@@ -376,8 +395,9 @@ def get_visualization_data(dbx, selected_period):
                           title="Recovery Amount by Classification",
                           labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
                           color_discrete_sequence=['#2ca02c'])
-            fig12.update_layout(title_x=0.5, xaxis_title="Classification Code", yaxis_title="Recovery (₹ Lakhs)")
-            fig12.update_traces(textposition="outside", cliponaxis=False)
+            # fig12.update_layout(title_x=0.5, xaxis_title="Categorisation  Code", yaxis_title="Recovery (₹ Lakhs)")
+            # fig12.update_traces(textposition="outside", cliponaxis=False)
+            fig12 = style_chart(fig12, "Recovery Amount by Categorisation", "Recovery (₹ Lakhs)", "Categorisation Code")
             charts.append(fig12)
         
         # CHARTS 13-14: Treemap Analysis (EXACT REPLICA)
@@ -399,11 +419,22 @@ def get_visualization_data(dbx, selected_period):
                     custom_data=['audit_group_number_str', 'trade_name'],
                     title="Detection by Trade Name"
                 )
+                # fig13.update_layout(
+                #     title_x=0.5, 
+                #     margin=dict(t=50, l=25, r=25, b=25), 
+                #     paper_bgcolor='#F0F2F6',
+                #     font=dict(family="sans-serif")
+                # )
+                # fig13.update_traces(
+                #     marker_line_width=2, marker_line_color='white',
+                #     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
+                # )
+                 Apply styling for treemap
                 fig13.update_layout(
-                    title_x=0.5, 
-                    margin=dict(t=50, l=25, r=25, b=25), 
-                    paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif")
+                    title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    paper_bgcolor='#FDFBF5',
+                    font=dict(family="serif", color='#5A4A4A', size=12),
+                    margin=dict(l=60, r=40, t=70, b=60)
                 )
                 fig13.update_traces(
                     marker_line_width=2, marker_line_color='white',
@@ -423,11 +454,22 @@ def get_visualization_data(dbx, selected_period):
                     custom_data=['audit_group_number_str', 'trade_name'],
                     title="Recovery by Trade Name"
                 )
+                # fig14.update_layout(
+                #     title_x=0.5,
+                #     margin=dict(t=50, l=25, r=25, b=25), 
+                #     paper_bgcolor='#F0F2F6',
+                #     font=dict(family="sans-serif")
+                # )
+                # fig14.update_traces(
+                #     marker_line_width=2, marker_line_color='white',
+                #     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Recovery: %{value:,.2f} L<extra></extra>"
+                # )
+                # Apply styling for treemap
                 fig14.update_layout(
-                    title_x=0.5,
-                    margin=dict(t=50, l=25, r=25, b=25), 
-                    paper_bgcolor='#F0F2F6',
-                    font=dict(family="sans-serif")
+                    title=dict(text="<b>Recovery by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    paper_bgcolor='#FDFBF5',
+                    font=dict(family="serif", color='#5A4A4A', size=12),
+                    margin=dict(l=60, r=40, t=70, b=60)
                 )
                 fig14.update_traces(
                     marker_line_width=2, marker_line_color='white',
@@ -551,13 +593,14 @@ def get_visualization_data(dbx, selected_period):
                         title="Top 15 Risk Flags by Number of Audit Paras",
                         color_discrete_sequence=px.colors.qualitative.Bold
                     )
-                    fig15.update_layout(
-                        title_x=0.5,
-                        xaxis_title="Risk Flag",
-                        yaxis_title="Number of Paras",
-                        height=500
-                    )
-                    fig15.update_traces(textposition="outside", cliponaxis=False)
+                    # fig15.update_layout(
+                    #     title_x=0.5,
+                    #     xaxis_title="Risk Flag",
+                    #     yaxis_title="Number of Paras",
+                    #     height=500
+                    # )
+                    # fig15.update_traces(textposition="outside", cliponaxis=False)
+                    fig15 = style_chart(fig15, "Top 15 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag")
                     charts.append(fig15)
                     
                     # Risk Detection Chart
@@ -571,13 +614,15 @@ def get_visualization_data(dbx, selected_period):
                             title="Top 10 Detection Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Prism
                         )
-                        fig16.update_layout(
-                            title_x=0.5,
-                            xaxis_title="Risk Flag",
-                            yaxis_title="Amount (₹ Lakhs)",
-                            height=400
-                        )
-                        fig16.update_traces(textposition="outside", cliponaxis=False)
+                        # fig16.update_layout(
+                        #     title_x=0.5,
+                        #     xaxis_title="Risk Flag",
+                        #     yaxis_title="Amount (₹ Lakhs)",
+                        #     height=400
+                        # )
+                        # fig16.update_traces(textposition="outside", cliponaxis=False)
+                        fig16 = style_chart(fig16, "Top 10 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
+    
                         charts.append(fig16)
                     
                     # Risk Recovery Chart
@@ -591,13 +636,14 @@ def get_visualization_data(dbx, selected_period):
                             title="Top 10 Recovery Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Safe
                         )
-                        fig17.update_layout(
-                            title_x=0.5,
-                            xaxis_title="Risk Flag",
-                            yaxis_title="Amount (₹ Lakhs)",
-                            height=400
-                        )
-                        fig17.update_traces(textposition="outside", cliponaxis=False)
+                        # fig17.update_layout(
+                        #     title_x=0.5,
+                        #     xaxis_title="Risk Flag",
+                        #     yaxis_title="Amount (₹ Lakhs)",
+                        #     height=400
+                        # )
+                        # fig17.update_traces(textposition="outside", cliponaxis=False)
+                        fig17 = style_chart(fig17, "Top 10 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
                         charts.append(fig17)
                     
                     # Risk Recovery Percentage Chart
@@ -613,14 +659,17 @@ def get_visualization_data(dbx, selected_period):
                             color='Percentage_Recovery', 
                             color_continuous_scale=px.colors.sequential.Greens
                         )
+                        fig18 = style_chart(fig18, "Top 10 Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag")
+    
                         fig18.update_traces(texttemplate='%{y:.1f}%', textposition='outside', cliponaxis=False)
-                        fig18.update_layout(
-                            title_x=0.5,
-                            xaxis_title="Risk Flag",
-                            yaxis_title="Recovery (%)",
-                            height=400,
-                            coloraxis_showscale=False
-                        )
+                        fig18.update_layout(coloraxis_showscale=False)
+                        # fig18.update_layout(
+                        #     title_x=0.5,
+                        #     xaxis_title="Risk Flag",
+                        #     yaxis_title="Recovery (%)",
+                        #     height=400,
+                        #     coloraxis_showscale=False
+                        # )
                         charts.append(fig18)
          
                     risk_agg = df_risk_analysis.groupby('risk_flag').agg(
