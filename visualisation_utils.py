@@ -429,7 +429,7 @@ def get_visualization_data(dbx, selected_period):
                 #     marker_line_width=2, marker_line_color='white',
                 #     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
                 # )
-                 Apply styling for treemap
+                #Apply styling for treemap
                 fig13.update_layout(
                     title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
