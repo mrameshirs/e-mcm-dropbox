@@ -123,7 +123,76 @@ def get_visualization_data(dbx, selected_period):
                     }
         # --- 5. Generate ALL Charts (COMPREHENSIVE REPLICA) ---
         charts = []
+        def style_chart(fig, title_text, y_title, x_title):
+            """
+            Applies a professional, report-style theme to a Plotly chart with corrected layout.
+            """
+            header_color = '#6F2E2E'
+            plot_bg_color = '#FDFBF5'
+            border_color = '#5A4A4A'
+            font_color = 'white'
         
+            # FIX 1: Increase y-axis padding to 20% to prevent TEXT LABELS from overlapping.
+            max_y = 0
+            for trace in fig.data:
+                if trace.y is not None and len(trace.y) > 0:
+                    current_max = max(trace.y)
+                    if current_max > max_y:
+                        max_y = current_max
+            # Use a small minimum range in case all values are zero
+            #y_range_top = max_y * 1.50 if max_y > 0 else 1
+            y_range_top = max_y * 1.15 if max_y > 0 else 1
+            fig.update_layout(
+                paper_bgcolor=plot_bg_color,
+                plot_bgcolor=plot_bg_color,
+                font=dict(family="serif", color=border_color, size=12),
+                #margin=dict(l=60, r=40, t=80, b=60),
+                margin=dict(l=60, r=20, t=20, b=60),
+                showlegend=True,  # Remove default title area
+        
+                shapes=[
+                    dict(
+                        type="rect", xref="paper", yref="paper",
+                        x0=0, y0=0.9, x1=1, y1=1,
+                        fillcolor=header_color, layer="below", line_width=0,
+                    ),
+                    dict(
+                        type="rect", xref="paper", yref="paper",
+                        x0=0, y0=0, x1=1, y1=0.9,
+                        layer="below",
+                        line=dict(color=border_color, width=2),
+                        fillcolor=plot_bg_color
+                    )
+                ],
+                
+                # Add title as annotation instead
+                annotations=[
+                    dict(
+                        text=f'<b>{title_text}</b>',
+                        x=0.5, y=0.95,
+                        xref='paper', yref='paper',
+                        xanchor='center', yanchor='middle',
+                        font=dict(family="Helvetica" , size=14, color=font_color),
+                        showarrow=False
+                    )
+                ],
+                
+                xaxis_type='category',
+                yaxis=dict(gridcolor='#D3D3D3', range=[0, y_range_top]),
+                xaxis=dict(showgrid=False),
+                legend=dict(x=0.05, y=0.85, bgcolor='rgba(0,0,0,0)')
+            )
+            
+            # FIX 2: Use a more direct method to set axis titles, preventing raw column names.
+            fig.update_xaxes(title_text=f'<b>{x_title}</b>', title_font_family="serif", title_font_size=14)
+            fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14)
+            
+            fig.update_traces(
+                marker_line_color=border_color,
+                marker_line_width=1.5,
+                textposition="outside"
+            )
+            return fig
         # CHART 1: Performance Summary by Category (Bar Chart)
         if not summary_df.empty:
             # FIX: Filter out categories with zero detection to prevent ZeroDivisionError
@@ -197,79 +266,6 @@ def get_visualization_data(dbx, selected_period):
                     charts.append(fig3)
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
-      
-      
-
-        def style_chart(fig, title_text, y_title, x_title):
-            """
-            Applies a professional, report-style theme to a Plotly chart with corrected layout.
-            """
-            header_color = '#6F2E2E'
-            plot_bg_color = '#FDFBF5'
-            border_color = '#5A4A4A'
-            font_color = 'white'
-        
-            # FIX 1: Increase y-axis padding to 20% to prevent TEXT LABELS from overlapping.
-            max_y = 0
-            for trace in fig.data:
-                if trace.y is not None and len(trace.y) > 0:
-                    current_max = max(trace.y)
-                    if current_max > max_y:
-                        max_y = current_max
-            # Use a small minimum range in case all values are zero
-            #y_range_top = max_y * 1.50 if max_y > 0 else 1
-            y_range_top = max_y * 1.15 if max_y > 0 else 1
-            fig.update_layout(
-                paper_bgcolor=plot_bg_color,
-                plot_bgcolor=plot_bg_color,
-                font=dict(family="serif", color=border_color, size=12),
-                #margin=dict(l=60, r=40, t=80, b=60),
-                margin=dict(l=60, r=20, t=20, b=60),
-                showlegend=True,  # Remove default title area
-        
-                shapes=[
-                    dict(
-                        type="rect", xref="paper", yref="paper",
-                        x0=0, y0=0.9, x1=1, y1=1,
-                        fillcolor=header_color, layer="below", line_width=0,
-                    ),
-                    dict(
-                        type="rect", xref="paper", yref="paper",
-                        x0=0, y0=0, x1=1, y1=0.9,
-                        layer="below",
-                        line=dict(color=border_color, width=2),
-                        fillcolor=plot_bg_color
-                    )
-                ],
-                
-                # Add title as annotation instead
-                annotations=[
-                    dict(
-                        text=f'<b>{title_text}</b>',
-                        x=0.5, y=0.95,
-                        xref='paper', yref='paper',
-                        xanchor='center', yanchor='middle',
-                        font=dict(family="Helvetica" , size=14, color=font_color),
-                        showarrow=False
-                    )
-                ],
-                
-                xaxis_type='category',
-                yaxis=dict(gridcolor='#D3D3D3', range=[0, y_range_top]),
-                xaxis=dict(showgrid=False),
-                legend=dict(x=0.05, y=0.85, bgcolor='rgba(0,0,0,0)')
-            )
-            
-            # FIX 2: Use a more direct method to set axis titles, preventing raw column names.
-            fig.update_xaxes(title_text=f'<b>{x_title}</b>', title_font_family="serif", title_font_size=14)
-            fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14)
-            
-            fig.update_traces(
-                marker_line_color=border_color,
-                marker_line_width=1.5,
-                textposition="outside"
-            )
-            return fig
         # Group Detection Performance
         group_detection = df_unique_reports.groupby('audit_group_number_str')['Detection in Lakhs'].sum().nlargest(10).reset_index()
         # FIX: Filter zero values
@@ -409,27 +405,16 @@ def get_visualization_data(dbx, selected_period):
             'Unknown': '#CED4DA'   # Light Grey
         }
         
-        # Detection Treemap
+        # Detection Treemap - NOW STYLED
         df_det_treemap = df_treemap[df_treemap['Detection in Lakhs'] > 0]
         if not df_det_treemap.empty:
             try:
                 fig13 = px.treemap(
                     df_det_treemap, path=[px.Constant("All Detections"), 'category', 'trade_name'],
                     values='Detection in Lakhs', color='category', color_discrete_map=color_map,
-                    custom_data=['audit_group_number_str', 'trade_name'],
-                    title="Detection by Trade Name"
+                    custom_data=['audit_group_number_str', 'trade_name']
                 )
-                # fig13.update_layout(
-                #     title_x=0.5, 
-                #     margin=dict(t=50, l=25, r=25, b=25), 
-                #     paper_bgcolor='#F0F2F6',
-                #     font=dict(family="sans-serif")
-                # )
-                # fig13.update_traces(
-                #     marker_line_width=2, marker_line_color='white',
-                #     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Detection: %{value:,.2f} L<extra></extra>"
-                # )
-                #Apply styling for treemap
+                # Apply styling for treemap
                 fig13.update_layout(
                     title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
@@ -444,26 +429,15 @@ def get_visualization_data(dbx, selected_period):
             except Exception:
                 pass  # Skip treemap if it fails
         
-        # Recovery Treemap
+        # Recovery Treemap - NOW STYLED
         df_rec_treemap = df_treemap[df_treemap['Recovery in Lakhs'] > 0]
         if not df_rec_treemap.empty:
             try:
                 fig14 = px.treemap(
                     df_rec_treemap, path=[px.Constant("All Recoveries"), 'category', 'trade_name'],
                     values='Recovery in Lakhs', color='category', color_discrete_map=color_map,
-                    custom_data=['audit_group_number_str', 'trade_name'],
-                    title="Recovery by Trade Name"
+                    custom_data=['audit_group_number_str', 'trade_name']
                 )
-                # fig14.update_layout(
-                #     title_x=0.5,
-                #     margin=dict(t=50, l=25, r=25, b=25), 
-                #     paper_bgcolor='#F0F2F6',
-                #     font=dict(family="sans-serif")
-                # )
-                # fig14.update_traces(
-                #     marker_line_width=2, marker_line_color='white',
-                #     hovertemplate="<b>%{customdata[1]}</b><br>Category: %{parent}<br>Recovery: %{value:,.2f} L<extra></extra>"
-                # )
                 # Apply styling for treemap
                 fig14.update_layout(
                     title=dict(text="<b>Recovery by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
