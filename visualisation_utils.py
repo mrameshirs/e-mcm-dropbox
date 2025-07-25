@@ -220,8 +220,8 @@ def get_visualization_data(dbx, selected_period):
                 plot_bgcolor=plot_bg_color,
                 font=dict(family="serif", color=border_color, size=12),
                 #margin=dict(l=60, r=40, t=80, b=60),
-                margin=dict(l=60, r=40, t=20, b=60),
-                showlegend=False,  # Remove default title area
+                margin=dict(l=60, r=20, t=20, b=60),
+                showlegend=True,  # Remove default title area
         
                 shapes=[
                     dict(
