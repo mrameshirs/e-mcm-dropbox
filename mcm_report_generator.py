@@ -987,7 +987,7 @@ class PDFReportGenerator:
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
-            self.insert_chart_by_id("status_analysis", size="large")
+            self.insert_chart_by_id("status_analysis", size="medium")
             
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
