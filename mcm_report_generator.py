@@ -282,10 +282,10 @@ class PDFReportGenerator:
             
             print(f"Successfully inserted chart '{chart_id}' with size {size} ({render_width})")
             return True
-        
-    except Exception as e:
-        print(f"Error inserting chart '{chart_id}': {e}")
-        return False
+            
+        except Exception as e:
+            print(f"Error inserting chart '{chart_id}': {e}")
+            return False
     # def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
     #     """Insert a specific chart by its ID with customizable options"""
     #     try:
