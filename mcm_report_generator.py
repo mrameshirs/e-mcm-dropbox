@@ -987,13 +987,13 @@ class PDFReportGenerator:
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
-            self.insert_chart_by_id("status_analysis", size="medium")
+            self.insert_chart_by_id("status_analysis", size="small")
             
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
                 
             # INSERT RECOVERY TRENDS CHART
-            self.insert_chart_by_id("recovery_trends", size="medium")
+            self.insert_chart_by_id("recovery_trends", size="small")
             
             # Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
