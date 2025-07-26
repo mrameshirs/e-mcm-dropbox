@@ -445,7 +445,7 @@ class PDFReportGenerator:
             
             if is_pie_chart:
                 # SQUARE dimensions for pie charts - CRITICAL for circular shape
-                target_size = 5.0 * inch  # Same width and height
+                target_size = 3.0 * inch  # Same width and height
                 target_width = target_size
                 target_height = target_size
                 
