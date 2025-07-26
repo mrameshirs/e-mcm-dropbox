@@ -455,7 +455,7 @@ class PDFReportGenerator:
             # 5. Add Section IV Nature of Non Compliance Analysis
             self.add_nature_of_non_compliance_analysis()
         
-            
+            self.create_structured_chart_sections()
             # 4. Build the document
             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
             
