@@ -1193,9 +1193,9 @@ class PDFReportGenerator:
                     para_data = [['Audit Group', 'Trade Name', 'Para Heading', 'Detection (Rs.L)']]
                     for _, row in top_5_paras.iterrows():
                         audit_group = str(row.get('audit_group_number_str', 'N/A'))
-                        trade_name = str(row.get('trade_name', 'N/A'))[:30] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
+                        trade_name = str(row.get('trade_name', 'N/A'))[:50] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
                         #para_no = str(row.get('audit_para_number', 'N/A'))
-                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:100] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
+                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:100] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 100 else str(row.get('audit_para_heading', 'N/A'))
                         detection = f"₹{row.get('Para Detection in Lakhs', 0):.2f} L"
                         #recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
                         #status = str(row.get('status_of_para', 'N/A'))
@@ -1207,7 +1207,7 @@ class PDFReportGenerator:
                     para_col_widths = [0.6*inch, 1.5*inch, 5*inch, 1.1*inch]
                     para_table = Table(para_data, colWidths=para_col_widths)
                     
-                    # Style the table
+                    # FIX 3: Correct table styling for 4 columns (indices 0,1,2,3)
                     para_table.setStyle(TableStyle([
                         # Header styling
                         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
@@ -1219,9 +1219,11 @@ class PDFReportGenerator:
                         # Data rows
                         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                         ('FONTSIZE', (0, 1), (-1, -1), 8),
-                        ('ALIGN', (4, 1), (-2, -1), 'RIGHT'),  # Detection and Recovery right-aligned
-                        ('ALIGN', (0, 1), (3, -1), 'LEFT'),    # Other columns left-aligned
-                        ('ALIGN', (-1, 1), (-1, -1), 'CENTER'), # Status centered
+                        
+                        # FIXED ALIGNMENTS for 4 columns (0=Group, 1=Trade, 2=Heading, 3=Detection)
+                        ('ALIGN', (3, 1), (3, -1), 'RIGHT'),   # Detection column (index 3) right-aligned
+                        ('ALIGN', (0, 1), (2, -1), 'LEFT'),    # Other columns (0,1,2) left-aligned
+                        # REMOVED: Status center alignment (no Status column anymore)
                         
                         # Alternating row colors
                         ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
@@ -1238,8 +1240,8 @@ class PDFReportGenerator:
                         ('LEFTPADDING', (0, 0), (-1, -1), 4),
                         ('RIGHTPADDING', (0, 0), (-1, -1), 4),
                         
-                        # Vertical alignment
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        # Vertical alignment - ADD TOP alignment for better text wrapping
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Changed from MIDDLE to TOP
                     ]))
                     self.story.append(Paragraph("🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'", top_paras_header_style))
                     self.story.append(para_table)
