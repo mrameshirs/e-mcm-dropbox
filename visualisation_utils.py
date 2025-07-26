@@ -329,14 +329,14 @@ def get_visualization_data(dbx, selected_period):
                     # SQUARE DIMENSIONS
                     width=500,
                     height=300,
-                    margin=dict(l=20, r=20, t=40, b=20),
+                    margin=dict(l=0, r=0, t=40, b=0),
                     # REMOVE LEGEND
                     showlegend=False,autosize=False
                 )
                 
                 # Enhanced text display (since no legend)
                 fig8.update_traces(
-                    textposition='auto', 
+                    textposition='outside', 
                     textinfo='label+percent',  # Show both label and percent
                     textfont=dict(size=11, color='white'),
                     pull=[0.05]*len(class_counts)
