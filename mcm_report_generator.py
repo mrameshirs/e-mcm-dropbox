@@ -461,6 +461,75 @@ class PDFReportGenerator:
             import traceback
             traceback.print_exc()
             return False
+    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
+        """Insert chart as Image object to avoid SVG coordinate issues"""
+        try:
+            if chart_id not in self.chart_registry:
+                print(f"ERROR: Chart '{chart_id}' not found in registry")
+                return False
+    
+            chart_info = self.chart_registry[chart_id]
+            chart_data = chart_info['metadata']
+            img_bytes = chart_info['image']
+    
+            if img_bytes is None:
+                print(f"ERROR: No image data for chart '{chart_id}'")
+                return False
+    
+            # Add title and description
+            if add_title:
+                title = chart_data.get('title', f'Chart {chart_id}')
+                self.story.append(Paragraph(title, self.chart_title_style))
+    
+            if add_description:
+                description = chart_data.get('description', 'Chart description')
+                self.story.append(Paragraph(description, self.chart_description_style))
+    
+            # Size configs
+            size_configs = {
+                "tiny": 1.5 * inch,
+                "small": 2.5 * inch,
+                "medium": 3.5 * inch,
+                "large": 4.5 * inch,
+                "full": 6.0 * inch
+            }
+            
+            target_width = size_configs.get(size, 2.5 * inch)
+            target_height = target_width * 0.6  # Maintain aspect ratio
+            
+            print(f"Creating Image object: {target_width} x {target_height}")
+            
+            # USE REPORTLAB IMAGE OBJECT INSTEAD OF SVG
+            from reportlab.platypus import Image as RLImage
+            
+            # Reset BytesIO position
+            img_bytes.seek(0)
+            
+            # Create Image object directly from SVG bytes
+            chart_image = RLImage(img_bytes, width=target_width, height=target_height)
+            chart_image.hAlign = 'CENTER'
+            
+            # Create centering table
+            from reportlab.platypus import Table, TableStyle
+            
+            centering_table = Table([[chart_image]], colWidths=[target_width])
+            centering_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(centering_table)
+            self.story.append(Spacer(1, 0.15 * inch))
+            
+            print(f"SUCCESS: Image chart '{chart_id}' added with size {target_width}")
+            return True
+            
+        except Exception as e:
+            print(f"ERROR with Image approach: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
