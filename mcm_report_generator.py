@@ -1195,7 +1195,7 @@ class PDFReportGenerator:
                         audit_group = str(row.get('audit_group_number_str', 'N/A'))
                         trade_name = str(row.get('trade_name', 'N/A'))[:30] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
                         #para_no = str(row.get('audit_para_number', 'N/A'))
-                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:50] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
+                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:100] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
                         detection = f"₹{row.get('Para Detection in Lakhs', 0):.2f} L"
                         #recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
                         #status = str(row.get('status_of_para', 'N/A'))
