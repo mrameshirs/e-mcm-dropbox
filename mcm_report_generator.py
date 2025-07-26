@@ -1549,49 +1549,76 @@ class PDFReportGenerator:
             print(f"Error adding sectoral summary table: {e}")
             
     def add_comprehensive_classification_page(self):
-            """Add a comprehensive classification page that renders properly in PDF"""
-            try:
-                # Get real data for calculations
-                df_viz_data = getattr(self, 'df_viz_data', pd.DataFrame())
-                print('add_comprehensive_classification_page started')
-                if not df_viz_data.empty:
-                    df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
+            # """Add a comprehensive classification page that renders properly in PDF"""
+            # try:
+            #     # Get real data for calculations
+            #     df_viz_data = getattr(self, 'df_viz_data', pd.DataFrame())
+            #     print('add_comprehensive_classification_page started')
+            #     if not df_viz_data.empty:
+            #         df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
                     
-                    if not df_paras.empty:
-                        df_paras['Para Detection in Lakhs'] = df_paras.get('revenue_involved_rs', 0) / 100000.0
-                        df_paras['Para Recovery in Lakhs'] = df_paras.get('revenue_recovered_rs', 0) / 100000.0
-                        df_paras['major_code'] = df_paras['para_classification_code'].str[:2]
+            #         if not df_paras.empty:
+            #             df_paras['Para Detection in Lakhs'] = df_paras.get('revenue_involved_rs', 0) / 100000.0
+            #             df_paras['Para Recovery in Lakhs'] = df_paras.get('revenue_recovered_rs', 0) / 100000.0
+            #             df_paras['major_code'] = df_paras['para_classification_code'].str[:2]
                         
-                        # Calculate statistics
-                        total_observations = len(df_paras)
-                        main_categories_count = df_paras['major_code'].nunique()
-                        sub_categories_count = df_paras['para_classification_code'].nunique()
+            #             # Calculate statistics
+            #             total_observations = len(df_paras)
+            #             main_categories_count = df_paras['major_code'].nunique()
+            #             sub_categories_count = df_paras['para_classification_code'].nunique()
                         
-                        # Category-wise stats
-                        category_stats = df_paras.groupby('major_code').agg(
-                            para_count=('major_code', 'count'),
-                            total_detection=('Para Detection in Lakhs', 'sum'),
-                            total_recovery=('Para Recovery in Lakhs', 'sum')
-                        ).reset_index()
-                    else:
-                        total_observations = main_categories_count = sub_categories_count = 0
-                        category_stats = pd.DataFrame()
+            #             # Category-wise stats
+            #             category_stats = df_paras.groupby('major_code').agg(
+            #                 para_count=('major_code', 'count'),
+            #                 total_detection=('Para Detection in Lakhs', 'sum'),
+            #                 total_recovery=('Para Recovery in Lakhs', 'sum')
+            #             ).reset_index()
+            #         else:
+            #             total_observations = main_categories_count = sub_categories_count = 0
+            #             category_stats = pd.DataFrame()
+            #     else:
+            #         total_observations = main_categories_count = sub_categories_count = 0
+            #         category_stats = pd.DataFrame()
+           """Add a comprehensive classification page using pre-processed data"""
+            print(f"DEBUG: vital_stats contains: {list(self.vital_stats.keys())}")
+            classification_data = self.vital_stats.get('classification_page_data')
+            print(f"DEBUG: classification_page_data = {classification_data}")
+           
+            try:
+                # Get pre-processed classification data from vital_stats
+                classification_data = self.vital_stats.get('classification_page_data', {})
+                print("🔍 === CLASSIFICATION PAGE DEBUG ===")
+     
+        
+                print(f"🔍 classification_page_data exists: {classification_data is not None}")
+        
+                if classification_data:
+                    total_observations = classification_data.get('total_observations', 0)
+                    main_categories_count = classification_data.get('main_categories_count', 0)  
+                    sub_categories_count = classification_data.get('sub_categories_count', 0)
+                    
+                    # Convert category stats back to DataFrame for compatibility
+                    category_stats_records = classification_data.get('category_stats', [])
+                    category_stats = pd.DataFrame(category_stats_records)
+                    
+                    print(f"SUCCESS: Loaded classification data - {total_observations} observations")
                 else:
+                    # Fallback values if no data
                     total_observations = main_categories_count = sub_categories_count = 0
                     category_stats = pd.DataFrame()
-        
-                # PAGE HEADER with gradient effect using table
-                header_style = ParagraphStyle(
-                    name='ClassificationHeader',
-                    parent=self.styles['Heading1'],
-                    fontSize=20,
-                    textColor=colors.white,
-                    alignment=TA_CENTER,
-                    fontName='Helvetica-Bold',
-                    spaceAfter=0,
-                    spaceBefore=0
-                )
-                
+                    print("WARNING: No classification data found in vital_stats")
+                        # PAGE HEADER with gradient effect using table
+                        header_style = ParagraphStyle(
+                            name='ClassificationHeader',
+                            parent=self.styles['Heading1'],
+                            fontSize=20,
+                            textColor=colors.white,
+                            alignment=TA_CENTER,
+                            fontName='Helvetica-Bold',
+                            spaceAfter=0,
+                            spaceBefore=0
+                        )
+                        
                 subtitle_style = ParagraphStyle(
                     name='ClassificationSubtitle',
                     parent=self.styles['Normal'],
