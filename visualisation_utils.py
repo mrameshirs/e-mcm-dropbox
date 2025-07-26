@@ -121,6 +121,31 @@ def get_visualization_data(dbx, selected_period):
                         'total_detection': agreed_yet_to_pay_paras['Para Detection in Lakhs'].sum(),
                         'total_recovery': agreed_yet_to_pay_paras['Para Recovery in Lakhs'].sum()
                     }
+         # ADD SECTORAL SUMMARY DATA (after chart generation)
+        sectoral_summary = []
+        if 'taxpayer_classification' in df_unique_reports.columns:
+            sectoral_agg = df_unique_reports.groupby('taxpayer_classification').agg(
+                dar_count=('dar_pdf_path', 'nunique'),
+                total_detection=('Detection in Lakhs', 'sum'),
+                total_recovery=('Recovery in Lakhs', 'sum')
+            ).reset_index()
+            sectoral_agg.columns = ['classification', 'dar_count', 'total_detection', 'total_recovery']
+            sectoral_summary = sectoral_agg.sort_values('total_detection', ascending=False).to_dict('records')
+        
+        # ADD CLASSIFICATION SUMMARY DATA (after chart generation)
+        classification_summary = []
+        if not df_paras.empty:  # df_paras is created in the classification analysis section
+            classification_agg = df_paras.groupby('major_code').agg(
+                Para_Count=('major_code', 'count'),
+                Total_Detection=('Para Detection in Lakhs', 'sum'),
+                Total_Recovery=('Para Recovery in Lakhs', 'sum')
+            ).reset_index()
+            classification_agg['Percentage_Recovery'] = (
+                classification_agg['Total_Recovery'] / 
+                classification_agg['Total_Detection'].replace(0, np.nan)
+            ).fillna(0) * 100
+            classification_summary = classification_agg.sort_values('Total_Detection', ascending=False).to_dict('records')
+        
         # --- 5. Generate ALL Charts (COMPREHENSIVE REPLICA) ---
         charts = []
         def style_chart(fig, title_text, y_title, x_title):
@@ -305,7 +330,7 @@ def get_visualization_data(dbx, selected_period):
             fig7 = style_chart(fig7, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
             charts.append(fig7)
         
-        # CHARTS 8-9: Taxpayer Classification Analysis (EXACT REPLICA)
+        # CHARTS 8-9 9b: Taxpayer Classification Analysis (EXACT REPLICA)
         if 'taxpayer_classification' in df_unique_reports.columns:
             class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
             class_counts.columns = ['classification', 'count']
@@ -348,6 +373,27 @@ def get_visualization_data(dbx, selected_period):
                 fig9.update_traces(textposition='inside', textinfo='percent+label')
                 fig9.update_layout(legend_title="Classification", title_x=0.5)
                 charts.append(fig9)      
+            # Chart 9b: Recovery Amount by Classification (COMPLETE VERSION)
+            class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]  # Filter zero recovery
+            if not class_agg_recovery.empty:
+                fig9b = px.pie(class_agg_recovery, names='taxpayer_classification', values='Total_Recovery',
+                              title="Recovery Amount by Taxpayer Classification",
+                              color_discrete_sequence=px.colors.sequential.Greens_r,
+                              labels={'taxpayer_classification': 'Classification', 'Total_Recovery': 'Recovery (₹ Lakhs)'})
+                
+                # ADD MISSING STYLING
+                fig9b.update_layout(
+                    title=dict(text="<b>Recovery Amount by Taxpayer Classification</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    paper_bgcolor='#FDFBF5',
+                    font=dict(family="serif", color='#5A4A4A', size=12),
+                    margin=dict(l=60, r=40, t=70, b=60)
+                )
+                fig9b.update_traces(textposition='inside', textinfo='percent+label')
+                fig9b.update_layout(legend_title="Classification", title_x=0.5)
+                
+                # ADD MISSING APPEND TO CHARTS
+                charts.append(fig9b)
+        
         # CHARTS 10-12: Nature of Compliance Analysis (EXACT REPLICA)
         CLASSIFICATION_CODES_DESC = {
             'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
@@ -672,7 +718,9 @@ def get_visualization_data(dbx, selected_period):
             'status_analysis_available': 'status_of_para' in df_viz_data.columns,
             'classification_analysis_available': not df_paras.empty if 'df_paras' in locals() else False,
             'risk_analysis_available': 'risk_flags_data' in df_viz_data.columns,
-            'taxpayer_classification_available': 'taxpayer_classification' in df_unique_reports.columns
+            'taxpayer_classification_available': 'taxpayer_classification' in df_unique_reports.columns,
+            'sectoral_analysis_available': len(sectoral_summary) > 0,  # NEW
+            'compliance_analysis_available': len(classification_summary) > 0  # NEW
         })
         
         return vital_stats, charts
