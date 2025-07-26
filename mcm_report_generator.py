@@ -1008,8 +1008,8 @@ class PDFReportGenerator:
         
             # Add Status Summary Table if available
             self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
-            II_description='This section provides analysis of Audit paras based on the Recovery status of the amount involved and provides the recovery potential out of the detected amount actionable by the audit groups'
-             self.story.append(Paragraph(II_description, para_style))
+            section2_description='This section provides analysis of Audit paras based on the Recovery status of the amount involved and provides the recovery potential out of the detected amount actionable by the audit groups'
+            self.story.append(Paragraph(section2_description, para_style))
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
