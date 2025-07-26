@@ -461,60 +461,7 @@ class PDFReportGenerator:
             import traceback
             traceback.print_exc()
             return False
-    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Just do simple scaling, accept whatever orientation we get"""
-        try:
-            if chart_id not in self.chart_registry:
-                return False
-    
-            chart_info = self.chart_registry[chart_id]
-            chart_data = chart_info['metadata']
-            img_bytes = chart_info['image']
-    
-            if img_bytes is None:
-                return False
-    
-            # Add title and description
-            if add_title:
-                self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
-            if add_description:
-                self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
-    
-            # Create drawing - NO MODIFICATIONS
-            drawing, error = self._create_safe_svg_drawing(img_bytes)
-            
-            if error or drawing is None:
-                return False
-    
-            # Size configs
-            size_configs = {
-                "tiny": 1.5 * inch,
-                "small": 2.5 * inch,
-                "medium": 3.5 * inch,
-                "large": 4.5 * inch
-            }
-            
-            target_width = size_configs.get(size, 2.5 * inch)
-            
-            # ONLY scale, don't modify anything else
-            if hasattr(drawing, 'width') and drawing.width > 0:
-                scale_factor = target_width / drawing.width
-                drawing.width = target_width
-                drawing.height = drawing.height * scale_factor
-    
-            drawing.hAlign = 'CENTER'
-            
-            # Add directly without any wrapper or transforms
-            self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(drawing)
-            self.story.append(Spacer(1, 0.15 * inch))
-            
-            print(f"SUCCESS: Simple chart '{chart_id}' added (no coordinate fixing)")
-            return True
-            
-        except Exception as e:
-            print(f"ERROR: {e}")
-            return False
+   
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
