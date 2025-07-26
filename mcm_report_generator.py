@@ -253,7 +253,7 @@ class PDFReportGenerator:
             size_configs = {
                 "tiny": 3.5 * inch,
                 "small": 4.5 * inch,
-                "medium": 5.5 * inch,
+                "medium": 5.0* inch,
                 "large": 6.5 * inch
             }
             
@@ -1134,10 +1134,10 @@ class PDFReportGenerator:
             ]))
             
             self.story.append(status_table)
-            self.story.append(Spacer(1, 0.2 * inch))
+            self.story.append(Spacer(1, 0.1 * inch))
             self.story.append(Paragraph("📊 Total Recovery Potential", status_header_style))
             self.insert_chart_by_id("status_analysis", size="medium")
-            self.story.append(Spacer(1, 0.2 * inch))
+            self.story.append(Spacer(1, 0.1 * inch))
             # Add "Top 5 Paras with Largest Detection" section if data is available
             # if self.vital_stats.get('agreed_yet_to_pay_analysis'):
             #     self.add_top_agreed_paras_section()
