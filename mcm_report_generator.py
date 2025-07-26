@@ -461,12 +461,11 @@ class PDFReportGenerator:
             
             print(f"SUCCESS: Constrained chart '{chart_id}' added with forced size {target_width}")
             return True
-        
-    except Exception as e:
-        print(f"EXCEPTION: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        except Exception as e:
+            print(f"EXCEPTION: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
