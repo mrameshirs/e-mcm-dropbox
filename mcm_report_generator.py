@@ -687,7 +687,15 @@ class PDFReportGenerator:
                 
                 # Create and add the chart
                 drawing, error = self._create_safe_svg_drawing(img_bytes)
-                
+                # Add this after: drawing, error = self._create_safe_svg_drawing(img_bytes)
+                print(f"=== DEBUG CHART {chart_id} ===")
+                print(f"Requested size: {size}")
+                print(f"Drawing object: {drawing}")
+                if drawing:
+                    print(f"Drawing width: {getattr(drawing, 'width', 'No width')}")
+                    print(f"Drawing height: {getattr(drawing, 'height', 'No height')}")
+                print(f"Target width should be: {size_configs.get(size, 'Unknown')}")
+                print("=" * 30)
                 if error:
                     print(f"Chart {i+1} error: {error}")
                     self._add_chart_error_inline(i, error)
