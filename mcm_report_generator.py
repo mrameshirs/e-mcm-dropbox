@@ -325,8 +325,15 @@ class PDFReportGenerator:
             self.create_summary_header()
             
           
-            # 3. Add comprehensive monthly performance summary with charts
+            # 3. Add comprehensive monthly performance summary with charts Section II and II
             self.add_monthly_performance_summary()
+
+            # 4. Add Section III Sectoral analysis (Two sectoral graphs Pie charts)
+            self.add_sectoral_analysis()
+        
+            # 5. Add Section IV Nature of Non Compliance Analysis
+            self.add_nature_of_non_compliance_analysis()
+        
             
             # 4. Build the document
             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
@@ -1263,8 +1270,278 @@ class PDFReportGenerator:
             except Exception as e:
                 print(f"Error adding top agreed paras section: {e}")    
         except Exception as e:
-            print(f"Error adding status summary table: {e}")
-
+            print(f"Error adding status summary table: {e}") 
+    
+    
+    def add_sectoral_analysis(self):
+        """Add Section III - Sectoral Analysis with pie charts"""
+        try:
+            # Section III Header
+            self.add_section_highlight_bar("III. Sectoral Analysis", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='SectoralDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section provides sectoral analysis of audit performance across different taxpayer classifications and business categories. 
+            The analysis helps identify sector-wise compliance patterns and focus areas for targeted audit interventions.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Chart heading style
+            chart_header_style = ParagraphStyle(
+                name='ChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=16
+            )
+            
+            # First Chart: Distribution by Taxpayer Classification
+            self.story.append(Paragraph("🎯 Distribution of DARs by Taxpayer Classification", chart_header_style))
+            self.insert_chart_by_id("taxpayer_classification_distribution", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Second Chart: Detection Amount by Classification
+            self.story.append(Paragraph("🎯 Detection Amount by Taxpayer Classification", chart_header_style))
+            self.insert_chart_by_id("taxpayer_classification_detection", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.3 * inch))
+                
+        except Exception as e:
+            print(f"Error adding sectoral analysis: {e}")
+    
+    def add_sectoral_summary_metrics(self):
+        """Add summary metrics for sectoral analysis"""
+        try:
+            # Get sectoral data from vital_stats if available
+            sectoral_summary = self.vital_stats.get('sectoral_summary', [])
+            
+            if sectoral_summary:
+                metrics_header_style = ParagraphStyle(
+                    name='MetricsHeader',
+                    parent=self.styles['Heading3'],
+                    fontSize=12,
+                    textColor=colors.HexColor("#1134A6"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=8,
+                    spaceBefore=12
+                )
+                
+                self.story.append(Paragraph("📊 Sectoral Performance Summary", metrics_header_style))
+                
+                # Create simple metrics table
+                sectoral_data = [['Classification', 'No. of DARs', 'Total Detection (₹ L)']]
+                
+                for item in sectoral_summary[:5]:  # Top 5 classifications
+                    classification = item.get('classification', 'Unknown')
+                    dar_count = item.get('dar_count', 0)
+                    detection = item.get('total_detection', 0)
+                    sectoral_data.append([classification, str(dar_count), f'₹{detection:.2f} L'])
+                
+                sectoral_table = Table(sectoral_data, colWidths=[3*inch, 1.5*inch, 2*inch])
+                sectoral_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 9),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 9),
+                    ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
+                
+                self.story.append(sectoral_table)
+                self.story.append(Spacer(1, 0.2 * inch))
+                
+        except Exception as e:
+            print(f"Error adding sectoral summary metrics: {e}")
+    
+    def add_nature_of_non_compliance_analysis(self):
+        """Add Section IV - Nature of Non Compliance Analysis"""
+        try:
+            # Section IV Header
+            self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='ComplianceDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section analyzes the nature of non-compliance using the Audit Para Categorisation Coding System of Audit-1 Commissionerate. 
+            The analysis categorizes violations into major areas like Tax Payment Defaults, ITC Violations, Return Filing issues, and Procedural Non-compliance.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Chart heading style
+            chart_header_style = ParagraphStyle(
+                name='ComplianceChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=16
+            )
+            
+            # First Chart: Number of Paras by Classification
+            self.story.append(Paragraph("🎯 Number of Audit Paras by Categorisation", chart_header_style))
+            self.insert_chart_by_id("classification_para_count", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Second Chart: Detection Amount by Classification
+            self.story.append(Paragraph("🎯 Detection Amount by Categorisation", chart_header_style))
+            self.insert_chart_by_id("classification_detection", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Third Chart: Recovery Amount by Classification
+            self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
+            self.insert_chart_by_id("classification_recovery", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.3 * inch))
+                
+        except Exception as e:
+            print(f"Error adding nature of non compliance analysis: {e}")
+    
+    def add_classification_summary_table(self):
+        """Add summary table for classification analysis"""
+        try:
+            # Get classification data from vital_stats if available
+            classification_summary = self.vital_stats.get('classification_summary', [])
+            
+            if classification_summary:
+                table_header_style = ParagraphStyle(
+                    name='ClassificationTableHeader',
+                    parent=self.styles['Heading3'],
+                    fontSize=14,
+                    textColor=colors.HexColor("#1134A6"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=12,
+                    spaceBefore=16
+                )
+                
+                self.story.append(Paragraph("📊 Non-Compliance Categories Summary", table_header_style))
+                
+                # Create classification table
+                classification_data = [['Category Code', 'Description', 'No. of Paras', 'Detection (₹ L)', 'Recovery (₹ L)']]
+                
+                # Classification codes mapping
+                CLASSIFICATION_CODES_DESC = {
+                    'TP': 'TAX PAYMENT DEFAULTS', 
+                    'RC': 'REVERSE CHARGE MECHANISM',
+                    'IT': 'INPUT TAX CREDIT VIOLATIONS', 
+                    'IN': 'INTEREST LIABILITY DEFAULTS',
+                    'RF': 'RETURN FILING NON-COMPLIANCE', 
+                    'PD': 'PROCEDURAL & DOCUMENTATION',
+                    'CV': 'CLASSIFICATION & VALUATION', 
+                    'SS': 'SPECIAL SITUATIONS',
+                    'PG': 'PENALTY & GENERAL COMPLIANCE'
+                }
+                
+                for item in classification_summary[:7]:  # Top 7 categories
+                    code = item.get('major_code', 'Unknown')
+                    description = CLASSIFICATION_CODES_DESC.get(code, 'Unknown Category')
+                    para_count = item.get('Para_Count', 0)
+                    detection = item.get('Total_Detection', 0)
+                    recovery = item.get('Total_Recovery', 0)
+                    
+                    classification_data.append([
+                        code, 
+                        description[:40] + '...' if len(description) > 40 else description,
+                        str(para_count), 
+                        f'₹{detection:.2f} L', 
+                        f'₹{recovery:.2f} L'
+                    ])
+                
+                classification_table = Table(classification_data, 
+                                           colWidths=[0.8*inch, 2.5*inch, 1*inch, 1.2*inch, 1.2*inch])
+                
+                classification_table.setStyle(TableStyle([
+                    # Header styling
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    
+                    # Data rows
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 8),
+                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Numbers centered
+                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Code and description left-aligned
+                    
+                    # Alternating row colors
+                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+                    ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor("#F8F8F8")),
+                    
+                    # Grid and borders
+                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                    ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
+                    
+                    # Padding
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                    
+                    # Vertical alignment
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
+                
+                self.story.append(classification_table)
+                self.story.append(Spacer(1, 0.2 * inch))
+                
+        except Exception as e:
+            print(f"Error adding classification summary table: {e}")
  
            
 
