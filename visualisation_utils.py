@@ -256,7 +256,7 @@ def get_visualization_data(dbx, selected_period):
                 if not status_agg_sorted_detection.empty:
                     fig3 = px.bar(
                         status_agg_sorted_detection, x='status_of_para', y='Total_Detection',
-                        title="📊 Detection Amount by Status", text_auto='.2f',
+                        #title="📊 Detection Amount by Status", text_auto='.2f',
                         color_discrete_sequence=px.colors.qualitative.Pastel1,
                         labels={'status_of_para': 'Status of Para', 'Total_Detection': 'Detection Amount (₹ Lakhs)'}
                     )
