@@ -1010,7 +1010,7 @@ class PDFReportGenerator:
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
-            self.insert_chart_by_id("status_analysis", size="medium")
+           
             print(f"Chart registry keys: {list(self.chart_registry.keys())}")
             print(f"Chart registry: {self.chart_registry}")
             
@@ -1132,134 +1132,135 @@ class PDFReportGenerator:
             
             self.story.append(status_table)
             self.story.append(Spacer(1, 0.2 * inch))
-            
+            self.story.append(Paragraph("📊 Total Recovery Potential", status_header_style))
+            self.insert_chart_by_id("status_analysis", size="medium")
+            self.story.append(Spacer(1, 0.2 * inch))
             # Add "Top 5 Paras with Largest Detection" section if data is available
-            if self.vital_stats.get('agreed_yet_to_pay_analysis'):
-                self.add_top_agreed_paras_section()
+            # if self.vital_stats.get('agreed_yet_to_pay_analysis'):
+            #     self.add_top_agreed_paras_section()
+          
+            try:
+                # Get the analysis data
+                agreed_analysis = self.vital_stats.get('agreed_yet_to_pay_analysis', {})
                 
+                if agreed_analysis and agreed_analysis.get('top_5_paras') is not None:
+                    # Add summary metrics
+                    total_paras = agreed_analysis.get('total_paras', 0)
+                    total_detection = agreed_analysis.get('total_detection', 0)
+                    total_recovery = agreed_analysis.get('total_recovery', 0)
+                    
+                    # Create metrics row
+                    metrics_data = [
+                        [f"Total 'Agreed yet to pay' Paras", f"Total Detection Amount", f"Total Recovery Potential"],
+                        [f"{total_paras}", f"₹{total_detection:,.2f} L", f"₹{total_detection:,.2f} L"]
+                    ]
+                       # Section header
+                    top_paras_header_style = ParagraphStyle(
+                        name='TopParasHeader',
+                        parent=self.styles['Heading3'],
+                        fontSize=14,
+                        textColor=colors.HexColor("#1134A6"),
+                        alignment=TA_LEFT,
+                        fontName='Helvetica-Bold',
+                        spaceAfter=12,
+                        spaceBefore=16
+                    )
+                    
+                    
+                    metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
+                    metrics_table.setStyle(TableStyle([
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, 0), 10),
+                        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 1), (-1, 1), 12),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8F4F8")),
+                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                        ('TOPPADDING', (0, 0), (-1, -1), 6),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ]))
+                    
+                    self.story.append(metrics_table)
+                    top_5_paras = agreed_analysis['top_5_paras']
+                    
+                    # Create table data
+                    para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (₹ L)', 'Recovery (₹ L)', 'Status']]
+                    
+                    for _, row in top_5_paras.iterrows():
+                        audit_group = str(row.get('audit_group_number_str', 'N/A'))
+                        trade_name = str(row.get('trade_name', 'N/A'))[:30] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
+                        para_no = str(row.get('audit_para_number', 'N/A'))
+                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:50] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
+                        detection = f"₹{row.get('Para Detection in Lakhs', 0):.2f} L"
+                        recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
+                        status = str(row.get('status_of_para', 'N/A'))
+                        
+                        para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
+                    
+                    # Create table
+                    para_col_widths = [0.8*inch, 1.5*inch, 0.6*inch, 2.0*inch, 1.0*inch, 1.0*inch, 1.1*inch]
+                    para_table = Table(para_data, colWidths=para_col_widths)
+                    
+                    # Style the table
+                    para_table.setStyle(TableStyle([
+                        # Header styling
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, 0), 8),
+                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                        
+                        # Data rows
+                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                        ('FONTSIZE', (0, 1), (-1, -1), 8),
+                        ('ALIGN', (4, 1), (-2, -1), 'RIGHT'),  # Detection and Recovery right-aligned
+                        ('ALIGN', (0, 1), (3, -1), 'LEFT'),    # Other columns left-aligned
+                        ('ALIGN', (-1, 1), (-1, -1), 'CENTER'), # Status centered
+                        
+                        # Alternating row colors
+                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+                        
+                        # Grid and borders
+                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
+                        
+                        # Padding
+                        ('TOPPADDING', (0, 0), (-1, -1), 4),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                        
+                        # Vertical alignment
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ]))
+                    self.story.append(Paragraph("🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'", top_paras_header_style))
+                    self.story.append(para_table)
+                    self.story.append(Spacer(1, 0.2 * inch))
+                    
+                    
+                    
+                else:
+                    # Fallback message
+                    info_style = ParagraphStyle(
+                        name='InfoStyle',
+                        parent=self.styles['Normal'],
+                        fontSize=10,
+                        textColor=colors.HexColor("#666666"),
+                        alignment=TA_CENTER
+                    )
+                    self.story.append(Paragraph("No 'Agreed yet to pay' paras found for this period.", info_style))
+                    
+            except Exception as e:
+                print(f"Error adding top agreed paras section: {e}")    
         except Exception as e:
             print(f"Error adding status summary table: {e}")
 
-    def add_top_agreed_paras_section(self):
-        """Add Top 5 Paras with Largest Detection section"""
-        try:
-            # Section header
-            top_paras_header_style = ParagraphStyle(
-                name='TopParasHeader',
-                parent=self.styles['Heading3'],
-                fontSize=14,
-                textColor=colors.HexColor("#1134A6"),
-                alignment=TA_LEFT,
-                fontName='Helvetica-Bold',
-                spaceAfter=12,
-                spaceBefore=16
-            )
-            
-            self.story.append(Paragraph("🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'", top_paras_header_style))
-            
-            # Get the analysis data
-            agreed_analysis = self.vital_stats.get('agreed_yet_to_pay_analysis', {})
-            
-            if agreed_analysis and agreed_analysis.get('top_5_paras') is not None:
-                top_5_paras = agreed_analysis['top_5_paras']
-                
-                # Create table data
-                para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (₹ L)', 'Recovery (₹ L)', 'Status']]
-                
-                for _, row in top_5_paras.iterrows():
-                    audit_group = str(row.get('audit_group_number_str', 'N/A'))
-                    trade_name = str(row.get('trade_name', 'N/A'))[:30] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
-                    para_no = str(row.get('audit_para_number', 'N/A'))
-                    para_heading = str(row.get('audit_para_heading', 'N/A'))[:50] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
-                    detection = f"₹{row.get('Para Detection in Lakhs', 0):.2f} L"
-                    recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
-                    status = str(row.get('status_of_para', 'N/A'))
-                    
-                    para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
-                
-                # Create table
-                para_col_widths = [0.8*inch, 1.5*inch, 0.6*inch, 2.0*inch, 1.0*inch, 1.0*inch, 1.1*inch]
-                para_table = Table(para_data, colWidths=para_col_widths)
-                
-                # Style the table
-                para_table.setStyle(TableStyle([
-                    # Header styling
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 8),
-                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                    
-                    # Data rows
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 8),
-                    ('ALIGN', (4, 1), (-2, -1), 'RIGHT'),  # Detection and Recovery right-aligned
-                    ('ALIGN', (0, 1), (3, -1), 'LEFT'),    # Other columns left-aligned
-                    ('ALIGN', (-1, 1), (-1, -1), 'CENTER'), # Status centered
-                    
-                    # Alternating row colors
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-                    
-                    # Grid and borders
-                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                    ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
-                    
-                    # Padding
-                    ('TOPPADDING', (0, 0), (-1, -1), 4),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-                    
-                    # Vertical alignment
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ]))
-                
-                self.story.append(para_table)
-                self.story.append(Spacer(1, 0.2 * inch))
-                
-                # Add summary metrics
-                total_paras = agreed_analysis.get('total_paras', 0)
-                total_detection = agreed_analysis.get('total_detection', 0)
-                total_recovery = agreed_analysis.get('total_recovery', 0)
-                
-                # Create metrics row
-                metrics_data = [
-                    [f"Total 'Agreed yet to pay' Paras", f"Total Detection Amount", f"Total Recovery Amount"],
-                    [f"{total_paras}", f"₹{total_detection:,.2f} L", f"₹{total_recovery:,.2f} L"]
-                ]
-                
-                metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
-                metrics_table.setStyle(TableStyle([
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 10),
-                    ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 1), (-1, 1), 12),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8F4F8")),
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                ]))
-                
-                self.story.append(metrics_table)
-                
-            else:
-                # Fallback message
-                info_style = ParagraphStyle(
-                    name='InfoStyle',
-                    parent=self.styles['Normal'],
-                    fontSize=10,
-                    textColor=colors.HexColor("#666666"),
-                    alignment=TA_CENTER
-                )
-                self.story.append(Paragraph("No 'Agreed yet to pay' paras found for this period.", info_style))
-                
-        except Exception as e:
-            print(f"Error adding top agreed paras section: {e}")
+ 
+           
 
     def add_risk_parameter_analysis(self):
         """Add Risk Parameter Analysis section"""
