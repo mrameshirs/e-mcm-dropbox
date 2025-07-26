@@ -859,7 +859,12 @@ def get_visualization_data(dbx, selected_period):
             ).reset_index()
             sectoral_agg.columns = ['classification', 'dar_count', 'total_detection', 'total_recovery']
             sectoral_summary = sectoral_agg.sort_values('total_detection', ascending=False).to_dict('records')
-        
+            print(f"DEBUG: sectoral_summary length: {len(sectoral_summary)}")
+            print(f"DEBUG: sectoral_summary content: {sectoral_summary}")
+            print(f"DEBUG: taxpayer_classification column exists: {'taxpayer_classification' in df_unique_reports.columns}")
+            
+            if 'taxpayer_classification' in df_unique_reports.columns:
+                print(f"DEBUG: unique classifications: {df_unique_reports['taxpayer_classification'].value_counts()}")
         # ADD CLASSIFICATION SUMMARY DATA (after chart generation)
         classification_summary = []
         if not df_paras.empty:  # df_paras is created in the classification analysis section
@@ -886,6 +891,8 @@ def get_visualization_data(dbx, selected_period):
             'classification_analysis_available': not df_paras.empty if 'df_paras' in locals() else False,
             'risk_analysis_available': 'risk_flags_data' in df_viz_data.columns,
             'taxpayer_classification_available': 'taxpayer_classification' in df_unique_reports.columns,
+            'sectoral_summary': sectoral_summary,           # <-- This was missing!
+            'classification_summary': classification_summary , # <-- Add this too
             'sectoral_analysis_available': len(sectoral_summary) > 0,  # NEW
             'compliance_analysis_available': len(classification_summary) > 0  # NEW
         })
