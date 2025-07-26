@@ -384,7 +384,7 @@ class PDFReportGenerator:
     #         print(f"Error inserting chart '{chart_id}': {e}")
     #         return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Simple chart insertion without complex transforms"""
+        """Insert chart with proper coordinate system correction"""
         try:
             if chart_id not in self.chart_registry:
                 return False
@@ -411,34 +411,55 @@ class PDFReportGenerator:
             # Size configs  
             size_configs = {
                 "tiny": 1.5 * inch,
-                "small": 2.0 * inch,
-                "medium": 3.0 * inch,
-                "large": 4.0 * inch
+                "small": 2.5 * inch,
+                "medium": 3.5 * inch,
+                "large": 4.5 * inch
             }
             
-            target_width = size_configs.get(size, 2.0 * inch)
+            target_width = size_configs.get(size, 2.5 * inch)
+            target_height = target_width * 0.6  # Fixed aspect ratio
             
-            # SIMPLE scaling - maintain aspect ratio
-            if hasattr(drawing, 'width') and drawing.width > 0:
-                scale_factor = target_width / drawing.width
-                drawing.width = target_width
-                drawing.height = drawing.height * scale_factor
-            else:
-                drawing.width = target_width
-                drawing.height = target_width * 0.6
-    
-            # DON'T modify transforms - let the original orientation stay
-            drawing.hAlign = 'CENTER'
+            # CREATE A NEW DRAWING WITH COORDINATE CORRECTION
+            from reportlab.graphics.shapes import Drawing, Group
+            
+            corrected_drawing = Drawing(target_width, target_height)
+            
+            # Calculate scale factors
+            original_width = getattr(drawing, 'width', 520)
+            original_height = getattr(drawing, 'height', 300)
+            scale_x = target_width / original_width
+            scale_y = target_height / original_height
+            
+            # Create a group that will hold the flipped content
+            flip_group = Group()
+            
+            # Apply transformation: scale + vertical flip + translate
+            # Matrix: (scale_x, 0, 0, -scale_y, 0, target_height)
+            # The negative scale_y flips vertically, translate moves it back into view
+            flip_group.transform = (scale_x, 0, 0, -scale_y, 0, target_height)
+            
+            # Add all drawing contents to the flip group
+            if hasattr(drawing, 'contents'):
+                for item in drawing.contents:
+                    flip_group.add(item)
+            
+            # Add the flipped group to the corrected drawing
+            corrected_drawing.add(flip_group)
+            corrected_drawing.hAlign = 'CENTER'
+            
+            print(f"Applied coordinate correction: scale=({scale_x:.3f}, {-scale_y:.3f})")
             
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(drawing)
+            self.story.append(corrected_drawing)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"SUCCESS: Simple chart '{chart_id}' added")
+            print(f"SUCCESS: Coordinate-corrected chart '{chart_id}' added")
             return True
             
         except Exception as e:
             print(f"ERROR: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
