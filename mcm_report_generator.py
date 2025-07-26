@@ -13,7 +13,7 @@ from svglib.svglib import svg2rlg
 import os
 import re
 import xml.etree.ElementTree as ET
-
+import pandas as pd
 
 class PDFReportGenerator:
     """
