@@ -1577,17 +1577,17 @@ class PDFReportGenerator:
                 total_observations = main_categories_count = sub_categories_count = 0
                 category_stats = pd.DataFrame()
                 print("WARNING: No classification data found in vital_stats")
-                    # PAGE HEADER with gradient effect using table
-                    header_style = ParagraphStyle(
-                        name='ClassificationHeader',
-                        parent=self.styles['Heading1'],
-                        fontSize=20,
-                        textColor=colors.white,
-                        alignment=TA_CENTER,
-                        fontName='Helvetica-Bold',
-                        spaceAfter=0,
-                        spaceBefore=0
-                    )
+            # PAGE HEADER with gradient effect using table
+            header_style = ParagraphStyle(
+                name='ClassificationHeader',
+                parent=self.styles['Heading1'],
+                fontSize=20,
+                textColor=colors.white,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=0,
+                spaceBefore=0
+            )
                     
             subtitle_style = ParagraphStyle(
                 name='ClassificationSubtitle',
