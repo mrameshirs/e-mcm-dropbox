@@ -567,9 +567,9 @@ class PDFReportGenerator:
             
             return svg_string.encode('utf-8')
         
-    except Exception as e:
-        print(f"SVG coordinate fix failed: {e}")
-        return svg_content
+        except Exception as e:
+            print(f"SVG coordinate fix failed: {e}")
+            return svg_content
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
