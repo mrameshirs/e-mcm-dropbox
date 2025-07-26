@@ -1547,12 +1547,13 @@ class PDFReportGenerator:
                 
         except Exception as e:
             print(f"Error adding sectoral summary table: {e}")
+            
         def add_comprehensive_classification_page(self):
             """Add a comprehensive classification page that renders properly in PDF"""
             try:
                 # Get real data for calculations
                 df_viz_data = getattr(self, 'df_viz_data', pd.DataFrame())
-                
+                print('add_comprehensive_classification_page started')
                 if not df_viz_data.empty:
                     df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
                     
