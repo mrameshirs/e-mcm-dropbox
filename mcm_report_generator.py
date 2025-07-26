@@ -46,61 +46,182 @@ class PDFReportGenerator:
         self._setup_custom_styles()
 
     def _generate_default_metadata(self):
-        """Generate enhanced default metadata with IDs and section mappings"""
+        """Generate enhanced default metadata with proper IDs from visualization charts"""
         chart_configs = [
+            # Chart 1: Performance Summary by Category (fig1)
             {
-                "id": "performance_overview",
-                "title": "Monthly Performance Overview",
-                "description": "Overall audit performance metrics across different categories showing DARs submitted, detection, and recovery amounts.",
+                "id": "category_detection_performance",
+                "title": "Detection Amount by Taxpayer Category", 
+                "description": "Bar chart showing detection amounts across Large, Medium, and Small taxpayer categories.",
                 "section": "performance_summary",
                 "position": "after_metrics",
-                "size": "large"
-            },
-            {
-                "id": "category_breakdown", 
-                "title": "Category-wise Breakdown",
-                "description": "Detailed breakdown of audit performance by taxpayer categories (Large, Medium, Small).",
-                "section": "performance_summary",
-                "position": "after_table",
                 "size": "medium"
             },
+            # Chart 2: Status Count Chart (fig2)
             {
-                "id": "status_analysis",
-                "title": "Status of Audit Paras",
-                "description": "Analysis of audit para status showing agreed, partially agreed, and disputed cases with recovery percentages.",
+                "id": "status_para_count",
+                "title": "Number of Audit Paras by Status",
+                "description": "Distribution of audit paras by their current status (Agreed, Disputed, etc.).",
                 "section": "status_analysis", 
                 "position": "after_header",
-                "size": "large"
+                "size": "medium"
             },
+            # Chart 3: Status Detection Chart (fig3)  
             {
-                "id": "recovery_trends",
-                "title": "Recovery Trends Analysis", 
-                "description": "Monthly trends showing recovery patterns and effectiveness of audit interventions.",
+                "id": "status_analysis",
+                "title": "Detection Amount by Status",
+                "description": "Analysis of detection amounts categorized by para status showing recovery potential.",
+                "section": "status_analysis",
+                "position": "after_table", 
+                "size": "medium"
+            },
+            # Chart 4: Group Detection Performance (fig4)
+            {
+                "id": "group_detection_performance", 
+                "title": "Top 10 Groups by Detection",
+                "description": "Performance ranking of audit groups based on detection amounts.",
+                "section": "performance_analysis",
+                "position": "standalone",
+                "size": "medium"
+            },
+            # Chart 5: Circle Detection Performance (fig5)
+            {
+                "id": "circle_detection_performance",
+                "title": "Circle-wise Detection Performance", 
+                "description": "Detection amounts across different audit circles showing regional performance.",
+                "section": "performance_analysis",
+                "position": "standalone",
+                "size": "medium"
+            },
+            # Chart 6: Group Recovery Performance (fig6)
+            {
+                "id": "group_recovery_performance",
+                "title": "Top 10 Groups by Recovery",
+                "description": "Recovery performance ranking of audit groups.",
+                "section": "performance_analysis", 
+                "position": "standalone",
+                "size": "medium"
+            },
+            # Chart 7: Circle Recovery Performance (fig7)
+            {
+                "id": "recovery_trends", 
+                "title": "Circle-wise Recovery Performance",
+                "description": "Recovery amounts across different audit circles showing collection efficiency.",
                 "section": "status_analysis",
                 "position": "after_table",
                 "size": "medium"
             },
+            # Chart 8: Taxpayer Classification Distribution (fig8)
             {
-                "id": "risk_distribution",
-                "title": "Risk Parameter Distribution",
-                "description": "Distribution of audit observations across different risk parameters with impact analysis.",
+                "id": "taxpayer_classification_distribution",
+                "title": "Distribution of DARs by Taxpayer Classification", 
+                "description": "Pie chart showing distribution of Draft Audit Reports across taxpayer types.",
+                "section": "sectoral_analysis",
+                "position": "after_header",
+                "size": "medium"
+            },
+            # Chart 9: Detection by Classification (fig9)
+            {
+                "id": "taxpayer_classification_detection",
+                "title": "Detection Amount by Taxpayer Classification",
+                "description": "Pie chart showing detection amounts distributed across different taxpayer classifications.",
+                "section": "sectoral_analysis", 
+                "position": "after_chart",
+                "size": "medium"
+            },
+            # Chart 9b: Recovery by Classification (fig9b - NEW)
+            {
+                "id": "taxpayer_classification_recovery",
+                "title": "Recovery Amount by Taxpayer Classification",
+                "description": "Pie chart showing recovery amounts distributed across different taxpayer classifications.",
+                "section": "sectoral_analysis", 
+                "position": "after_chart",
+                "size": "medium"
+            },
+            # Chart 10: Paras by Classification (fig10 -> now fig11)
+            {
+                "id": "classification_para_count",
+                "title": "Number of Audit Paras by Categorisation", 
+                "description": "Bar chart showing audit para counts across different non-compliance categories.",
+                "section": "compliance_analysis",
+                "position": "after_header",
+                "size": "medium"
+            },
+            # Chart 11: Detection by Classification (fig11 -> now fig12)
+            {
+                "id": "classification_detection",
+                "title": "Detection Amount by Categorisation",
+                "description": "Detection amounts across different compliance violation categories.",
+                "section": "compliance_analysis",
+                "position": "after_chart", 
+                "size": "medium"
+            },
+            # Chart 12: Recovery by Classification (fig12 -> now fig13)
+            {
+                "id": "classification_recovery",
+                "title": "Recovery Amount by Categorisation", 
+                "description": "Recovery amounts across different compliance violation categories.",
+                "section": "compliance_analysis",
+                "position": "after_chart",
+                "size": "medium"
+            },
+            # Chart 13: Detection Treemap (fig13 -> now fig14)
+            {
+                "id": "detection_treemap",
+                "title": "Detection by Trade Name Treemap",
+                "description": "Hierarchical view of detection amounts by taxpayer category and trade name.",
+                "section": "detailed_analysis",
+                "position": "standalone", 
+                "size": "large"
+            },
+            # Chart 14: Recovery Treemap (fig14 -> now fig15)
+            {
+                "id": "recovery_treemap", 
+                "title": "Recovery by Trade Name Treemap",
+                "description": "Hierarchical view of recovery amounts by taxpayer category and trade name.",
+                "section": "detailed_analysis",
+                "position": "standalone",
+                "size": "large"
+            },
+            # Chart 15: Risk Paras Chart (fig15 -> now fig16)
+            {
+                "id": "risk_para_distribution",
+                "title": "Top 15 Risk Flags by Number of Audit Paras", 
+                "description": "Distribution of audit paras across different GST risk parameters.",
                 "section": "risk_analysis",
                 "position": "after_header",
-                "size": "large"
+                "size": "medium"
+            },
+            # Chart 16: Risk Detection Chart (fig16 -> now fig17) 
+            {
+                "id": "risk_detection_analysis",
+                "title": "Top 10 Detection Amount by Risk Flag",
+                "description": "Detection amounts associated with different risk parameters.",
+                "section": "risk_analysis",
+                "position": "after_chart",
+                "size": "medium"
+            },
+            # Chart 17: Risk Recovery Chart (fig17 -> now fig18)
+            {
+                "id": "risk_recovery_analysis",
+                "title": "Top 10 Recovery Amount by Risk Flag", 
+                "description": "Recovery amounts associated with different risk parameters.",
+                "section": "risk_analysis",
+                "position": "after_chart",
+                "size": "medium"
+            },
+            # Chart 18: Risk Recovery Percentage (fig18 -> now fig19)
+            {
+                "id": "risk_distribution",
+                "title": "Top 10 Percentage Recovery by Risk Flag",
+                "description": "Recovery efficiency percentages across different risk parameters.",
+                "section": "risk_analysis",
+                "position": "after_chart", 
+                "size": "medium"
             }
         ]
         
-        # Extend or truncate based on available charts
-        while len(chart_configs) < len(self.chart_images):
-            chart_configs.append({
-                "id": f"additional_chart_{len(chart_configs)+1}",
-                "title": f"Additional Analysis {len(chart_configs)+1}",
-                "description": "Additional analysis and insights from the audit data.",
-                "section": "additional",
-                "position": "standalone", 
-                "size": "medium"
-            })
-            
+        # No need for additional charts since we have proper IDs for all 18 charts
         return chart_configs[:len(self.chart_images)]
         
     def add_section_highlight_bar(self, section_title,text_color, bar_color="#FAD6a5"):
@@ -1274,12 +1395,12 @@ class PDFReportGenerator:
     
     
     def add_sectoral_analysis(self):
-        """Add Section III - Sectoral Analysis with pie charts"""
+        """Add Section III - Sectoral Analysis with pie charts and summary table"""
         try:
             # Section III Header
             self.add_section_highlight_bar("III. Sectoral Analysis", text_color="#0E4C92")
             
-            # Description
+            # Description (same as before)
             desc_style = ParagraphStyle(
                 name='SectoralDesc',
                 parent=self.styles['Normal'],
@@ -1312,7 +1433,7 @@ class PDFReportGenerator:
                 spaceBefore=16
             )
             
-            # First Chart: Distribution by Taxpayer Classification
+            # First Chart
             self.story.append(Paragraph("🎯 Distribution of DARs by Taxpayer Classification", chart_header_style))
             self.insert_chart_by_id("taxpayer_classification_distribution", 
                                    size="medium", 
@@ -1320,47 +1441,59 @@ class PDFReportGenerator:
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             
-            # Second Chart: Detection Amount by Classification
+            # Second Chart
             self.story.append(Paragraph("🎯 Detection Amount by Taxpayer Classification", chart_header_style))
             self.insert_chart_by_id("taxpayer_classification_detection", 
                                    size="medium", 
                                    add_title=False, 
                                    add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # ADD SECTORAL SUMMARY TABLE if data available
+            if self.vital_stats.get('sectoral_analysis_available', False):
+                self.add_sectoral_summary_table()
+            
             self.story.append(Spacer(1, 0.3 * inch))
                 
         except Exception as e:
             print(f"Error adding sectoral analysis: {e}")
     
-    def add_sectoral_summary_metrics(self):
-        """Add summary metrics for sectoral analysis"""
+    def add_sectoral_summary_table(self):
+        """Add sectoral summary table"""
         try:
-            # Get sectoral data from vital_stats if available
             sectoral_summary = self.vital_stats.get('sectoral_summary', [])
             
             if sectoral_summary:
-                metrics_header_style = ParagraphStyle(
-                    name='MetricsHeader',
+                table_header_style = ParagraphStyle(
+                    name='SectoralTableHeader',
                     parent=self.styles['Heading3'],
-                    fontSize=12,
+                    fontSize=14,
                     textColor=colors.HexColor("#1134A6"),
                     alignment=TA_LEFT,
                     fontName='Helvetica-Bold',
-                    spaceAfter=8,
-                    spaceBefore=12
+                    spaceAfter=12,
+                    spaceBefore=16
                 )
                 
-                self.story.append(Paragraph("📊 Sectoral Performance Summary", metrics_header_style))
+                self.story.append(Paragraph("📊 Sectoral Performance Summary", table_header_style))
                 
-                # Create simple metrics table
-                sectoral_data = [['Classification', 'No. of DARs', 'Total Detection (₹ L)']]
+                # Create sectoral table
+                sectoral_data = [['Classification', 'No. of DARs', 'Detection (₹ L)', 'Recovery (₹ L)']]
                 
-                for item in sectoral_summary[:5]:  # Top 5 classifications
+                for item in sectoral_summary[:6]:  # Top 6 classifications
                     classification = item.get('classification', 'Unknown')
                     dar_count = item.get('dar_count', 0)
                     detection = item.get('total_detection', 0)
-                    sectoral_data.append([classification, str(dar_count), f'₹{detection:.2f} L'])
+                    recovery = item.get('total_recovery', 0)
+                    
+                    sectoral_data.append([
+                        classification,
+                        str(dar_count),
+                        f'₹{detection:.2f} L',
+                        f'₹{recovery:.2f} L'
+                    ])
                 
-                sectoral_table = Table(sectoral_data, colWidths=[3*inch, 1.5*inch, 2*inch])
+                sectoral_table = Table(sectoral_data, colWidths=[2.5*inch, 1.2*inch, 1.4*inch, 1.4*inch])
                 sectoral_table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -1381,78 +1514,11 @@ class PDFReportGenerator:
                 self.story.append(Spacer(1, 0.2 * inch))
                 
         except Exception as e:
-            print(f"Error adding sectoral summary metrics: {e}")
-    
-    def add_nature_of_non_compliance_analysis(self):
-        """Add Section IV - Nature of Non Compliance Analysis"""
-        try:
-            # Section IV Header
-            self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
-            
-            # Description
-            desc_style = ParagraphStyle(
-                name='ComplianceDesc',
-                parent=self.styles['Normal'],
-                fontSize=11,
-                textColor=colors.HexColor("#2C2C2C"),
-                alignment=TA_JUSTIFY,
-                fontName='Helvetica',
-                leftIndent=0.25*inch,
-                rightIndent=0.25*inch,
-                leading=14,
-                spaceAfter=16
-            )
-            
-            description_text = """
-            This section analyzes the nature of non-compliance using the Audit Para Categorisation Coding System of Audit-1 Commissionerate. 
-            The analysis categorizes violations into major areas like Tax Payment Defaults, ITC Violations, Return Filing issues, and Procedural Non-compliance.
-            """
-            
-            self.story.append(Paragraph(description_text, desc_style))
-            
-            # Chart heading style
-            chart_header_style = ParagraphStyle(
-                name='ComplianceChartHeader',
-                parent=self.styles['Heading3'],
-                fontSize=14,
-                textColor=colors.HexColor("#1134A6"),
-                alignment=TA_LEFT,
-                fontName='Helvetica-Bold',
-                spaceAfter=12,
-                spaceBefore=16
-            )
-            
-            # First Chart: Number of Paras by Classification
-            self.story.append(Paragraph("🎯 Number of Audit Paras by Categorisation", chart_header_style))
-            self.insert_chart_by_id("classification_para_count", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
-            
-            # Second Chart: Detection Amount by Classification
-            self.story.append(Paragraph("🎯 Detection Amount by Categorisation", chart_header_style))
-            self.insert_chart_by_id("classification_detection", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
-            
-            # Third Chart: Recovery Amount by Classification
-            self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
-            self.insert_chart_by_id("classification_recovery", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.3 * inch))
-                
-        except Exception as e:
-            print(f"Error adding nature of non compliance analysis: {e}")
+            print(f"Error adding sectoral summary table: {e}")
     
     def add_classification_summary_table(self):
-        """Add summary table for classification analysis"""
+        """Add classification summary table"""  
         try:
-            # Get classification data from vital_stats if available
             classification_summary = self.vital_stats.get('classification_summary', [])
             
             if classification_summary:
@@ -1469,9 +1535,6 @@ class PDFReportGenerator:
                 
                 self.story.append(Paragraph("📊 Non-Compliance Categories Summary", table_header_style))
                 
-                # Create classification table
-                classification_data = [['Category Code', 'Description', 'No. of Paras', 'Detection (₹ L)', 'Recovery (₹ L)']]
-                
                 # Classification codes mapping
                 CLASSIFICATION_CODES_DESC = {
                     'TP': 'TAX PAYMENT DEFAULTS', 
@@ -1485,6 +1548,9 @@ class PDFReportGenerator:
                     'PG': 'PENALTY & GENERAL COMPLIANCE'
                 }
                 
+                # Create classification table
+                classification_data = [['Code', 'Description', 'Paras', 'Detection (₹ L)', 'Recovery (₹ L)']]
+                
                 for item in classification_summary[:7]:  # Top 7 categories
                     code = item.get('major_code', 'Unknown')
                     description = CLASSIFICATION_CODES_DESC.get(code, 'Unknown Category')
@@ -1493,47 +1559,30 @@ class PDFReportGenerator:
                     recovery = item.get('Total_Recovery', 0)
                     
                     classification_data.append([
-                        code, 
-                        description[:40] + '...' if len(description) > 40 else description,
-                        str(para_count), 
-                        f'₹{detection:.2f} L', 
+                        code,
+                        description[:35] + '...' if len(description) > 35 else description,
+                        str(para_count),
+                        f'₹{detection:.2f} L',
                         f'₹{recovery:.2f} L'
                     ])
                 
                 classification_table = Table(classification_data, 
-                                           colWidths=[0.8*inch, 2.5*inch, 1*inch, 1.2*inch, 1.2*inch])
+                                           colWidths=[0.6*inch, 2.4*inch, 0.8*inch, 1.3*inch, 1.3*inch])
                 
                 classification_table.setStyle(TableStyle([
-                    # Header styling
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('FONTSIZE', (0, 0), (-1, 0), 8),
                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                    
-                    # Data rows
                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                     ('FONTSIZE', (0, 1), (-1, -1), 8),
-                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Numbers centered
-                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Code and description left-aligned
-                    
-                    # Alternating row colors
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor("#F8F8F8")),
-                    
-                    # Grid and borders
+                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),
                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
                     ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
-                    
-                    # Padding
                     ('TOPPADDING', (0, 0), (-1, -1), 6),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                    
-                    # Vertical alignment
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ]))
                 
@@ -1542,6 +1591,79 @@ class PDFReportGenerator:
                 
         except Exception as e:
             print(f"Error adding classification summary table: {e}")
+            
+    def add_nature_of_non_compliance_analysis(self):
+            """Add Section IV - Nature of Non Compliance Analysis"""
+            try:
+                # Section IV Header
+                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
+                
+                # Description
+                desc_style = ParagraphStyle(
+                    name='ComplianceDesc',
+                    parent=self.styles['Normal'],
+                    fontSize=11,
+                    textColor=colors.HexColor("#2C2C2C"),
+                    alignment=TA_JUSTIFY,
+                    fontName='Helvetica',
+                    leftIndent=0.25*inch,
+                    rightIndent=0.25*inch,
+                    leading=14,
+                    spaceAfter=16
+                )
+                
+                description_text = """
+                This section analyzes the nature of non-compliance using the Audit Para Categorisation Coding System of Audit-1 Commissionerate. 
+                The analysis categorizes violations into major areas like Tax Payment Defaults, ITC Violations, Return Filing issues, and Procedural Non-compliance.
+                """
+                
+                self.story.append(Paragraph(description_text, desc_style))
+                
+                # Chart heading style
+                chart_header_style = ParagraphStyle(
+                    name='ComplianceChartHeader',
+                    parent=self.styles['Heading3'],
+                    fontSize=14,
+                    textColor=colors.HexColor("#1134A6"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=12,
+                    spaceBefore=16
+                )
+                
+                # First Chart: Number of Paras by Classification
+                self.story.append(Paragraph("🎯 Number of Audit Paras by Categorisation", chart_header_style))
+                self.insert_chart_by_id("classification_para_count", 
+                                       size="medium", 
+                                       add_title=False, 
+                                       add_description=False)
+                self.story.append(Spacer(1, 0.2 * inch))
+                
+                # Second Chart: Detection Amount by Classification
+                self.story.append(Paragraph("🎯 Detection Amount by Categorisation", chart_header_style))
+                self.insert_chart_by_id("classification_detection", 
+                                       size="medium", 
+                                       add_title=False, 
+                                       add_description=False)
+                self.story.append(Spacer(1, 0.2 * inch))
+                
+                # Third Chart: Recovery Amount by Classification
+                self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
+                self.insert_chart_by_id("classification_recovery", 
+                                       size="medium", 
+                                       add_title=False, 
+                                       add_description=False)
+                self.story.append(Spacer(1, 0.3 * inch))
+                  
+                # Add classification summary table (only if you want it later)
+                if self.vital_stats.get('compliance_analysis_available', False):
+                    self.story.append(Spacer(1, 0.2 * inch))
+                    self.add_classification_summary_table()
+                    
+            except Exception as e:
+                print(f"Error adding nature of non compliance analysis: {e}")
+    
+   
  
            
 
