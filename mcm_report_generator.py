@@ -374,10 +374,14 @@ class PDFReportGenerator:
     
             # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
             # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
-            
+            is_pie_row = 'combined' in chart_id or 'three_pie' in chart_id or 'taxpayer_classification_distribution' in chart_id
+       
             is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
-            
-            if is_pie_chart:
+            if is_pie_row:
+                # Wide format for three pies in row
+                target_width = 8.5 * inch
+                target_height = 3.5 * inch
+            elif is_pie_chart:
                 # SQUARE dimensions for pie charts - CRITICAL for circular shape
                 target_size = 3.0 * inch  # Same width and height
                 target_width = target_size
