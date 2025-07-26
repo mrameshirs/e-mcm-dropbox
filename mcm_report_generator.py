@@ -461,7 +461,94 @@ class PDFReportGenerator:
             import traceback
             traceback.print_exc()
             return False
-   
+    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
+        """
+        Inserts an SVG chart, correcting for coordinate system inversion,
+        and provides robust centering and scaling.
+        """
+        try:
+            if chart_id not in self.chart_registry:
+                print(f"Chart '{chart_id}' not found in registry.")
+                return False
+
+            chart_info = self.chart_registry[chart_id]
+            chart_data = chart_info['metadata']
+            img_bytes = chart_info['image']
+
+            if img_bytes is None:
+                print(f"No image data for chart '{chart_id}'.")
+                return False
+
+            # Add title and description before the chart
+            if add_title:
+                self.story.append(Paragraph(chart_data.get('title', 'Untitled Chart'), self.chart_title_style))
+            if add_description:
+                self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
+
+            # Create the initial drawing from SVG data
+            drawing, error = self._create_safe_svg_drawing(img_bytes)
+            if error or drawing is None:
+                self._add_chart_error_inline(chart_id, error or "Could not create drawing")
+                return False
+
+            # 1. DEFINE SIZES
+            size_configs = {
+                "small": 3.0 * inch,
+                "medium": 4.5 * inch,
+                "large": 6.0 * inch,
+                "full": 7.8 * inch
+            }
+            target_width = size_configs.get(size, 4.5 * inch)
+            
+            original_width = getattr(drawing, 'width', target_width)
+            original_height = getattr(drawing, 'height', target_width * 0.6)
+
+            # Maintain aspect ratio
+            aspect_ratio = original_height / original_width if original_width > 0 else 0.6
+            target_height = target_width * aspect_ratio
+
+            # 2. CORRECT COORDINATE SYSTEM (THE FLIP)
+            from reportlab.graphics.shapes import Drawing, Group
+            
+            # Create a new, correctly sized drawing canvas
+            corrected_drawing = Drawing(target_width, target_height)
+
+            scale_x = target_width / original_width if original_width > 0 else 1
+            scale_y = target_height / original_height if original_height > 0 else 1
+
+            # A group holds all chart elements and applies the transform to them
+            flip_group = Group()
+            
+            # This matrix scales, flips the Y-axis, and moves it back into view
+            flip_group.transform = (scale_x, 0, 0, -scale_y, 0, target_height)
+            
+            if hasattr(drawing, 'contents'):
+                for item in drawing.contents:
+                    flip_group.add(item)
+            
+            corrected_drawing.add(flip_group)
+
+            # 3. CENTER THE FINAL DRAWING
+            # Wrap the corrected drawing in a full-width table for robust centering
+            available_width = self.width - self.doc.leftMargin - self.doc.rightMargin
+            chart_table = Table([[corrected_drawing]], colWidths=[available_width])
+            chart_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+
+            # Add the final chart to the PDF story
+            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(chart_table)
+            self.story.append(Spacer(1, 0.15 * inch))
+
+            return True
+
+        except Exception as e:
+            print(f"An unexpected error occurred in insert_chart_by_id for '{chart_id}': {e}")
+            import traceback
+            traceback.print_exc()
+            return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
