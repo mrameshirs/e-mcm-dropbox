@@ -121,30 +121,7 @@ def get_visualization_data(dbx, selected_period):
                         'total_detection': agreed_yet_to_pay_paras['Para Detection in Lakhs'].sum(),
                         'total_recovery': agreed_yet_to_pay_paras['Para Recovery in Lakhs'].sum()
                     }
-         # ADD SECTORAL SUMMARY DATA (after chart generation)
-        sectoral_summary = []
-        if 'taxpayer_classification' in df_unique_reports.columns:
-            sectoral_agg = df_unique_reports.groupby('taxpayer_classification').agg(
-                dar_count=('dar_pdf_path', 'nunique'),
-                total_detection=('Detection in Lakhs', 'sum'),
-                total_recovery=('Recovery in Lakhs', 'sum')
-            ).reset_index()
-            sectoral_agg.columns = ['classification', 'dar_count', 'total_detection', 'total_recovery']
-            sectoral_summary = sectoral_agg.sort_values('total_detection', ascending=False).to_dict('records')
-        
-        # ADD CLASSIFICATION SUMMARY DATA (after chart generation)
-        classification_summary = []
-        if not df_paras.empty:  # df_paras is created in the classification analysis section
-            classification_agg = df_paras.groupby('major_code').agg(
-                Para_Count=('major_code', 'count'),
-                Total_Detection=('Para Detection in Lakhs', 'sum'),
-                Total_Recovery=('Para Recovery in Lakhs', 'sum')
-            ).reset_index()
-            classification_agg['Percentage_Recovery'] = (
-                classification_agg['Total_Recovery'] / 
-                classification_agg['Total_Detection'].replace(0, np.nan)
-            ).fillna(0) * 100
-            classification_summary = classification_agg.sort_values('Total_Detection', ascending=False).to_dict('records')
+         
         
         # --- 5. Generate ALL Charts (COMPREHENSIVE REPLICA) ---
         charts = []
@@ -380,8 +357,13 @@ def get_visualization_data(dbx, selected_period):
                               title="Recovery Amount by Taxpayer Classification",
                               color_discrete_sequence=px.colors.sequential.Greens_r,
                               labels={'taxpayer_classification': 'Classification', 'Total_Recovery': 'Recovery (₹ Lakhs)'})
-                
-                # ADD MISSING STYLING
+                class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]
+                print(f"Recovery data available: {not class_agg_recovery.empty}")
+                print(f"Recovery values: {class_agg['Total_Recovery'].tolist()}")
+                if not class_agg_recovery.empty:
+                    # ... create fig9b ...
+                    print("Recovery chart created successfully!")
+                                # ADD MISSING STYLING
                 fig9b.update_layout(
                     title=dict(text="<b>Recovery Amount by Taxpayer Classification</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
@@ -705,7 +687,30 @@ def get_visualization_data(dbx, selected_period):
                     
                     gstins_with_risk_data = valid_risk_data['gstin'].nunique()
                     paras_linked_to_risks = df_risk_analysis[['gstin', 'audit_para_number']].drop_duplicates().shape[0]
-                
+        # ADD SECTORAL SUMMARY DATA (after chart generation)
+        sectoral_summary = []
+        if 'taxpayer_classification' in df_unique_reports.columns:
+            sectoral_agg = df_unique_reports.groupby('taxpayer_classification').agg(
+                dar_count=('dar_pdf_path', 'nunique'),
+                total_detection=('Detection in Lakhs', 'sum'),
+                total_recovery=('Recovery in Lakhs', 'sum')
+            ).reset_index()
+            sectoral_agg.columns = ['classification', 'dar_count', 'total_detection', 'total_recovery']
+            sectoral_summary = sectoral_agg.sort_values('total_detection', ascending=False).to_dict('records')
+        
+        # ADD CLASSIFICATION SUMMARY DATA (after chart generation)
+        classification_summary = []
+        if not df_paras.empty:  # df_paras is created in the classification analysis section
+            classification_agg = df_paras.groupby('major_code').agg(
+                Para_Count=('major_code', 'count'),
+                Total_Detection=('Para Detection in Lakhs', 'sum'),
+                Total_Recovery=('Para Recovery in Lakhs', 'sum')
+            ).reset_index()
+            classification_agg['Percentage_Recovery'] = (
+                classification_agg['Total_Recovery'] / 
+                classification_agg['Total_Detection'].replace(0, np.nan)
+            ).fillna(0) * 100
+            classification_summary = classification_agg.sort_values('Total_Detection', ascending=False).to_dict('records')        
 
         # Add additional summary data for detailed analysis
         vital_stats.update({
