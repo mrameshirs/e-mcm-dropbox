@@ -949,7 +949,7 @@ def get_visualization_data(dbx, selected_period):
                 'coverage_percentage': 100 if total_observations > 0 else 0
             }
             
-        print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
+            print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
         # Add additional summary data for detailed analysis
         vital_stats.update({
             'status_summary': status_summary,
