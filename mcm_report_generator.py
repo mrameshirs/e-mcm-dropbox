@@ -224,7 +224,7 @@ class PDFReportGenerator:
         print(f"Final registry keys: {list(registry.keys())}")
         return registry
 
-    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
+    def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
         """Insert chart with proper scaling and correct orientation"""
         try:
             if chart_id not in self.chart_registry:
@@ -420,18 +420,7 @@ class PDFReportGenerator:
             The report covers the <b>Summary of Taxpayer wise Audit paras raised and the decision taken during MCM</b>, encompassing all the Draft Audit Reports submitted before Monitoring Committee.
             """
             
-            intro_style = ParagraphStyle(
-                name='IntroStyle',
-                parent=self.styles['Normal'],
-                fontSize=12,
-                textColor=colors.HexColor("#2C2C2C"),
-                alignment=TA_JUSTIFY,
-                fontName='Helvetica',
-                leftIndent=0.5*inch,
-                rightIndent=0.5*inch,
-                leading=16,
-                spaceAfter=20
-            )
+         
             
             intro_style = ParagraphStyle(
                 name='IntroStyle',
@@ -837,7 +826,7 @@ class PDFReportGenerator:
             print(f"Error creating cover page: {e}")
 
     def add_monthly_performance_summary(self):
-        """Add Monthly Performance Summary section with metrics and table"""
+        """Add I and II sections-  Monthly Performance Summary section and status of para with metrics and table"""
         try:
             # Section header
             perf_header_style = ParagraphStyle(
@@ -850,6 +839,18 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold',
                 spaceAfter=16,
                 spaceBefore=16
+            )
+            para_style = ParagraphStyle(
+                name='IntroStyle',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.5*inch,
+                rightIndent=0.5*inch,
+                leading=16,
+                spaceAfter=12
             )
             self.add_section_highlight_bar("I. Monthly Performance Summary",text_color="#0E4C92")
             #self.story.append(Paragraph("I. Monthly Performance Summary", perf_header_style))
@@ -1007,6 +1008,8 @@ class PDFReportGenerator:
         
             # Add Status Summary Table if available
             self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
+            II_description='This section provides analysis of Audit paras based on the Recovery status of the amount involved and provides the recovery potential out of the detected amount actionable by the audit groups'
+             self.story.append(Paragraph(II_description, para_style))
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
@@ -1186,21 +1189,22 @@ class PDFReportGenerator:
                     top_5_paras = agreed_analysis['top_5_paras']
                     
                     # Create table data
-                    para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (₹ L)', 'Recovery (₹ L)', 'Status']]
-                    
+                    #para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (₹ L)', 'Recovery (₹ L)', 'Status']]
+                    para_data = [['Audit Group', 'Trade Name', 'Para Heading', 'Detection (Rs.L)']]
                     for _, row in top_5_paras.iterrows():
                         audit_group = str(row.get('audit_group_number_str', 'N/A'))
                         trade_name = str(row.get('trade_name', 'N/A'))[:30] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
-                        para_no = str(row.get('audit_para_number', 'N/A'))
+                        #para_no = str(row.get('audit_para_number', 'N/A'))
                         para_heading = str(row.get('audit_para_heading', 'N/A'))[:50] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 50 else str(row.get('audit_para_heading', 'N/A'))
                         detection = f"₹{row.get('Para Detection in Lakhs', 0):.2f} L"
-                        recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
-                        status = str(row.get('status_of_para', 'N/A'))
+                        #recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
+                        #status = str(row.get('status_of_para', 'N/A'))
                         
-                        para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
+                        #para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
+                        para_data.append([audit_group, trade_name,  para_heading, detection])
                     
                     # Create table
-                    para_col_widths = [0.8*inch, 1.5*inch, 0.6*inch, 2.0*inch, 1.0*inch, 1.0*inch, 1.1*inch]
+                    para_col_widths = [0.6*inch, 1.5*inch, 5*inch, 1.1*inch]
                     para_table = Table(para_data, colWidths=para_col_widths)
                     
                     # Style the table
