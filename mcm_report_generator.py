@@ -1579,7 +1579,7 @@ class PDFReportGenerator:
             #     else:
             #         total_observations = main_categories_count = sub_categories_count = 0
             #         category_stats = pd.DataFrame()
-           """Add a comprehensive classification page using pre-processed data"""
+            """Add a comprehensive classification page using pre-processed data"""
             print(f"DEBUG: vital_stats contains: {list(self.vital_stats.keys())}")
             classification_data = self.vital_stats.get('classification_page_data')
             print(f"DEBUG: classification_page_data = {classification_data}")
