@@ -1134,10 +1134,10 @@ class PDFReportGenerator:
             ]))
             
             self.story.append(status_table)
-            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(Spacer(1, 0.05 * inch))
             self.story.append(Paragraph("📊 Total Recovery Potential", status_header_style))
-            self.insert_chart_by_id("status_analysis", size="medium")
-            self.story.append(Spacer(1, 0.1 * inch))
+            self.insert_chart_by_id("status_analysis", size="small")
+            self.story.append(Spacer(1, 0.05 * inch))
             # Add "Top 5 Paras with Largest Detection" section if data is available
             # if self.vital_stats.get('agreed_yet_to_pay_analysis'):
             #     self.add_top_agreed_paras_section()
@@ -1204,7 +1204,7 @@ class PDFReportGenerator:
                         para_data.append([audit_group, trade_name,  para_heading, detection])
                     
                     # Create table
-                    para_col_widths = [0.6*inch, 1.5*inch, 5*inch, 1.1*inch]
+                    para_col_widths = [0.7*inch, 1.6*inch, 4.8*inch, 1.1*inch]
                     para_table = Table(para_data, colWidths=para_col_widths)
                     
                     # FIX 3: Correct table styling for 4 columns (indices 0,1,2,3)
