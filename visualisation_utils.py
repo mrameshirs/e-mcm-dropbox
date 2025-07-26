@@ -349,7 +349,7 @@ def get_visualization_data(dbx, selected_period):
                         name="DAR Count",
                         marker=dict(colors=colors_distribution, line=dict(color='white', width=2)),
                         textinfo='label+percent',
-                        textfont=dict(size=11, color='white', family='Arial Black'),
+                        textfont=dict(size=11, color='white', family='Helvetica-Bold'),
                         textposition='inside',
                         pull=[0.02] * len(class_counts),  # Even smaller pull for ultra compact
                         hole=0,
@@ -367,7 +367,7 @@ def get_visualization_data(dbx, selected_period):
                             name="Detection",
                             marker=dict(colors=colors_detection, line=dict(color='white', width=2)),
                             textinfo='label+percent',
-                            textfont=dict(size=11, color='white', family='Arial Black'),
+                            textfont=dict(size=11, color='white', family='Helvetica-Bold'),
                             textposition='inside',
                             pull=[0.02] * len(class_agg_detection),
                             hole=0,
@@ -385,7 +385,7 @@ def get_visualization_data(dbx, selected_period):
                             name="Recovery",
                             marker=dict(colors=colors_recovery, line=dict(color='white', width=2)),
                             textinfo='label+percent',
-                            textfont=dict(size=11, color='white', family='Arial Black'),
+                            textfont=dict(size=11, color='white', family='Helvetica-Bold'),
                             textposition='inside',
                             pull=[0.02] * len(class_agg_recovery),
                             hole=0,
@@ -399,7 +399,7 @@ def get_visualization_data(dbx, selected_period):
                     # NO TITLE - Removed completely for maximum compactness
                     paper_bgcolor='#f8f9fa',  # Light gradient base
                     plot_bgcolor='rgba(248, 249, 250, 0.8)',
-                    font=dict(family="Arial", color='#2C3E50', size=10),
+                    font=dict(family="Helvetica-Bold", color='#2C3E50', size=10),
                     
                     # ULTRA COMPACT DIMENSIONS - Minimal margins
                     width=1000,   # Further reduced width
@@ -440,21 +440,21 @@ def get_visualization_data(dbx, selected_period):
                     # BOLD SUBTITLE positioning at bottom with enhanced styling
                     annotations=[
                         dict(text="<b>📊 DISTRIBUTION</b>", x=0.17, y=0.02, 
-                             font=dict(size=12, color='#2C3E50', family='Arial Black'), 
+                             font=dict(size=12, color='#2C3E50', family='Helvetica-Bold'), 
                              showarrow=False,
                              bgcolor="rgba(255, 255, 255, 0.8)",  # Semi-transparent background
                              bordercolor="#3498DB",
                              borderwidth=1,
                              borderpad=4),
                         dict(text="<b>💰 DETECTION</b>", x=0.5, y=0.02,
-                             font=dict(size=12, color='#2C3E50', family='Arial Black'), 
+                             font=dict(size=12, color='#2C3E50', family='Helvetica-Bold'), 
                              showarrow=False,
                              bgcolor="rgba(255, 255, 255, 0.8)",
                              bordercolor="#E74C3C", 
                              borderwidth=1,
                              borderpad=4),
                         dict(text="<b>💎 RECOVERY</b>", x=0.83, y=0.02,
-                             font=dict(size=12, color='#2C3E50', family='Arial Black'), 
+                             font=dict(size=12, color='#2C3E50', family='Helvetica-Bold'), 
                              showarrow=False,
                              bgcolor="rgba(255, 255, 255, 0.8)",
                              bordercolor="#27AE60",
@@ -1096,4 +1096,505 @@ def get_detailed_classification_analysis(dbx, selected_period):
         
     except Exception as e:
         print(f"Error in get_detailed_classification_analysis: {e}")
+        return None
+
+
+
+# Add this HTML PAGE 
+def generate_classification_html_page(df_viz_data, selected_period):
+    """
+    Generate a comprehensive HTML page for GST Audit Para Classification
+    with real data values from the current period
+    """
+    try:
+        # Calculate real statistics from data
+        df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
+        
+        if df_paras.empty:
+            total_observations = 0
+            main_categories_count = 0
+            sub_categories_count = 0
+            coverage_percentage = 0
+        else:
+            # Real statistics calculation
+            total_observations = len(df_paras)
+            main_categories_count = df_paras['para_classification_code'].str[:2].nunique()
+            sub_categories_count = df_paras['para_classification_code'].nunique()
+            coverage_percentage = 100 if total_observations > 0 else 0
+            
+        # Get category-wise breakdown for real data
+        if not df_paras.empty:
+            df_paras['major_code'] = df_paras['para_classification_code'].str[:2]
+            category_stats = df_paras.groupby('major_code').agg(
+                para_count=('major_code', 'count'),
+                total_detection=('Para Detection in Lakhs', 'sum'),
+                total_recovery=('Para Recovery in Lakhs', 'sum')
+            ).reset_index()
+        else:
+            category_stats = pd.DataFrame()
+
+        # HTML template with real data
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>GST Audit Para Classification</title>
+            <style>
+                * {{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }}
+        
+                body {{
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    padding: 15px;
+                    transform: scale(0.85);
+                    transform-origin: top left;
+                }}
+        
+                .container {{
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 15px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+                    overflow: hidden;
+                }}
+        
+                .header {{
+                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+        
+                .header h1 {{
+                    font-size: 1.8em;
+                    margin-bottom: 8px;
+                    font-weight: 300;
+                }}
+        
+                .header p {{
+                    font-size: 1em;
+                    opacity: 0.9;
+                }}
+        
+                .stats-section {{
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }}
+        
+                .stats-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
+                    margin-top: 15px;
+                }}
+        
+                .stat-item {{
+                    background: rgba(255,255,255,0.1);
+                    padding: 15px;
+                    border-radius: 8px;
+                    backdrop-filter: blur(10px);
+                }}
+        
+                .stat-number {{
+                    font-size: 2em;
+                    font-weight: bold;
+                    margin-bottom: 3px;
+                }}
+        
+                .stat-label {{
+                    font-size: 0.9em;
+                    opacity: 0.9;
+                }}
+        
+                .diagram-container {{
+                    padding: 25px;
+                    background: #f8fafc;
+                }}
+        
+                .main-categories {{
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 18px;
+                    margin-bottom: 20px;
+                }}
+        
+                .category-card {{
+                    background: white;
+                    border-radius: 12px;
+                    padding: 18px;
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+                    transition: all 0.3s ease;
+                    border-left: 4px solid;
+                    position: relative;
+                    overflow: hidden;
+                }}
+        
+                .category-card:hover {{
+                    transform: translateY(-3px);
+                    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+                }}
+        
+                .category-card.tax-payment {{ border-left-color: #e74c3c; }}
+                .category-card.rcm {{ border-left-color: #f39c12; }}
+                .category-card.itc {{ border-left-color: #3498db; }}
+                .category-card.interest {{ border-left-color: #9b59b6; }}
+                .category-card.filing {{ border-left-color: #2ecc71; }}
+                .category-card.procedural {{ border-left-color: #34495e; }}
+                .category-card.classification {{ border-left-color: #e67e22; }}
+                .category-card.special {{ border-left-color: #1abc9c; }}
+                .category-card.penalty {{ border-left-color: #c0392b; }}
+        
+                .category-title {{
+                    font-size: 1.1em;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: #2c3e50;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }}
+        
+                .category-icon {{
+                    width: 25px;
+                    height: 25px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 0.8em;
+                }}
+        
+                .tax-payment .category-icon {{ background: #e74c3c; }}
+                .rcm .category-icon {{ background: #f39c12; }}
+                .itc .category-icon {{ background: #3498db; }}
+                .interest .category-icon {{ background: #9b59b6; }}
+                .filing .category-icon {{ background: #2ecc71; }}
+                .procedural .category-icon {{ background: #34495e; }}
+                .classification .category-icon {{ background: #e67e22; }}
+                .special .category-icon {{ background: #1abc9c; }}
+                .penalty .category-icon {{ background: #c0392b; }}
+        
+                .subcategories {{
+                    list-style: none;
+                }}
+        
+                .subcategories li {{
+                    padding: 5px 0;
+                    padding-left: 15px;
+                    position: relative;
+                    color: #5a6c7d;
+                    font-size: 0.85em;
+                    line-height: 1.3;
+                }}
+        
+                .subcategories li::before {{
+                    content: '▶';
+                    position: absolute;
+                    left: 0;
+                    color: #bdc3c7;
+                    font-size: 0.7em;
+                }}
+        
+                .category-stats {{
+                    background: #ecf0f1;
+                    padding: 8px;
+                    border-radius: 6px;
+                    margin-top: 10px;
+                    font-size: 0.8em;
+                    text-align: center;
+                    color: #34495e;
+                }}
+        
+                .legend {{
+                    background: #34495e;
+                    color: white;
+                    padding: 15px;
+                    margin: 15px;
+                    border-radius: 8px;
+                }}
+        
+                .legend h3 {{
+                    margin-bottom: 12px;
+                    text-align: center;
+                    font-size: 1.1em;
+                }}
+        
+                .legend-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }}
+        
+                .legend-item {{
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.85em;
+                }}
+        
+                .legend-color {{
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 3px;
+                }}
+        
+                .period-info {{
+                    background: #3498db;
+                    color: white;
+                    padding: 10px;
+                    text-align: center;
+                    font-weight: bold;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>GST Audit Para Classification</h1>
+                    <p>Comprehensive categorization by Nature of Non-Compliance</p>
+                </div>
+        
+                <div class="period-info">
+                    📅 Period: {selected_period} | 🔍 Real-time Analysis Data
+                </div>
+        
+                <div class="stats-section">
+                    <h2>Classification Overview</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">{main_categories_count}</div>
+                            <div class="stat-label">Main Categories</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{sub_categories_count}</div>
+                            <div class="stat-label">Sub-Categories</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{total_observations}</div>
+                            <div class="stat-label">Audit Observations</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{coverage_percentage:.0f}%</div>
+                            <div class="stat-label">Coverage</div>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="diagram-container">
+                    <div class="main-categories">
+                        
+                        <div class="category-card tax-payment">
+                            <div class="category-title">
+                                <div class="category-icon">TP</div>
+                                Tax Payment Defaults
+                            </div>
+                            <ul class="subcategories">
+                                <li>Output Tax Short Payment</li>
+                                <li>Output Tax on Other Income</li>
+                                <li>Export & SEZ Related Issues</li>
+                                <li>Credit Note Related Errors</li>
+                                <li>Scheme Migration Issues</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'TP')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card rcm">
+                            <div class="category-title">
+                                <div class="category-icon">RC</div>
+                                Reverse Charge Mechanism
+                            </div>
+                            <ul class="subcategories">
+                                <li>Transportation & Logistics</li>
+                                <li>Professional & Legal Services</li>
+                                <li>Import of Services</li>
+                                <li>RCM Reconciliation Issues</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'RC')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card itc">
+                            <div class="category-title">
+                                <div class="category-icon">IT</div>
+                                Input Tax Credit Violations
+                            </div>
+                            <ul class="subcategories">
+                                <li>Blocked Credit Claims (Sec 17(5))</li>
+                                <li>Ineligible ITC Claims (Sec 16)</li>
+                                <li>Excess ITC Reconciliation</li>
+                                <li>ITC Reversal Defaults</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'IT')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card interest">
+                            <div class="category-title">
+                                <div class="category-icon">IN</div>
+                                Interest Liability Defaults
+                            </div>
+                            <ul class="subcategories">
+                                <li>Tax Payment Related Interest</li>
+                                <li>ITC Related Interest (Sec 50)</li>
+                                <li>Time of Supply Interest</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'IN')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card filing">
+                            <div class="category-title">
+                                <div class="category-icon">RF</div>
+                                Return Filing Non-Compliance
+                            </div>
+                            <ul class="subcategories">
+                                <li>Late Filing Penalties</li>
+                                <li>Non-Filing Issues (ITC-04)</li>
+                                <li>Filing Quality Issues</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'RF')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card procedural">
+                            <div class="category-title">
+                                <div class="category-icon">PD</div>
+                                Procedural & Documentation
+                            </div>
+                            <ul class="subcategories">
+                                <li>Return Reconciliation</li>
+                                <li>Documentation Deficiencies</li>
+                                <li>Cash Payment Violations</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'PD')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card classification">
+                            <div class="category-title">
+                                <div class="category-icon">CV</div>
+                                Classification & Valuation
+                            </div>
+                            <ul class="subcategories">
+                                <li>Service Classification Errors</li>
+                                <li>Wrong Chapter Heading</li>
+                                <li>Incorrect Notification Claims</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'CV')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card special">
+                            <div class="category-title">
+                                <div class="category-icon">SS</div>
+                                Special Situations
+                            </div>
+                            <ul class="subcategories">
+                                <li>Construction/Real Estate</li>
+                                <li>Job Work Related Compliance</li>
+                                <li>Inter-Company Transactions</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'SS')}
+                            </div>
+                        </div>
+        
+                        <div class="category-card penalty">
+                            <div class="category-title">
+                                <div class="category-icon">PG</div>
+                                Penalty & General Compliance
+                            </div>
+                            <ul class="subcategories">
+                                <li>Statutory Penalties (Sec 123)</li>
+                                <li>Stock & Physical Verification</li>
+                                <li>General Non-Compliance</li>
+                            </ul>
+                            <div class="category-stats">
+                                {get_category_stats(category_stats, 'PG')}
+                            </div>
+                        </div>
+        
+                    </div>
+                </div>
+        
+                <div class="legend">
+                    <h3>🎯 Classification Guide & Impact Assessment</h3>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #e74c3c;"></div>
+                            <span>High Risk - Tax Payment Issues</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f39c12;"></div>
+                            <span>Medium Risk - RCM Compliance</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3498db;"></div>
+                            <span>High Volume - ITC Issues</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #9b59b6;"></div>
+                            <span>Financial Impact - Interest</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #2ecc71;"></div>
+                            <span>Administrative - Filing Issues</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #34495e;"></div>
+                            <span>Process Related - Documentation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        # Helper function to get category statistics
+        def get_category_stats(stats_df, category_code):
+            if stats_df.empty:
+                return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+            
+            category_data = stats_df[stats_df['major_code'] == category_code]
+            if category_data.empty:
+                return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+            
+            paras = int(category_data['para_count'].iloc[0])
+            detection = float(category_data['total_detection'].iloc[0])
+            recovery = float(category_data['total_recovery'].iloc[0])
+            
+            return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
+
+        # Replace the placeholder function calls with actual data
+        formatted_html = html_content
+        for category_code in ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']:
+            placeholder = f"{{get_category_stats(category_stats, '{category_code}')}}"
+            actual_stats = get_category_stats(category_stats, category_code)
+            formatted_html = formatted_html.replace(placeholder, actual_stats)
+
+        return formatted_html
+
+    except Exception as e:
+        print(f"Error generating classification HTML page: {e}")
         return None
