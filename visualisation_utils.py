@@ -926,7 +926,30 @@ def get_visualization_data(dbx, selected_period):
                 classification_agg['Total_Detection'].replace(0, np.nan)
             ).fillna(0) * 100
             classification_summary = classification_agg.sort_values('Total_Detection', ascending=False).to_dict('records')        
-
+        # ADD THIS SECTION - Pre-process classification data for PDF
+        classification_page_data = None
+        if not df_paras.empty:  # df_paras is already created in your classification analysis
+            # Calculate comprehensive stats
+            total_observations = len(df_paras)
+            main_categories_count = df_paras['major_code'].nunique()
+            sub_categories_count = df_paras['para_classification_code'].nunique()
+            
+            # Category-wise detailed stats  
+            category_stats = df_paras.groupby('major_code').agg(
+                para_count=('major_code', 'count'),
+                total_detection=('Para Detection in Lakhs', 'sum'),
+                total_recovery=('Para Recovery in Lakhs', 'sum')
+            ).reset_index()
+            
+            classification_page_data = {
+                'total_observations': total_observations,
+                'main_categories_count': main_categories_count,
+                'sub_categories_count': sub_categories_count,
+                'category_stats': category_stats.to_dict('records'),
+                'coverage_percentage': 100 if total_observations > 0 else 0
+            }
+            
+        print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
         # Add additional summary data for detailed analysis
         vital_stats.update({
             'status_summary': status_summary,
@@ -942,7 +965,8 @@ def get_visualization_data(dbx, selected_period):
             'sectoral_summary': sectoral_summary,           # <-- This was missing!
             'classification_summary': classification_summary , # <-- Add this too
             'sectoral_analysis_available': len(sectoral_summary) > 0,  # NEW
-            'compliance_analysis_available': len(classification_summary) > 0  # NEW
+            'compliance_analysis_available': len(classification_summary) > 0,  # NEW
+            'classification_page_data': classification_page_data  # ADD THIS LINE
         })
         
         return vital_stats, charts
