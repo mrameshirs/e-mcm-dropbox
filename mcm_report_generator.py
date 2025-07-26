@@ -462,7 +462,7 @@ class PDFReportGenerator:
             traceback.print_exc()
             return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Insert chart as Image object to avoid SVG coordinate issues"""
+        """Insert chart with manual SVG coordinate system fix"""
         try:
             if chart_id not in self.chart_registry:
                 print(f"ERROR: Chart '{chart_id}' not found in registry")
@@ -485,51 +485,91 @@ class PDFReportGenerator:
                 description = chart_data.get('description', 'Chart description')
                 self.story.append(Paragraph(description, self.chart_description_style))
     
+            # FIX THE SVG CONTENT BEFORE PROCESSING
+            img_bytes.seek(0)
+            svg_content = img_bytes.read()
+            
+            # Manually fix the SVG coordinate system
+            fixed_svg = self._fix_svg_coordinate_system(svg_content)
+            fixed_buffer = BytesIO(fixed_svg)
+            
+            # Create drawing from fixed SVG
+            drawing, error = self._create_safe_svg_drawing(fixed_buffer)
+            
+            if error or drawing is None:
+                print(f"ERROR creating fixed drawing: {error}")
+                return False
+    
             # Size configs
             size_configs = {
                 "tiny": 1.5 * inch,
                 "small": 2.5 * inch,
                 "medium": 3.5 * inch,
-                "large": 4.5 * inch,
-                "full": 6.0 * inch
+                "large": 4.5 * inch
             }
             
             target_width = size_configs.get(size, 2.5 * inch)
-            target_height = target_width * 0.6  # Maintain aspect ratio
+            target_height = target_width * 0.6
             
-            print(f"Creating Image object: {target_width} x {target_height}")
+            # Simple scaling without complex transforms
+            if hasattr(drawing, 'width') and drawing.width > 0:
+                scale_factor = target_width / drawing.width
+                drawing.width = target_width
+                drawing.height = drawing.height * scale_factor
+            else:
+                drawing.width = target_width
+                drawing.height = target_height
             
-            # USE REPORTLAB IMAGE OBJECT INSTEAD OF SVG
-            from reportlab.platypus import Image as RLImage
+            drawing.hAlign = 'CENTER'
             
-            # Reset BytesIO position
-            img_bytes.seek(0)
-            
-            # Create Image object directly from SVG bytes
-            chart_image = RLImage(img_bytes, width=target_width, height=target_height)
-            chart_image.hAlign = 'CENTER'
-            
-            # Create centering table
-            from reportlab.platypus import Table, TableStyle
-            
-            centering_table = Table([[chart_image]], colWidths=[target_width])
-            centering_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            print(f"Fixed SVG chart size: {drawing.width} x {drawing.height}")
             
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(centering_table)
+            self.story.append(drawing)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"SUCCESS: Image chart '{chart_id}' added with size {target_width}")
+            print(f"SUCCESS: Fixed SVG chart '{chart_id}' added")
             return True
             
         except Exception as e:
-            print(f"ERROR with Image approach: {e}")
+            print(f"ERROR: {e}")
             import traceback
             traceback.print_exc()
             return False
+    
+    def _fix_svg_coordinate_system(self, svg_content):
+        """Manually fix SVG coordinate system to prevent inversion"""
+        try:
+            if isinstance(svg_content, bytes):
+                svg_string = svg_content.decode('utf-8')
+            else:
+                svg_string = str(svg_content)
+            
+            print("Applying SVG coordinate fix...")
+            
+            # Method 1: Wrap entire content in a transform group
+            # Find the first <g> or content after <svg>
+            svg_pattern = r'(<svg[^>]*>)'
+            
+            if re.search(svg_pattern, svg_string):
+                # Add a transform group right after the opening <svg> tag
+                svg_string = re.sub(
+                    svg_pattern,
+                    r'\1<g transform="scale(1, -1) translate(0, -300)">',
+                    svg_string,
+                    count=1
+                )
+                
+                # Close the transform group before the closing </svg> tag
+                svg_string = svg_string.replace('</svg>', '</g></svg>')
+                
+                print("Applied coordinate system fix")
+            
+            return svg_string.encode('utf-8')
+        
+    except Exception as e:
+        print(f"SVG coordinate fix failed: {e}")
+        return svg_content
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
