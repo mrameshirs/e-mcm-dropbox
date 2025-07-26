@@ -1480,6 +1480,7 @@ class PDFReportGenerator:
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             # ADD SECTORAL SUMMARY TABLE if data available
+            self.add_sectoral_summary_table()
             if self.vital_stats.get('sectoral_analysis_available', False):
                 self.add_sectoral_summary_table()
             
