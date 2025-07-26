@@ -1172,18 +1172,18 @@ class PDFReportGenerator:
             # result1 = self.insert_chart_by_id("status_analysis", size="medium", add_title=False)
             # print(f"Status analysis result: {result1}")
             
-            result2 = self.insert_chart_by_id("recovery_trends", size="small") 
-            print(f"Recovery trends result: {result2}")
-            print("=== FINISHED CHART INSERTION ===")
+            # result2 = self.insert_chart_by_id("recovery_trends", size="small") 
+            # print(f"Recovery trends result: {result2}")
+            # print("=== FINISHED CHART INSERTION ===")
             # if self.vital_stats.get('status_analysis_available', False):
             #     self.add_status_summary_table()
                 
             # # INSERT RECOVERY TRENDS CHART
             # self.insert_chart_by_id("recovery_trends", size="small",add_title=False)
             
-            # Add Risk Parameter Analysis if available
-            if self.vital_stats.get('risk_analysis_available', False):
-                self.add_risk_parameter_analysis()
+            # # Add Risk Parameter Analysis if available
+            # if self.vital_stats.get('risk_analysis_available', False):
+            #     self.add_risk_parameter_analysis()
             
         except Exception as e:
             print(f"Error adding monthly performance summary: {e}")
@@ -1458,29 +1458,29 @@ class PDFReportGenerator:
             )
             
             # First Chart
-            self.story.append(Paragraph("🎯 Distribution of DARs by Taxpayer Classification", chart_header_style))
+            self.story.append(Paragraph("🎯 Taxpayer Classification Analysis- Total DARs, Detection and Recovery", chart_header_style))
             self.insert_chart_by_id("taxpayer_classification_distribution", 
                                    size="small", 
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             
-            # Second Chart
-            self.story.append(Paragraph("🎯 Detection Amount by Taxpayer Classification", chart_header_style))
-            self.insert_chart_by_id("taxpayer_classification_detection", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
-            # Third Chart
-            self.story.append(Paragraph("🎯 Recovery Amount by Taxpayer Classification", chart_header_style))
-            self.insert_chart_by_id("taxpayer_classification_recovery", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
+            # # Second Chart
+            # self.story.append(Paragraph("🎯 Detection Amount by Taxpayer Classification", chart_header_style))
+            # self.insert_chart_by_id("taxpayer_classification_detection", 
+            #                        size="medium", 
+            #                        add_title=False, 
+            #                        add_description=False)
+            # self.story.append(Spacer(1, 0.2 * inch))
+            # # Third Chart
+            # self.story.append(Paragraph("🎯 Recovery Amount by Taxpayer Classification", chart_header_style))
+            # self.insert_chart_by_id("taxpayer_classification_recovery", 
+            #                        size="medium", 
+            #                        add_title=False, 
+            #                        add_description=False)
+            # self.story.append(Spacer(1, 0.2 * inch))
             # ADD SECTORAL SUMMARY TABLE if data available
-            self.add_sectoral_summary_table()
+        
             if self.vital_stats.get('sectoral_analysis_available', False):
                 self.add_sectoral_summary_table()
             
