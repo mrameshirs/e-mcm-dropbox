@@ -307,122 +307,7 @@ def get_visualization_data(dbx, selected_period):
             fig7 = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.G10)
             fig7 = style_chart(fig7, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
             charts.append(fig7)
-        
-        # # CHARTS 8-9 9b: Taxpayer Classification Analysis (EXACT REPLICA)
-        # if 'taxpayer_classification' in df_unique_reports.columns:
-        #     class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
-        #     class_counts.columns = ['classification', 'count']
-        #     # FIX: Filter zero values for safety
-        #     class_counts = class_counts[class_counts['count'] > 0]
-        #     if not class_counts.empty:
-        #         fig8 = px.pie(class_counts, names='classification', values='count',
-        #                      title="Distribution of DARs by Taxpayer Classification",
-        #                      color_discrete_sequence=px.colors.sequential.Blues_r,
-        #                      labels={'classification': 'Taxpayer Classification', 'count': 'Number of DARs'})
-                
-        #         # FIXED LAYOUT - Square dimensions, no legend
-        #         fig8.update_layout(
-        #             title=dict(text="<b>Distribution of DARs by Taxpayer Classification</b>", 
-        #                       x=0.5, 
-        #                       font=dict(size=14, color='#5A4A4A')),
-        #             paper_bgcolor='#FDFBF5',
-        #             font=dict(family="serif", color='#5A4A4A', size=12),
-        #             # SQUARE DIMENSIONS
-        #             width=500,
-        #             height=300,
-        #             margin=dict(l=0, r=0, t=40, b=0),
-        #             # REMOVE LEGEND
-        #             showlegend=True,autosize=False
-        #         )
-                
-        #         # Enhanced text display (since no legend)
-        #         fig8.update_traces(
-        #             textposition='inside', 
-        #             textinfo='label+percent',  # Show both label and percent
-        #             textfont=dict(size=11, color='white'),
-        #             pull=[0.05]*len(class_counts)
-        #         )
-                
-        #         print(f"Fig8 created: {fig8 is not None}")
-        #         print(f"Fig8 data points: {len(class_counts)}")
-        #         charts.append(fig8)
-            
-        #     # Detection Amount by Classification  
-        #     class_agg = df_unique_reports.groupby('taxpayer_classification').agg(
-        #         Total_Detection=('Detection in Lakhs', 'sum'),
-        #         Total_Recovery=('Recovery in Lakhs', 'sum')
-        #     ).reset_index()
-            
-        #     # DETECTION PIE CHART
-        #     class_agg_detection = class_agg[class_agg['Total_Detection'] > 0]
-        #     if not class_agg_detection.empty:
-        #         fig9 = px.pie(class_agg_detection, names='taxpayer_classification', values='Total_Detection',
-        #                      title="Detection Amount by Taxpayer Classification",
-        #                      color_discrete_sequence=px.colors.sequential.Reds_r,
-        #                      labels={'taxpayer_classification': 'Classification', 'Total_Detection': 'Detection (₹ Lakhs)'})
-                
-        #         # FIXED LAYOUT - Square dimensions, no legend
-        #         fig9.update_layout(
-        #             title=dict(text="<b>Detection Amount by Taxpayer Classification</b>", 
-        #                       x=0.5, 
-        #                       font=dict(size=14, color='#5A4A4A')),
-        #             paper_bgcolor='#FDFBF5',
-        #             font=dict(family="serif", color='#5A4A4A', size=12),
-        #             # SQUARE DIMENSIONS
-        #             width=400,
-        #             height=400,
-        #             margin=dict(l=20, r=20, t=60, b=20),
-        #             # REMOVE LEGEND
-        #             showlegend=False
-        #         )
-                
-        #         # Enhanced text display
-        #         fig9.update_traces(
-        #             textposition='inside', 
-        #             textinfo='label+percent',
-        #             textfont=dict(size=11, color='white')
-        #         )
-                
-        #         charts.append(fig9)
-            
-        #     # RECOVERY PIE CHART 
-        #     class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]
-        #     print(f"Recovery data available: {not class_agg_recovery.empty}")
-        #     print(f"Recovery values: {class_agg['Total_Recovery'].tolist()}")
-            
-        #     if not class_agg_recovery.empty:
-        #         fig10 = px.pie(class_agg_recovery, names='taxpayer_classification', values='Total_Recovery',
-        #                       title="Recovery Amount by Taxpayer Classification",
-        #                       color_discrete_sequence=px.colors.sequential.Greens_r,
-        #                       labels={'taxpayer_classification': 'Classification', 'Total_Recovery': 'Recovery (₹ Lakhs)'})
-                
-        #         # FIXED LAYOUT - Square dimensions, no legend
-        #         fig10.update_layout(
-        #             title=dict(text="<b>Recovery Amount by Taxpayer Classification</b>", 
-        #                        x=0.5, 
-        #                        font=dict(size=14, color='#5A4A4A')),
-        #             paper_bgcolor='#FDFBF5',
-        #             font=dict(family="serif", color='#5A4A4A', size=12),
-        #             # SQUARE DIMENSIONS
-        #             width=400,
-        #             height=400,
-        #             margin=dict(l=20, r=20, t=60, b=20),
-        #             # REMOVE LEGEND
-        #             showlegend=False
-        #         )
-                
-        #         # Enhanced text display
-        #         fig10.update_traces(
-        #             textposition='inside', 
-        #             textinfo='label+percent',
-        #             textfont=dict(size=11, color='white')
-        #         )
-                
-        #         print("Recovery pie chart created successfully!")
-        #         charts.append(fig10)
-        #     else:
-        #         print("No recovery data available for pie chart")
-       # CHARTS 8-10: Taxpayer Classification Analysis (PIE CHARTS IN ROW)
+        # CHARTS 8-10: Taxpayer Classification Analysis (ULTRA COMPACT - NO TITLE)
         if 'taxpayer_classification' in df_unique_reports.columns:
             class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
             class_counts.columns = ['classification', 'count']
@@ -438,7 +323,7 @@ def get_visualization_data(dbx, selected_period):
             class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]
             
             if not class_counts.empty:
-                # Create subplots - 3 pie charts in one row
+                # Create subplots - 3 pie charts in one row (ULTRA COMPACT)
                 fig_combined = make_subplots(
                     rows=1, cols=3,
                     subplot_titles=[
@@ -447,96 +332,214 @@ def get_visualization_data(dbx, selected_period):
                         "<b>Recovery Amount</b>"
                     ],
                     specs=[[{"type": "domain"}, {"type": "domain"}, {"type": "domain"}]],
-                    horizontal_spacing=0.05,  # Tight spacing between charts
+                    horizontal_spacing=0.01,  # Minimal spacing for ultra compact look
                 )
                 
-                # Color schemes for each pie chart
-                colors_distribution = ['#08519c', '#3182bd', '#6baed6', '#9ecae1', '#c6dbef']
-                colors_detection = ['#a50f15', '#de2d26', '#fb6a4a', '#fc9272', '#fcbba1']  
-                colors_recovery = ['#006d2c', '#238b45', '#41ab5d', '#74c476', '#a1d99b']
+                # Enhanced color schemes for better visual appeal
+                colors_distribution = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#6A994E']
+                colors_detection = ['#C1272D', '#F15BB5', '#FEE75C', '#00BBF9', '#00F5FF']  
+                colors_recovery = ['#2D5016', '#61A5C2', '#A9DEF9', '#D0F4DE', '#FCF6BD']
                 
-                # Chart 1: Count Distribution (Left)
+                # Chart 1: Count Distribution (Left) - MAXIMIZED DOMAIN
                 fig_combined.add_trace(
                     go.Pie(
                         labels=class_counts['classification'],
                         values=class_counts['count'],
                         name="DAR Count",
-                        marker=dict(colors=colors_distribution),
+                        marker=dict(colors=colors_distribution, line=dict(color='white', width=2)),
                         textinfo='label+percent',
-                        textfont=dict(size=10, color='white'),
+                        textfont=dict(size=11, color='white', family='Arial Black'),
                         textposition='inside',
-                        pull=[0.05] * len(class_counts),
+                        pull=[0.02] * len(class_counts),  # Even smaller pull for ultra compact
                         hole=0,
-                        domain=dict(x=[0.0, 0.32], y=[0.15, 0.85])  # Left position
+                        domain=dict(x=[0.0, 0.33], y=[0.0, 1.0])  # Full space utilization
                     ),
                     row=1, col=1
                 )
                 
-                # Chart 2: Detection Amount (Center)
+                # Chart 2: Detection Amount (Center) - MAXIMIZED DOMAIN
                 if not class_agg_detection.empty:
                     fig_combined.add_trace(
                         go.Pie(
                             labels=class_agg_detection['taxpayer_classification'],
                             values=class_agg_detection['Total_Detection'],
                             name="Detection",
-                            marker=dict(colors=colors_detection),
+                            marker=dict(colors=colors_detection, line=dict(color='white', width=2)),
                             textinfo='label+percent',
-                            textfont=dict(size=10, color='white'),
+                            textfont=dict(size=11, color='white', family='Arial Black'),
                             textposition='inside',
-                            pull=[0.05] * len(class_agg_detection),
+                            pull=[0.02] * len(class_agg_detection),
                             hole=0,
-                            domain=dict(x=[0.34, 0.66], y=[0.15, 0.85])  # Center position
+                            domain=dict(x=[0.33, 0.67], y=[0.0, 1.0])  # Full height usage
                         ),
                         row=1, col=2
                     )
                 
-                # Chart 3: Recovery Amount (Right)
+                # Chart 3: Recovery Amount (Right) - MAXIMIZED DOMAIN
                 if not class_agg_recovery.empty:
                     fig_combined.add_trace(
                         go.Pie(
                             labels=class_agg_recovery['taxpayer_classification'],
                             values=class_agg_recovery['Total_Recovery'],
                             name="Recovery",
-                            marker=dict(colors=colors_recovery),
+                            marker=dict(colors=colors_recovery, line=dict(color='white', width=2)),
                             textinfo='label+percent',
-                            textfont=dict(size=10, color='white'),
+                            textfont=dict(size=11, color='white', family='Arial Black'),
                             textposition='inside',
-                            pull=[0.05] * len(class_agg_recovery),
+                            pull=[0.02] * len(class_agg_recovery),
                             hole=0,
-                            domain=dict(x=[0.68, 1.0], y=[0.15, 0.85])  # Right position
+                            domain=dict(x=[0.67, 1.0], y=[0.0, 1.0])  # Full space usage
                         ),
                         row=1, col=3
                     )
                 
-                # Update layout for compact row design
+                # ULTRA COMPACT LAYOUT - No title, minimal margins
                 fig_combined.update_layout(
-                    title=dict(
-                        text="<b>Taxpayer Classification Analysis - Distribution, Detection & Recovery</b>",
-                        x=0.5,
-                        y=0.98,
-                        font=dict(size=16, color='#5A4A4A', family="serif")
-                    ),
-                    paper_bgcolor='#FDFBF5',
-                    font=dict(family="serif", color='#5A4A4A', size=10),
-                    # WIDE RECTANGULAR DIMENSIONS for 3 pie charts in row
-                    width=1200,   # Wide to accommodate 3 charts
-                    height=450,   # Adequate height for circular pies
-                    margin=dict(l=30, r=30, t=60, b=30),
+                    # NO TITLE - Removed completely for maximum compactness
+                    paper_bgcolor='#F8F9FA',  
+                    plot_bgcolor='#F8F9FA',
+                    font=dict(family="Arial", color='#2C3E50', size=10),
+                    
+                    # ULTRA COMPACT DIMENSIONS - Minimal margins
+                    width=1000,   # Further reduced width
+                    height=320,   # Much smaller height without title
+                    margin=dict(l=10, r=10, t=10, b=25),  # Minimal margins, small bottom for labels
+                    
                     showlegend=False,  # No legend since labels are inside pies
                     autosize=False,
-                    # Ensure subplot titles are positioned properly
+                    
+                    # COMPACT SUBTITLE positioning at bottom
                     annotations=[
-                        dict(text="<b>Distribution of DARs</b>", x=0.16, y=0.95, 
-                             font=dict(size=12, color='#5A4A4A'), showarrow=False),
-                        dict(text="<b>Detection Amount</b>", x=0.5, y=0.95,
-                             font=dict(size=12, color='#5A4A4A'), showarrow=False),
-                        dict(text="<b>Recovery Amount</b>", x=0.84, y=0.95,
-                             font=dict(size=12, color='#5A4A4A'), showarrow=False)
+                        dict(text="<b>Distribution</b>", x=0.17, y=0.01, 
+                             font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False),
+                        dict(text="<b>Detection</b>", x=0.5, y=0.01,
+                             font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False),
+                        dict(text="<b>Recovery</b>", x=0.83, y=0.01,
+                             font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False)
                     ]
                 )
                 
-                print(f"Combined three pie charts in row created successfully!")
+                # ENHANCED STYLING - Add subtle shadows and better borders
+                for i in range(len(fig_combined.data)):
+                    fig_combined.data[i].marker.line = dict(color='white', width=2)
+                    
+                print(f"Ultra compact three pie charts (no title) created successfully!")
                 charts.append(fig_combined)
+       # # CHARTS 8-10: Taxpayer Classification Analysis (PIE CHARTS IN ROW)
+       #  if 'taxpayer_classification' in df_unique_reports.columns:
+       #      class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
+       #      class_counts.columns = ['classification', 'count']
+       #      class_counts = class_counts[class_counts['count'] > 0]
+            
+       #      # Detection and Recovery aggregations
+       #      class_agg = df_unique_reports.groupby('taxpayer_classification').agg(
+       #          Total_Detection=('Detection in Lakhs', 'sum'),
+       #          Total_Recovery=('Recovery in Lakhs', 'sum')
+       #      ).reset_index()
+            
+       #      class_agg_detection = class_agg[class_agg['Total_Detection'] > 0]
+       #      class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]
+            
+       #      if not class_counts.empty:
+       #          # Create subplots - 3 pie charts in one row
+       #          fig_combined = make_subplots(
+       #              rows=1, cols=3,
+       #              subplot_titles=[
+       #                  "<b>Distribution of DARs</b>",
+       #                  "<b>Detection Amount</b>", 
+       #                  "<b>Recovery Amount</b>"
+       #              ],
+       #              specs=[[{"type": "domain"}, {"type": "domain"}, {"type": "domain"}]],
+       #              horizontal_spacing=0.05,  # Tight spacing between charts
+       #          )
+                
+       #          # Color schemes for each pie chart
+       #          colors_distribution = ['#08519c', '#3182bd', '#6baed6', '#9ecae1', '#c6dbef']
+       #          colors_detection = ['#a50f15', '#de2d26', '#fb6a4a', '#fc9272', '#fcbba1']  
+       #          colors_recovery = ['#006d2c', '#238b45', '#41ab5d', '#74c476', '#a1d99b']
+                
+       #          # Chart 1: Count Distribution (Left)
+       #          fig_combined.add_trace(
+       #              go.Pie(
+       #                  labels=class_counts['classification'],
+       #                  values=class_counts['count'],
+       #                  name="DAR Count",
+       #                  marker=dict(colors=colors_distribution),
+       #                  textinfo='label+percent',
+       #                  textfont=dict(size=10, color='white'),
+       #                  textposition='inside',
+       #                  pull=[0.05] * len(class_counts),
+       #                  hole=0,
+       #                  domain=dict(x=[0.0, 0.32], y=[0.15, 0.85])  # Left position
+       #              ),
+       #              row=1, col=1
+       #          )
+                
+       #          # Chart 2: Detection Amount (Center)
+       #          if not class_agg_detection.empty:
+       #              fig_combined.add_trace(
+       #                  go.Pie(
+       #                      labels=class_agg_detection['taxpayer_classification'],
+       #                      values=class_agg_detection['Total_Detection'],
+       #                      name="Detection",
+       #                      marker=dict(colors=colors_detection),
+       #                      textinfo='label+percent',
+       #                      textfont=dict(size=10, color='white'),
+       #                      textposition='inside',
+       #                      pull=[0.05] * len(class_agg_detection),
+       #                      hole=0,
+       #                      domain=dict(x=[0.34, 0.66], y=[0.15, 0.85])  # Center position
+       #                  ),
+       #                  row=1, col=2
+       #              )
+                
+       #          # Chart 3: Recovery Amount (Right)
+       #          if not class_agg_recovery.empty:
+       #              fig_combined.add_trace(
+       #                  go.Pie(
+       #                      labels=class_agg_recovery['taxpayer_classification'],
+       #                      values=class_agg_recovery['Total_Recovery'],
+       #                      name="Recovery",
+       #                      marker=dict(colors=colors_recovery),
+       #                      textinfo='label+percent',
+       #                      textfont=dict(size=10, color='white'),
+       #                      textposition='inside',
+       #                      pull=[0.05] * len(class_agg_recovery),
+       #                      hole=0,
+       #                      domain=dict(x=[0.68, 1.0], y=[0.15, 0.85])  # Right position
+       #                  ),
+       #                  row=1, col=3
+       #              )
+                
+       #          # Update layout for compact row design
+       #          fig_combined.update_layout(
+       #              title=dict(
+       #                  text="<b>Taxpayer Classification Analysis - Distribution, Detection & Recovery</b>",
+       #                  x=0.5,
+       #                  y=0.98,
+       #                  font=dict(size=16, color='#5A4A4A', family="serif")
+       #              ),
+       #              paper_bgcolor='#FDFBF5',
+       #              font=dict(family="serif", color='#5A4A4A', size=10),
+       #              # WIDE RECTANGULAR DIMENSIONS for 3 pie charts in row
+       #              width=1200,   # Wide to accommodate 3 charts
+       #              height=450,   # Adequate height for circular pies
+       #              margin=dict(l=30, r=30, t=60, b=30),
+       #              showlegend=False,  # No legend since labels are inside pies
+       #              autosize=False,
+       #              # Ensure subplot titles are positioned properly
+       #              annotations=[
+       #                  dict(text="<b>Distribution of DARs</b>", x=0.16, y=0.95, 
+       #                       font=dict(size=12, color='#5A4A4A'), showarrow=False),
+       #                  dict(text="<b>Detection Amount</b>", x=0.5, y=0.95,
+       #                       font=dict(size=12, color='#5A4A4A'), showarrow=False),
+       #                  dict(text="<b>Recovery Amount</b>", x=0.84, y=0.95,
+       #                       font=dict(size=12, color='#5A4A4A'), showarrow=False)
+       #              ]
+       #          )
+                
+       #          print(f"Combined three pie charts in row created successfully!")
+       #          charts.append(fig_combined)
         
         # CHARTS 10-12: Nature of Compliance Analysis (EXACT REPLICA)
         CLASSIFICATION_CODES_DESC = {
