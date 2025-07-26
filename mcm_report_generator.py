@@ -295,91 +295,10 @@ class PDFReportGenerator:
     #     except Exception as e:
     #         print(f"Error inserting chart '{chart_id}': {e}")
     #         return False
-    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """
-        Insert a specific chart by its ID with robust centering and size control.
-        """
-        try:
-            if chart_id not in self.chart_registry:
-                print(f"Chart '{chart_id}' not found in registry")
-                return False
-    
-            chart_info = self.chart_registry[chart_id]
-            chart_data = chart_info['metadata']
-            img_bytes = chart_info['image']
-    
-            if img_bytes is None:
-                print(f"No image data for chart '{chart_id}'")
-                return False
-    
-            # Add title if requested
-            if add_title:
-                self.story.append(Paragraph(chart_data['title'], self.chart_title_style))
-    
-            # Add description if requested      
-            if add_description:
-                self.story.append(Paragraph(chart_data['description'], self.chart_description_style))
-    
-            # Create and add the chart
-            drawing, error = self._create_safe_svg_drawing(img_bytes)
-            
-            if error:
-                print(f"Chart '{chart_id}' error: {error}")
-                self._add_chart_error_inline(chart_id, error)
-                return False
-    
-            if drawing is None:
-                print(f"Could not create drawing for chart '{chart_id}'")
-                self._add_chart_error_inline(chart_id, "Could not create drawing")
-                return False
-    
-            # --- FIX: Updated size configurations for better control ---
-            size_configs = {
-                "small": 3.0 * inch,    # A smaller size for compact reports
-                "medium": 4.5 * inch,   # A balanced default size
-                "large": 6.0 * inch,    # A large size for primary charts
-                "full": 7.8 * inch      # Spans nearly the full page width
-            }
-            
-            render_width = size_configs.get(size, 4.5 * inch) # Default to medium
-            
-            # Scale the drawing to the desired render width
-            if hasattr(drawing, 'width') and drawing.width > 0:
-                scale_factor = render_width / drawing.width
-                drawing.width = render_width
-                drawing.height = drawing.height * scale_factor
-            else:
-                # Fallback if width detection fails
-                drawing.width = render_width
-                drawing.height = render_width * 0.6  # Assume a common aspect ratio
-            
-            # --- FIX: Ensure centering by using a full-width table ---
-            # Calculate the full available width of the document frame
-            available_width = self.width - self.doc.leftMargin - self.doc.rightMargin
-            
-            # Wrap the drawing in a table that spans the full available width
-            chart_table = Table([[drawing]], colWidths=[available_width])
-            
-            # Set the table style to center the content (the drawing) within its cell
-            chart_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0)
-            ]))
-            
-            self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(chart_table)  # Add the table to the story
-            self.story.append(Spacer(1, 0.15 * inch))
-            
-            print(f"Successfully inserted chart '{chart_id}' with size {size} ({render_width/inch:.1f} inches)")
-            return True
-            
-        except Exception as e:
-            print(f"Error inserting chart '{chart_id}': {e}")
-            return False
     # def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-    #     """Insert a specific chart by its ID with customizable options"""
+    #     """
+    #     Insert a specific chart by its ID with robust centering and size control.
+    #     """
     #     try:
     #         if chart_id not in self.chart_registry:
     #             print(f"Chart '{chart_id}' not found in registry")
@@ -397,7 +316,7 @@ class PDFReportGenerator:
     #         if add_title:
     #             self.story.append(Paragraph(chart_data['title'], self.chart_title_style))
     
-    #         # Add description if requested  
+    #         # Add description if requested      
     #         if add_description:
     #             self.story.append(Paragraph(chart_data['description'], self.chart_description_style))
     
@@ -406,38 +325,144 @@ class PDFReportGenerator:
             
     #         if error:
     #             print(f"Chart '{chart_id}' error: {error}")
+    #             self._add_chart_error_inline(chart_id, error)
     #             return False
     
     #         if drawing is None:
     #             print(f"Could not create drawing for chart '{chart_id}'")
+    #             self._add_chart_error_inline(chart_id, "Could not create drawing")
     #             return False
     
-    #         # Scale based on size parameter
+    #         # --- FIX: Updated size configurations for better control ---
     #         size_configs = {
-    #             "small": 4 * inch,
-    #             "medium": 5.0 * inch, 
-    #             "large": 7.0 * inch,
-    #             "full": 7.5 * inch
+    #             "small": 3.0 * inch,    # A smaller size for compact reports
+    #             "medium": 4.5 * inch,   # A balanced default size
+    #             "large": 6.0 * inch,    # A large size for primary charts
+    #             "full": 7.8 * inch      # Spans nearly the full page width
     #         }
             
-    #         render_width = size_configs.get(size, 6.0 * inch)
-    #         scale_factor = render_width / drawing.width
-    #         drawing.width = render_width
-    #         drawing.height = drawing.height * scale_factor
-    #         drawing.hAlign = 'CENTER'
+    #         render_width = size_configs.get(size, 4.5 * inch) # Default to medium
+            
+    #         # Scale the drawing to the desired render width
+    #         if hasattr(drawing, 'width') and drawing.width > 0:
+    #             scale_factor = render_width / drawing.width
+    #             drawing.width = render_width
+    #             drawing.height = drawing.height * scale_factor
+    #         else:
+    #             # Fallback if width detection fails
+    #             drawing.width = render_width
+    #             drawing.height = render_width * 0.6  # Assume a common aspect ratio
+            
+    #         # --- FIX: Ensure centering by using a full-width table ---
+    #         # Calculate the full available width of the document frame
+    #         available_width = self.width - self.doc.leftMargin - self.doc.rightMargin
+            
+    #         # Wrap the drawing in a table that spans the full available width
+    #         chart_table = Table([[drawing]], colWidths=[available_width])
+            
+    #         # Set the table style to center the content (the drawing) within its cell
+    #         chart_table.setStyle(TableStyle([
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 0),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 0)
+    #         ]))
             
     #         self.story.append(Spacer(1, 0.1 * inch))
-    #         self.story.append(drawing)
+    #         self.story.append(chart_table)  # Add the table to the story
     #         self.story.append(Spacer(1, 0.15 * inch))
             
-    #         print(f"Successfully inserted chart '{chart_id}'")
+    #         print(f"Successfully inserted chart '{chart_id}' with size {size} ({render_width/inch:.1f} inches)")
     #         return True
             
     #     except Exception as e:
     #         print(f"Error inserting chart '{chart_id}': {e}")
     #         return False
-
+    def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
+        """Insert a specific chart by its ID with customizable options"""
+        try:
+            if chart_id not in self.chart_registry:
+                print(f"Chart '{chart_id}' not found in registry")
+                return False
     
+            chart_info = self.chart_registry[chart_id]
+            chart_data = chart_info['metadata']
+            img_bytes = chart_info['image']
+    
+            if img_bytes is None:
+                print(f"No image data for chart '{chart_id}'")
+                return False
+    
+            # Add title if requested
+            if add_title:
+                self.story.append(Paragraph(chart_data['title'], self.chart_title_style))
+    
+            # Add description if requested  
+            if add_description:
+                self.story.append(Paragraph(chart_data['description'], self.chart_description_style))
+    
+            # Create and add the chart
+            drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
+            if error:
+                print(f"Chart '{chart_id}' error: {error}")
+                return False
+    
+            if drawing is None:
+                print(f"Could not create drawing for chart '{chart_id}'")
+                return False
+    
+            # MUCH SMALLER SIZE CONFIGS
+            size_configs = {
+                "small": 2.5 * inch,    # VERY SMALL
+                "medium": 4.0 * inch,   # MEDIUM
+                "large": 5.5 * inch,    # LARGE
+                "full": 7.0 * inch      # FULL WIDTH
+            }
+            
+            target_width = size_configs.get(size, 4.0 * inch)
+            print(f"Target width for {chart_id}: {target_width}")
+            
+            # FORCE RESIZE - More aggressive approach
+            if hasattr(drawing, 'width') and hasattr(drawing, 'height'):
+                original_width = drawing.width
+                original_height = drawing.height
+                print(f"Original size: {original_width} x {original_height}")
+                
+                # Calculate scale factor
+                scale_factor = target_width / original_width if original_width > 0 else 1
+                
+                # Apply scaling
+                drawing.width = target_width
+                drawing.height = original_height * scale_factor
+                
+                print(f"New size: {drawing.width} x {drawing.height}, scale: {scale_factor}")
+            
+            # Create a centered frame for the chart
+            available_width = 7.5 * inch  # Page width minus margins
+            left_margin = (available_width - target_width) / 2
+            
+            # Create a table to center the drawing
+            centered_table = Table([[drawing]], colWidths=[target_width])
+            centered_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), left_margin),
+                ('RIGHTPADDING', (0, 0), (-1, -1), left_margin),
+            ]))
+            
+            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(centered_table)
+            self.story.append(Spacer(1, 0.15 * inch))
+            
+            print(f"Successfully inserted chart '{chart_id}' with size {size} ({target_width})")
+            return True
+            
+        except Exception as e:
+            print(f"Error inserting chart '{chart_id}': {e}")
+            import traceback
+            traceback.print_exc()
+            return False  
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
