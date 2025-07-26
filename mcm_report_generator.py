@@ -345,8 +345,77 @@ class PDFReportGenerator:
         print(f"Final registry keys: {list(registry.keys())}")
         return registry
 
+    # def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
+    #     """Insert chart with proper scaling and correct orientation"""
+    #     try:
+    #         if chart_id not in self.chart_registry:
+    #             return False
+    
+    #         chart_info = self.chart_registry[chart_id]
+    #         chart_data = chart_info['metadata']
+    #         img_bytes = chart_info['image']
+    
+    #         if img_bytes is None:
+    #             return False
+    
+    #         # Add title and description
+    #         if add_title:
+    #             self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
+    #         if add_description:
+    #             self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
+    
+    #         # Create drawing
+    #         drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
+    #         if error or drawing is None:
+    #             return False
+    
+    #         # Size configs
+    #         size_configs = {
+    #             "tiny": 3.5 * inch,
+    #             "small": 4.5 * inch,
+    #             "medium": 5.0* inch,
+    #             "large": 6.5 * inch
+    #         }
+            
+    #         target_width = size_configs.get(size, 2.5 * inch)
+    #         target_height = target_width * 0.6
+    
+    #         # Calculate scale factors
+    #         original_width = getattr(drawing, 'width', 520)
+    #         original_height = getattr(drawing, 'height', 300)
+    #         scale_x = target_width / original_width
+    #         scale_y = target_height / original_height
+    
+    #         # Create properly scaled drawing
+    #         from reportlab.graphics.shapes import Drawing, Group
+            
+    #         scaled_drawing = Drawing(target_width, target_height)
+    #         content_group = Group()
+            
+    #         # Simple scaling without flipping - this was the solution!
+    #         content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
+            
+    #         # Add original contents
+    #         if hasattr(drawing, 'contents'):
+    #             for item in drawing.contents:
+    #                 content_group.add(item)
+            
+    #         scaled_drawing.add(content_group)
+    #         scaled_drawing.hAlign = 'CENTER'
+            
+    #         self.story.append(Spacer(1, 0.1 * inch))
+    #         self.story.append(scaled_drawing)
+    #         self.story.append(Spacer(1, 0.15 * inch))
+            
+    #         print(f"SUCCESS: Perfectly scaled chart '{chart_id}' added")
+    #         return True
+            
+    #     except Exception as e:
+    #         print(f"ERROR: {e}")
+    #         return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
-        """Insert chart with proper scaling and correct orientation"""
+        """Insert chart with proper scaling - FIXED for pie charts"""
         try:
             if chart_id not in self.chart_registry:
                 return False
@@ -370,20 +439,28 @@ class PDFReportGenerator:
             if error or drawing is None:
                 return False
     
-            # Size configs
-            size_configs = {
-                "tiny": 3.5 * inch,
-                "small": 4.5 * inch,
-                "medium": 5.0* inch,
-                "large": 6.5 * inch
-            }
+            # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
+            is_pie_chart = any(pie_id in chart_id for pie_id in ['classification_distribution', 'classification_detection', 'classification_recovery'])
             
-            target_width = size_configs.get(size, 2.5 * inch)
-            target_height = target_width * 0.6
+            if is_pie_chart:
+                # Square dimensions for pie charts
+                target_size = 4.5 * inch  # Same width and height
+                target_width = target_size
+                target_height = target_size
+            else:
+                # Regular sizing for other charts
+                size_configs = {
+                    "tiny": 3.5 * inch,
+                    "small": 4.5 * inch,
+                    "medium": 5.0 * inch,
+                    "large": 6.5 * inch
+                }
+                target_width = size_configs.get(size, 5.0 * inch)
+                target_height = target_width * 0.6
     
             # Calculate scale factors
-            original_width = getattr(drawing, 'width', 520)
-            original_height = getattr(drawing, 'height', 300)
+            original_width = getattr(drawing, 'width', 400)
+            original_height = getattr(drawing, 'height', 400)
             scale_x = target_width / original_width
             scale_y = target_height / original_height
     
@@ -392,8 +469,6 @@ class PDFReportGenerator:
             
             scaled_drawing = Drawing(target_width, target_height)
             content_group = Group()
-            
-            # Simple scaling without flipping - this was the solution!
             content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
             
             # Add original contents
