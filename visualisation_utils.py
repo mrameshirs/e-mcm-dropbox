@@ -328,7 +328,7 @@ def get_visualization_data(dbx, selected_period):
                     font=dict(family="serif", color='#5A4A4A', size=12),
                     # SQUARE DIMENSIONS
                     width=500,
-                    height=500,
+                    height=400,
                     margin=dict(l=20, r=20, t=40, b=20),
                     # REMOVE LEGEND
                     showlegend=False,autosize=False
