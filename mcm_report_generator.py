@@ -380,7 +380,7 @@ class PDFReportGenerator:
             if is_pie_row:
                 # Wide format for three pies in row
                 target_width = 8.5 * inch
-                target_height = 3.5 * inch
+                target_height = 4.5 * inch
             elif is_pie_chart:
                 # SQUARE dimensions for pie charts - CRITICAL for circular shape
                 target_size = 3.0 * inch  # Same width and height
