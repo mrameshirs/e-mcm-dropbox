@@ -326,6 +326,11 @@ def get_visualization_data(dbx, selected_period):
                 )
                 fig8.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05]*len(class_counts))
                 #fig8.update_layout(legend_title="Classification", title_x=0.5)
+                # After creating fig8 (pie chart)
+                print(f"Fig8 created: {fig8 is not None}")
+                print(f"Fig8 data points: {len(class_counts)}")
+
+
                 charts.append(fig8)
             
             # Detection Amount by Classification
@@ -363,7 +368,7 @@ def get_visualization_data(dbx, selected_period):
                 if not class_agg_recovery.empty:
                     # ... create fig9b ...
                     print("Recovery chart created successfully!")
-                                # ADD MISSING STYLING
+                # ADD MISSING STYLING
                 fig9b.update_layout(
                     title=dict(text="<b>Recovery Amount by Taxpayer Classification</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
@@ -372,6 +377,11 @@ def get_visualization_data(dbx, selected_period):
                 )
                 fig9b.update_traces(textposition='inside', textinfo='percent+label')
                 fig9b.update_layout(legend_title="Classification", title_x=0.5)
+                # After creating fig9b (recovery pie chart)  
+                if 'fig9b' in locals():
+                    print("Recovery pie chart created successfully!")
+                else:
+                    print("Recovery pie chart was NOT created")
                 
                 # ADD MISSING APPEND TO CHARTS
                 charts.append(fig9b)
