@@ -373,7 +373,8 @@ class PDFReportGenerator:
     
             # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
             # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
-            is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
+            is_pie_chart==0
+            #is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
             
             if is_pie_chart:
                 # SQUARE dimensions for pie charts - CRITICAL for circular shape
