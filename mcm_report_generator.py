@@ -462,7 +462,7 @@ class PDFReportGenerator:
             traceback.print_exc()
             return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Insert chart with manual SVG coordinate system fix"""
+        """Simple scaling approach + ReportLab coordinate fix"""
         try:
             if chart_id not in self.chart_registry:
                 print(f"ERROR: Chart '{chart_id}' not found in registry")
@@ -485,22 +485,14 @@ class PDFReportGenerator:
                 description = chart_data.get('description', 'Chart description')
                 self.story.append(Paragraph(description, self.chart_description_style))
     
-            # FIX THE SVG CONTENT BEFORE PROCESSING
-            img_bytes.seek(0)
-            svg_content = img_bytes.read()
-            
-            # Manually fix the SVG coordinate system
-            fixed_svg = self._fix_svg_coordinate_system(svg_content)
-            fixed_buffer = BytesIO(fixed_svg)
-            
-            # Create drawing from fixed SVG
-            drawing, error = self._create_safe_svg_drawing(fixed_buffer)
+            # Create drawing using the ORIGINAL approach that was working for scaling
+            drawing, error = self._create_safe_svg_drawing(img_bytes)
             
             if error or drawing is None:
-                print(f"ERROR creating fixed drawing: {error}")
+                print(f"ERROR creating drawing: {error}")
                 return False
     
-            # Size configs
+            # Size configs (SAME AS BEFORE WHEN SCALING WORKED)
             size_configs = {
                 "tiny": 1.5 * inch,
                 "small": 2.5 * inch,
@@ -511,24 +503,47 @@ class PDFReportGenerator:
             target_width = size_configs.get(size, 2.5 * inch)
             target_height = target_width * 0.6
             
-            # Simple scaling without complex transforms
+            print(f"Target size: {target_width} x {target_height}")
+            
+            # SIMPLE SCALING (SAME AS WORKING VERSION)
             if hasattr(drawing, 'width') and drawing.width > 0:
                 scale_factor = target_width / drawing.width
                 drawing.width = target_width
                 drawing.height = drawing.height * scale_factor
+                print(f"Scaled to: {drawing.width} x {drawing.height}")
             else:
                 drawing.width = target_width
                 drawing.height = target_height
+    
+            # TRY COORDINATE FIX AT REPORTLAB LEVEL
+            from reportlab.graphics.shapes import Drawing as RLDrawing, Group
             
-            drawing.hAlign = 'CENTER'
+            # Create a wrapper drawing
+            wrapper = RLDrawing(target_width, target_height)
             
-            print(f"Fixed SVG chart size: {drawing.width} x {drawing.height}")
+            # Create a group to hold the original drawing content
+            content_group = Group()
+            
+            # Apply a simple vertical flip transform to the group
+            # This flips the Y-axis: scale(1, -1) then translate to bring back into view
+            content_group.transform = (1, 0, 0, -1, 0, target_height)
+            
+            # Add the original drawing contents to the group
+            if hasattr(drawing, 'contents'):
+                for item in drawing.contents:
+                    content_group.add(item)
+            
+            # Add the transformed group to the wrapper
+            wrapper.add(content_group)
+            wrapper.hAlign = 'CENTER'
+            
+            print(f"Applied Y-flip transform: (1, 0, 0, -1, 0, {target_height})")
             
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(drawing)
+            self.story.append(wrapper)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"SUCCESS: Fixed SVG chart '{chart_id}' added")
+            print(f"SUCCESS: Y-flipped chart '{chart_id}' added")
             return True
             
         except Exception as e:
@@ -536,40 +551,6 @@ class PDFReportGenerator:
             import traceback
             traceback.print_exc()
             return False
-    
-    def _fix_svg_coordinate_system(self, svg_content):
-        """Manually fix SVG coordinate system to prevent inversion"""
-        try:
-            if isinstance(svg_content, bytes):
-                svg_string = svg_content.decode('utf-8')
-            else:
-                svg_string = str(svg_content)
-            
-            print("Applying SVG coordinate fix...")
-            
-            # Method 1: Wrap entire content in a transform group
-            # Find the first <g> or content after <svg>
-            svg_pattern = r'(<svg[^>]*>)'
-            
-            if re.search(svg_pattern, svg_string):
-                # Add a transform group right after the opening <svg> tag
-                svg_string = re.sub(
-                    svg_pattern,
-                    r'\1<g transform="scale(1, -1) translate(0, -300)">',
-                    svg_string,
-                    count=1
-                )
-                
-                # Close the transform group before the closing </svg> tag
-                svg_string = svg_string.replace('</svg>', '</g></svg>')
-                
-                print("Applied coordinate system fix")
-            
-            return svg_string.encode('utf-8')
-        
-        except Exception as e:
-            print(f"SVG coordinate fix failed: {e}")
-            return svg_content
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
