@@ -1014,7 +1014,7 @@ class PDFReportGenerator:
             print(f"Chart registry keys: {list(self.chart_registry.keys())}")
             print(f"Chart registry: {self.chart_registry}")
             
-            # result1 = self.insert_chart_by_id("status_analysis", size="small")
+            # result1 = self.insert_chart_by_id("status_analysis", size="small", add_title=False)
             # print(f"Status analysis result: {result1}")
             
             result2 = self.insert_chart_by_id("recovery_trends", size="small") 
@@ -1024,7 +1024,7 @@ class PDFReportGenerator:
                 self.add_status_summary_table()
                 
             # INSERT RECOVERY TRENDS CHART
-            self.insert_chart_by_id("recovery_trends", size="small")
+            self.insert_chart_by_id("recovery_trends", size="small",add_title=False)
             
             # Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
