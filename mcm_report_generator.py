@@ -1493,7 +1493,7 @@ class PDFReportGenerator:
         """Add sectoral summary table"""
         try:
             sectoral_summary = self.vital_stats.get('sectoral_summary', [])
-            print('Sectorals summary',sectoral summary)
+            print('Sectorals summary',sectoral_summary)
             if sectoral_summary:
                 table_header_style = ParagraphStyle(
                     name='SectoralTableHeader',
