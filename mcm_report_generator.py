@@ -384,12 +384,9 @@ class PDFReportGenerator:
     #         print(f"Error inserting chart '{chart_id}': {e}")
     #         return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Insert a specific chart by its ID with customizable options"""
-        print(f"=== INSERT_CHART_BY_ID CALLED: {chart_id}, size: {size} ===")
-        
+        """Simple chart insertion without complex transforms"""
         try:
             if chart_id not in self.chart_registry:
-                print(f"ERROR: Chart '{chart_id}' not found in registry")
                 return False
     
             chart_info = self.chart_registry[chart_id]
@@ -397,74 +394,51 @@ class PDFReportGenerator:
             img_bytes = chart_info['image']
     
             if img_bytes is None:
-                print(f"ERROR: No image data for chart '{chart_id}'")
                 return False
     
-            # Add title
+            # Add title and description
             if add_title:
-                title = chart_data.get('title', f'Chart {chart_id}')
-                self.story.append(Paragraph(title, self.chart_title_style))
-    
-            # Add description  
+                self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
             if add_description:
-                description = chart_data.get('description', 'Chart description')
-                self.story.append(Paragraph(description, self.chart_description_style))
+                self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
     
-            # Create the chart
+            # Create drawing
             drawing, error = self._create_safe_svg_drawing(img_bytes)
             
             if error or drawing is None:
-                print(f"ERROR creating drawing: {error}")
                 return False
     
-            # VERY SMALL SIZE CONFIGS - FORCE TINY CHARTS
+            # Size configs  
             size_configs = {
-                "tiny": 1.5 * inch,     # VERY TINY
-                "small": 2.0 * inch,    # SMALL  
-                "medium": 3.0 * inch,   # MEDIUM
-                "large": 4.0 * inch,    # LARGE
-                "full": 5.0 * inch      # FULL
+                "tiny": 1.5 * inch,
+                "small": 2.0 * inch,
+                "medium": 3.0 * inch,
+                "large": 4.0 * inch
             }
             
             target_width = size_configs.get(size, 2.0 * inch)
-            target_height = target_width * 0.6  # Fixed aspect ratio
             
-            print(f"FORCING size to: {target_width} x {target_height}")
-            
-            # FORCE the size - don't rely on scaling
-            drawing.width = target_width
-            drawing.height = target_height
-            
-            # Try to force the internal scaling too
-            if hasattr(drawing, 'contents'):
-                for item in drawing.contents:
-                    if hasattr(item, 'transform'):
-                        # Reset any existing transforms
-                        scale_x = target_width / 520.0  # Original width from console
-                        scale_y = target_height / 300.0  # Original height from console
-                        item.transform = (scale_x, 0, 0, scale_y, 0, 0)
-            
-            # Create a constrained frame to force size
-            from reportlab.platypus import KeepInFrame
-            constrained_chart = KeepInFrame(target_width, target_height, [drawing])
-            
-            # Center the constrained chart
-            centering_table = Table([[constrained_chart]], colWidths=[target_width])
-            centering_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            # SIMPLE scaling - maintain aspect ratio
+            if hasattr(drawing, 'width') and drawing.width > 0:
+                scale_factor = target_width / drawing.width
+                drawing.width = target_width
+                drawing.height = drawing.height * scale_factor
+            else:
+                drawing.width = target_width
+                drawing.height = target_width * 0.6
+    
+            # DON'T modify transforms - let the original orientation stay
+            drawing.hAlign = 'CENTER'
             
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(centering_table)
+            self.story.append(drawing)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"SUCCESS: Constrained chart '{chart_id}' added with forced size {target_width}")
+            print(f"SUCCESS: Simple chart '{chart_id}' added")
             return True
+            
         except Exception as e:
-            print(f"EXCEPTION: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"ERROR: {e}")
             return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
