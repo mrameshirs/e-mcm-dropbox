@@ -210,6 +210,8 @@ class PDFReportGenerator:
     def _create_chart_registry(self):
         """Create a registry of charts with IDs for easy access"""
         registry = {}
+        print(f"Creating chart registry with {len(self.chart_images)} images and {len(self.chart_metadata)} metadata entries")
+        
         for i, chart_data in enumerate(self.chart_metadata):
             chart_id = chart_data.get('id', f'chart_{i+1}')
             registry[chart_id] = {
@@ -217,8 +219,11 @@ class PDFReportGenerator:
                 'image': self.chart_images[i] if i < len(self.chart_images) else None,
                 'metadata': chart_data
             }
-        return registry
+            print(f"Registered chart {i}: {chart_id} -> {chart_data.get('title', 'No title')}")
         
+        print(f"Final registry keys: {list(registry.keys())}")
+        return registry
+            
     # def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
     #     """Insert a specific chart by its ID with customizable options"""
     #     try:
@@ -380,89 +385,89 @@ class PDFReportGenerator:
     #         return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
         """Insert a specific chart by its ID with customizable options"""
+        print(f"=== INSERT_CHART_BY_ID CALLED: {chart_id}, size: {size} ===")
+        
         try:
+            if not hasattr(self, 'chart_registry'):
+                print("ERROR: No chart_registry found!")
+                return False
+                
             if chart_id not in self.chart_registry:
-                print(f"Chart '{chart_id}' not found in registry")
+                print(f"ERROR: Chart '{chart_id}' not found in registry")
+                print(f"Available charts: {list(self.chart_registry.keys())}")
                 return False
     
             chart_info = self.chart_registry[chart_id]
             chart_data = chart_info['metadata']
             img_bytes = chart_info['image']
+            
+            print(f"Chart info: {chart_info}")
+            print(f"Image bytes: {img_bytes}")
     
             if img_bytes is None:
-                print(f"No image data for chart '{chart_id}'")
+                print(f"ERROR: No image data for chart '{chart_id}'")
                 return False
     
-            # Add title if requested
+            # Add title
             if add_title:
-                self.story.append(Paragraph(chart_data['title'], self.chart_title_style))
+                title = chart_data.get('title', f'Chart {chart_id}')
+                print(f"Adding title: {title}")
+                self.story.append(Paragraph(title, self.chart_title_style))
     
-            # Add description if requested  
+            # Add description  
             if add_description:
-                self.story.append(Paragraph(chart_data['description'], self.chart_description_style))
+                description = chart_data.get('description', 'Chart description')
+                print(f"Adding description: {description[:50]}...")
+                self.story.append(Paragraph(description, self.chart_description_style))
     
-            # Create and add the chart
+            # Create the chart
+            print("Creating SVG drawing...")
             drawing, error = self._create_safe_svg_drawing(img_bytes)
             
             if error:
-                print(f"Chart '{chart_id}' error: {error}")
+                print(f"SVG ERROR: {error}")
                 return False
     
             if drawing is None:
-                print(f"Could not create drawing for chart '{chart_id}'")
+                print("ERROR: Drawing is None")
                 return False
     
-            # MUCH SMALLER SIZE CONFIGS
+            print(f"Drawing created successfully: {drawing}")
+            
+            # SIMPLE SCALING - NO TABLE, JUST DIRECT INSERT
             size_configs = {
-                "small": 2.5 * inch,    # VERY SMALL
-                "medium": 4.0 * inch,   # MEDIUM
-                "large": 5.5 * inch,    # LARGE
-                "full": 7.0 * inch      # FULL WIDTH
+                "small": 3.0 * inch,
+                "medium": 4.5 * inch,
+                "large": 6.0 * inch,
+                "full": 7.0 * inch
             }
             
-            target_width = size_configs.get(size, 4.0 * inch)
-            print(f"Target width for {chart_id}: {target_width}")
+            target_width = size_configs.get(size, 4.5 * inch)
+            print(f"Target width: {target_width}")
             
-            # FORCE RESIZE - More aggressive approach
-            if hasattr(drawing, 'width') and hasattr(drawing, 'height'):
-                original_width = drawing.width
-                original_height = drawing.height
-                print(f"Original size: {original_width} x {original_height}")
-                
-                # Calculate scale factor
-                scale_factor = target_width / original_width if original_width > 0 else 1
-                
-                # Apply scaling
+            # Force resize
+            if hasattr(drawing, 'width') and drawing.width > 0:
+                scale_factor = target_width / drawing.width
                 drawing.width = target_width
-                drawing.height = original_height * scale_factor
-                
-                print(f"New size: {drawing.width} x {drawing.height}, scale: {scale_factor}")
+                drawing.height = drawing.height * scale_factor
+                print(f"Scaled to: {drawing.width} x {drawing.height}")
             
-            # Create a centered frame for the chart
-            available_width = 7.5 * inch  # Page width minus margins
-            left_margin = (available_width - target_width) / 2
+            # Simple center alignment
+            drawing.hAlign = 'CENTER'
             
-            # Create a table to center the drawing
-            centered_table = Table([[drawing]], colWidths=[target_width])
-            centered_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('LEFTPADDING', (0, 0), (-1, -1), left_margin),
-                ('RIGHTPADDING', (0, 0), (-1, -1), left_margin),
-            ]))
-            
+            # Add to story
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(centered_table)
+            self.story.append(drawing)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"Successfully inserted chart '{chart_id}' with size {size} ({target_width})")
+            print(f"SUCCESS: Chart '{chart_id}' added to story")
             return True
             
         except Exception as e:
-            print(f"Error inserting chart '{chart_id}': {e}")
+            print(f"EXCEPTION in insert_chart_by_id: {e}")
             import traceback
             traceback.print_exc()
-            return False  
+            return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
@@ -1173,14 +1178,23 @@ class PDFReportGenerator:
             
             self.story.append(performance_table)
             self.story.append(Spacer(1, 0.3 * inch))
-            
+            print("=== TRYING TO INSERT CHARTS ===")
+        
             # Add Status Summary Table if available
             self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
             # INSERT STATUS ANALYSIS CHART
             self.insert_chart_by_id("status_analysis", size="small")
+            print(f"Chart registry keys: {list(self.chart_registry.keys())}")
+            print(f"Chart registry: {self.chart_registry}")
             
+            result1 = self.insert_chart_by_id("status_analysis", size="small")
+            print(f"Status analysis result: {result1}")
+            
+            result2 = self.insert_chart_by_id("recovery_trends", size="small") 
+            print(f"Recovery trends result: {result2}")
+            print("=== FINISHED CHART INSERTION ===")
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
                 
