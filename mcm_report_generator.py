@@ -251,10 +251,10 @@ class PDFReportGenerator:
     
             # Size configs
             size_configs = {
-                "tiny": 1.5 * inch,
-                "small": 2.5 * inch,
-                "medium": 3.5 * inch,
-                "large": 4.5 * inch
+                "tiny": 3.5 * inch,
+                "small": 4.5 * inch,
+                "medium": 5.5 * inch,
+                "large": 6.5 * inch
             }
             
             target_width = size_configs.get(size, 2.5 * inch)
