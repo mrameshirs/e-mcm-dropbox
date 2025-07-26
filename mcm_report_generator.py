@@ -462,10 +462,9 @@ class PDFReportGenerator:
             traceback.print_exc()
             return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """Simple scaling approach + ReportLab coordinate fix"""
+        """Just do simple scaling, accept whatever orientation we get"""
         try:
             if chart_id not in self.chart_registry:
-                print(f"ERROR: Chart '{chart_id}' not found in registry")
                 return False
     
             chart_info = self.chart_registry[chart_id]
@@ -473,26 +472,21 @@ class PDFReportGenerator:
             img_bytes = chart_info['image']
     
             if img_bytes is None:
-                print(f"ERROR: No image data for chart '{chart_id}'")
                 return False
     
             # Add title and description
             if add_title:
-                title = chart_data.get('title', f'Chart {chart_id}')
-                self.story.append(Paragraph(title, self.chart_title_style))
-    
+                self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
             if add_description:
-                description = chart_data.get('description', 'Chart description')
-                self.story.append(Paragraph(description, self.chart_description_style))
+                self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
     
-            # Create drawing using the ORIGINAL approach that was working for scaling
+            # Create drawing - NO MODIFICATIONS
             drawing, error = self._create_safe_svg_drawing(img_bytes)
             
             if error or drawing is None:
-                print(f"ERROR creating drawing: {error}")
                 return False
     
-            # Size configs (SAME AS BEFORE WHEN SCALING WORKED)
+            # Size configs
             size_configs = {
                 "tiny": 1.5 * inch,
                 "small": 2.5 * inch,
@@ -501,55 +495,25 @@ class PDFReportGenerator:
             }
             
             target_width = size_configs.get(size, 2.5 * inch)
-            target_height = target_width * 0.6
             
-            print(f"Target size: {target_width} x {target_height}")
-            
-            # SIMPLE SCALING (SAME AS WORKING VERSION)
+            # ONLY scale, don't modify anything else
             if hasattr(drawing, 'width') and drawing.width > 0:
                 scale_factor = target_width / drawing.width
                 drawing.width = target_width
                 drawing.height = drawing.height * scale_factor
-                print(f"Scaled to: {drawing.width} x {drawing.height}")
-            else:
-                drawing.width = target_width
-                drawing.height = target_height
     
-            # TRY COORDINATE FIX AT REPORTLAB LEVEL
-            from reportlab.graphics.shapes import Drawing as RLDrawing, Group
+            drawing.hAlign = 'CENTER'
             
-            # Create a wrapper drawing
-            wrapper = RLDrawing(target_width, target_height)
-            
-            # Create a group to hold the original drawing content
-            content_group = Group()
-            
-            # Apply a simple vertical flip transform to the group
-            # This flips the Y-axis: scale(1, -1) then translate to bring back into view
-            content_group.transform = (1, 0, 0, -1, 0, target_height)
-            
-            # Add the original drawing contents to the group
-            if hasattr(drawing, 'contents'):
-                for item in drawing.contents:
-                    content_group.add(item)
-            
-            # Add the transformed group to the wrapper
-            wrapper.add(content_group)
-            wrapper.hAlign = 'CENTER'
-            
-            print(f"Applied Y-flip transform: (1, 0, 0, -1, 0, {target_height})")
-            
+            # Add directly without any wrapper or transforms
             self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(wrapper)
+            self.story.append(drawing)
             self.story.append(Spacer(1, 0.15 * inch))
             
-            print(f"SUCCESS: Y-flipped chart '{chart_id}' added")
+            print(f"SUCCESS: Simple chart '{chart_id}' added (no coordinate fixing)")
             return True
             
         except Exception as e:
             print(f"ERROR: {e}")
-            import traceback
-            traceback.print_exc()
             return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
