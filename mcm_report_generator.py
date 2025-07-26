@@ -1436,7 +1436,7 @@ class PDFReportGenerator:
             # First Chart
             self.story.append(Paragraph("🎯 Distribution of DARs by Taxpayer Classification", chart_header_style))
             self.insert_chart_by_id("taxpayer_classification_distribution", 
-                                   size="medium", 
+                                   size="small", 
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
@@ -1448,7 +1448,13 @@ class PDFReportGenerator:
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
-            
+            # Third Chart
+            self.story.append(Paragraph("🎯 Recovery Amount by Taxpayer Classification", chart_header_style))
+            self.insert_chart_by_id("taxpayer_classification_recovery", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
             # ADD SECTORAL SUMMARY TABLE if data available
             if self.vital_stats.get('sectoral_analysis_available', False):
                 self.add_sectoral_summary_table()
