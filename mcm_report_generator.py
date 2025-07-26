@@ -462,90 +462,152 @@ class PDFReportGenerator:
             traceback.print_exc()
             return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=True, add_description=True):
-        """
-        Inserts an SVG chart, correcting for coordinate system inversion,
-        and provides robust centering and scaling.
-        """
+        """Insert chart with ALL 4 coordinate correction approaches to test"""
         try:
             if chart_id not in self.chart_registry:
-                print(f"Chart '{chart_id}' not found in registry.")
                 return False
-
+    
             chart_info = self.chart_registry[chart_id]
             chart_data = chart_info['metadata']
             img_bytes = chart_info['image']
-
+    
             if img_bytes is None:
-                print(f"No image data for chart '{chart_id}'.")
                 return False
-
-            # Add title and description before the chart
+    
+            # Add title and description ONCE
             if add_title:
-                self.story.append(Paragraph(chart_data.get('title', 'Untitled Chart'), self.chart_title_style))
+                self.story.append(Paragraph(f"TESTING: {chart_data.get('title', '')}", self.chart_title_style))
             if add_description:
                 self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
-
-            # Create the initial drawing from SVG data
+    
+            # Create drawing
             drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
             if error or drawing is None:
-                self._add_chart_error_inline(chart_id, error or "Could not create drawing")
                 return False
-
-            # 1. DEFINE SIZES
+    
+            # Size configs
             size_configs = {
-                "small": 3.0 * inch,
-                "medium": 4.5 * inch,
-                "large": 6.0 * inch,
-                "full": 7.8 * inch
+                "tiny": 1.5 * inch,
+                "small": 2.5 * inch,
+                "medium": 3.5 * inch,
+                "large": 4.5 * inch
             }
-            target_width = size_configs.get(size, 4.5 * inch)
             
-            original_width = getattr(drawing, 'width', target_width)
-            original_height = getattr(drawing, 'height', target_width * 0.6)
-
-            # Maintain aspect ratio
-            aspect_ratio = original_height / original_width if original_width > 0 else 0.6
-            target_height = target_width * aspect_ratio
-
-            # 2. CORRECT COORDINATE SYSTEM (THE FLIP)
+            target_width = size_configs.get(size, 2.5 * inch)
+            target_height = target_width * 0.6
+    
+            # Calculate scale factors
+            original_width = getattr(drawing, 'width', 520)
+            original_height = getattr(drawing, 'height', 300)
+            scale_x = target_width / original_width
+            scale_y = target_height / original_height
+    
+            print(f"=== TESTING ALL APPROACHES FOR {chart_id} ===")
+            print(f"Original: {original_width}x{original_height}, Target: {target_width}x{target_height}")
+            print(f"Scale: {scale_x:.3f}x{scale_y:.3f}")
+    
             from reportlab.graphics.shapes import Drawing, Group
-            
-            # Create a new, correctly sized drawing canvas
-            corrected_drawing = Drawing(target_width, target_height)
-
-            scale_x = target_width / original_width if original_width > 0 else 1
-            scale_y = target_height / original_height if original_height > 0 else 1
-
-            # A group holds all chart elements and applies the transform to them
-            flip_group = Group()
-            
-            # This matrix scales, flips the Y-axis, and moves it back into view
-            flip_group.transform = (scale_x, 0, 0, -scale_y, 0, target_height)
-            
-            if hasattr(drawing, 'contents'):
-                for item in drawing.contents:
-                    flip_group.add(item)
-            
-            corrected_drawing.add(flip_group)
-
-            # 3. CENTER THE FINAL DRAWING
-            # Wrap the corrected drawing in a full-width table for robust centering
-            available_width = self.width - self.doc.leftMargin - self.doc.rightMargin
-            chart_table = Table([[corrected_drawing]], colWidths=[available_width])
-            chart_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-
-            # Add the final chart to the PDF story
-            self.story.append(Spacer(1, 0.1 * inch))
-            self.story.append(chart_table)
-            self.story.append(Spacer(1, 0.15 * inch))
-
+    
+            # --- APPROACH 1: Original Transform ---
+            try:
+                approach1 = Drawing(target_width, target_height)
+                group1 = Group()
+                group1.transform = (scale_x, 0, 0, -scale_y, 0, target_height)
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        group1.add(item)
+                approach1.add(group1)
+                approach1.hAlign = 'CENTER'
+                
+                # Add with label
+                label_style = ParagraphStyle(name='TestLabel', fontSize=10, alignment=TA_CENTER, textColor=colors.red)
+                self.story.append(Paragraph("APPROACH 1: Original (scale_x, 0, 0, -scale_y, 0, target_height)", label_style))
+                self.story.append(approach1)
+                self.story.append(Spacer(1, 0.1 * inch))
+                print("✓ Approach 1 added")
+            except Exception as e:
+                print(f"✗ Approach 1 failed: {e}")
+    
+            # --- APPROACH 2: Modified Y Translation ---
+            try:
+                approach2 = Drawing(target_width, target_height)
+                group2 = Group()
+                group2.transform = (scale_x, 0, 0, -scale_y, 0, original_height * scale_y)
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        group2.add(item)
+                approach2.add(group2)
+                approach2.hAlign = 'CENTER'
+                
+                self.story.append(Paragraph("APPROACH 2: Modified Y (scale_x, 0, 0, -scale_y, 0, original_height * scale_y)", label_style))
+                self.story.append(approach2)
+                self.story.append(Spacer(1, 0.1 * inch))
+                print("✓ Approach 2 added")
+            except Exception as e:
+                print(f"✗ Approach 2 failed: {e}")
+    
+            # --- APPROACH 3: Positive Scale with Negative Translate ---
+            try:
+                approach3 = Drawing(target_width, target_height)
+                group3 = Group()
+                group3.transform = (scale_x, 0, 0, scale_y, 0, -target_height)
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        group3.add(item)
+                approach3.add(group3)
+                approach3.hAlign = 'CENTER'
+                
+                self.story.append(Paragraph("APPROACH 3: Positive scale, negative translate (scale_x, 0, 0, scale_y, 0, -target_height)", label_style))
+                self.story.append(approach3)
+                self.story.append(Spacer(1, 0.1 * inch))
+                print("✓ Approach 3 added")
+            except Exception as e:
+                print(f"✗ Approach 3 failed: {e}")
+    
+            # --- APPROACH 4: Center-based Flip ---
+            try:
+                approach4 = Drawing(target_width, target_height)
+                group4 = Group()
+                center_y = target_height / 2
+                # Flip around center: translate to center, flip, translate back
+                group4.transform = (scale_x, 0, 0, -scale_y, 0, 2 * center_y)
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        group4.add(item)
+                approach4.add(group4)
+                approach4.hAlign = 'CENTER'
+                
+                self.story.append(Paragraph("APPROACH 4: Center flip (scale_x, 0, 0, -scale_y, 0, 2 * center_y)", label_style))
+                self.story.append(approach4)
+                self.story.append(Spacer(1, 0.1 * inch))
+                print("✓ Approach 4 added")
+            except Exception as e:
+                print(f"✗ Approach 4 failed: {e}")
+    
+            # --- APPROACH 5: No Flip (for comparison) ---
+            try:
+                approach5 = Drawing(target_width, target_height)
+                group5 = Group()
+                group5.transform = (scale_x, 0, 0, scale_y, 0, 0)  # No flip, just scale
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        group5.add(item)
+                approach5.add(group5)
+                approach5.hAlign = 'CENTER'
+                
+                self.story.append(Paragraph("APPROACH 5: No flip (original orientation for comparison)", label_style))
+                self.story.append(approach5)
+                self.story.append(Spacer(1, 0.2 * inch))
+                print("✓ Approach 5 (no flip) added")
+            except Exception as e:
+                print(f"✗ Approach 5 failed: {e}")
+    
+            print(f"=== FINISHED TESTING {chart_id} ===")
             return True
-
+            
         except Exception as e:
-            print(f"An unexpected error occurred in insert_chart_by_id for '{chart_id}': {e}")
+            print(f"ERROR: {e}")
             import traceback
             traceback.print_exc()
             return False
