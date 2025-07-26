@@ -1548,7 +1548,7 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Error adding sectoral summary table: {e}")
             
-        def add_comprehensive_classification_page(self):
+    def add_comprehensive_classification_page(self):
             """Add a comprehensive classification page that renders properly in PDF"""
             try:
                 # Get real data for calculations
@@ -1660,7 +1660,7 @@ class PDFReportGenerator:
                 import traceback
                 traceback.print_exc()
         
-        def _create_stats_grid(self, main_categories, sub_categories, total_observations):
+    def _create_stats_grid(self, main_categories, sub_categories, total_observations):
             """Create statistics grid for the classification page"""
             
             stat_style = ParagraphStyle(
@@ -1714,7 +1714,7 @@ class PDFReportGenerator:
             
             return grid_table
         
-        def _add_classification_categories_grid(self, category_stats):
+    def _add_classification_categories_grid(self, category_stats):
             """Add the 9 classification categories in a 3x3 grid"""
             
             categories_info = [
@@ -1781,7 +1781,7 @@ class PDFReportGenerator:
             
             self.story.append(grid_table)
         
-        def _create_category_card(self, category_info, category_stats):
+    def _create_category_card(self, category_info, category_stats):
             """Create a visual card for each classification category"""
             code, title, color, subcategories = category_info
             
@@ -1847,7 +1847,7 @@ class PDFReportGenerator:
             
             return card_table
         
-        def _get_category_stats_text(self, category_stats, category_code):
+    def _get_category_stats_text(self, category_stats, category_code):
             """Get formatted statistics text for a category"""
             if category_stats.empty:
                 return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
@@ -1862,7 +1862,7 @@ class PDFReportGenerator:
             
             return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
         
-        def _add_classification_legend(self):
+    def _add_classification_legend(self):
             """Add color legend and usage guide"""
             legend_style = ParagraphStyle(
                 name='LegendHeader',
@@ -1923,7 +1923,7 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.2*inch))
             self.story.append(legend_table)
     
-        def add_classification_summary_table(self):
+    def add_classification_summary_table(self):
             """Add classification summary table"""  
             try:
                 classification_summary = self.vital_stats.get('classification_summary', [])
