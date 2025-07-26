@@ -1008,7 +1008,7 @@ class PDFReportGenerator:
         
             # Add Status Summary Table if available
             self.add_section_highlight_bar("II. Status of Audit Para Analysis",text_color="#0E4C92")
-            section2_description='This section provides analysis of Audit paras based on the Recovery status of the amount involved and provides the recovery potential out of the detected amount actionable by the audit groups'
+            section2_description='This section provides analysis of Audit paras based on the Recovery status of the amount involved and shows potential recovery paras , actionable by the audit groups'
             self.story.append(Paragraph(section2_description, para_style))
             if self.vital_stats.get('status_analysis_available', False):
                 self.add_status_summary_table()
@@ -1017,17 +1017,17 @@ class PDFReportGenerator:
             print(f"Chart registry keys: {list(self.chart_registry.keys())}")
             print(f"Chart registry: {self.chart_registry}")
             
-            # result1 = self.insert_chart_by_id("status_analysis", size="small", add_title=False)
+            # result1 = self.insert_chart_by_id("status_analysis", size="medium", add_title=False)
             # print(f"Status analysis result: {result1}")
             
             result2 = self.insert_chart_by_id("recovery_trends", size="small") 
             print(f"Recovery trends result: {result2}")
             print("=== FINISHED CHART INSERTION ===")
-            if self.vital_stats.get('status_analysis_available', False):
-                self.add_status_summary_table()
+            # if self.vital_stats.get('status_analysis_available', False):
+            #     self.add_status_summary_table()
                 
-            # INSERT RECOVERY TRENDS CHART
-            self.insert_chart_by_id("recovery_trends", size="small",add_title=False)
+            # # INSERT RECOVERY TRENDS CHART
+            # self.insert_chart_by_id("recovery_trends", size="small",add_title=False)
             
             # Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
