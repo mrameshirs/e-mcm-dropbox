@@ -469,6 +469,8 @@ def get_visualization_data(dbx, selected_period):
                     
                 print(f"Ultra compact three pie charts (no title) created successfully!")
                 charts.append(fig_combined)
+                charts.append(fig_combined)# twice added to maintain the chart count and id matching
+                charts.append(fig_combined)
         # if 'taxpayer_classification' in df_unique_reports.columns:
         #     class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
         #     class_counts.columns = ['classification', 'count']
