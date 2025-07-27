@@ -2221,62 +2221,33 @@ class PDFReportGenerator:
         return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
     
     def _add_compact_classification_legend(self):
-        """Add ultra-compact color legend"""
+        """Add ultra-compact single line legend"""
         legend_style = ParagraphStyle(
-            name='LegendHeader',
-            fontSize=10,   # Reduced from 14
+            name='LegendText',
+            fontSize=11,
             textColor=colors.white,
             alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
-        )
-        
-        legend_item_style = ParagraphStyle(
-            name='LegendItem',
-            fontSize=7,    # Reduced from 9
-            textColor=colors.white,
-            alignment=TA_LEFT,
             fontName='Helvetica',
-            leading=9      # Tight line spacing
+            leading=12
         )
         
-        # Compact legend items
-        legend_items = [
-            ("■", "#e74c3c", "High Risk - Tax Payment"),
-            ("■", "#f39c12", "Medium Risk - RCM"), 
-            ("■", "#3498db", "High Volume - ITC"),
-            ("■", "#9b59b6", "Financial Impact - Interest"),
-            ("■", "#2ecc71", "Administrative - Filing"),
-            ("■", "#34495e", "Process Related - Documentation")
-        ]
+        # Single line legend text
+        legend_text = "Audit 1 Commissionerate Mumbai GST Zone codified Nature of compliances into total 58 Sub codes under 9 main classification codes for analysis"
         
-        # Create compact legend grid
+        # Create simple legend table
         legend_data = [
-            [Paragraph("🎯 Classification Guide & Impact Assessment", legend_style)]
+            [Paragraph(legend_text, legend_style)]
         ]
         
-        # Add legend items in 3 columns instead of 2 for compactness
-        for i in range(0, len(legend_items), 3):
-            row = []
-            for j in range(3):
-                if i + j < len(legend_items):
-                    symbol, color, text = legend_items[i + j]
-                    colored_text = f"<font color='{color}'>{symbol}</font> {text}"
-                    row.append(Paragraph(colored_text, legend_item_style))
-                else:
-                    row.append("")
-            legend_data.append(row)
-        
-        legend_table = Table(legend_data, colWidths=[2.5*inch, 2.5*inch, 2.5*inch])
+        legend_table = Table(legend_data, colWidths=[7.5*inch])
         legend_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#34495e")),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center header
-            ('ALIGN', (0, 1), (-1, -1), 'LEFT'),   # Left align items
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),     # Reduced from 10
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),  # Reduced from 10
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),    # Reduced from 15
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),   # Reduced from 15
-            ('SPAN', (0, 0), (2, 0)),  # Span header across 3 columns
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 15),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 15),
         ]))
         
         self.story.append(Spacer(1, 0.05*inch))  # Minimal spacer
