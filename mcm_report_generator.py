@@ -2331,6 +2331,7 @@ class PDFReportGenerator:
     def add_nature_of_non_compliance_analysis(self):
             """Add Section IV - Nature of Non Compliance Analysis"""
             try:
+                self.story.append(PageBreak())
                 # Section IV Header
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
@@ -2348,13 +2349,20 @@ class PDFReportGenerator:
                     spaceAfter=16
                 )
                 
-                description_text = """
-                This section analyzes the nature of non-compliance using the Audit Para Categorisation Coding System of Audit-1 Commissionerate. 
-                The analysis categorizes violations into major areas like Tax Payment Defaults, ITC Violations, Return Filing issues, and Procedural Non-compliance.
-                """
+                # description_text = """
+                # This section analyzes the nature of non-compliance using the Audit Para Categorisation Coding System of Audit-1 Commissionerate. 
+                # The analysis categorizes violations into major areas like Tax Payment Defaults, ITC Violations, Return Filing issues, and Procedural Non-compliance.
+                # """
                 
-                self.story.append(Paragraph(description_text, desc_style))
+                # self.story.append(Paragraph(description_text, desc_style))
+                # ADD PAGE BREAK AND COMPREHENSIVE CLASSIFICATION PAGE
                 
+                self.add_comprehensive_classification_page()
+              
+                # Add classification summary table (only if you want it later)
+                if self.vital_stats.get('compliance_analysis_available', False):
+                    self.story.append(Spacer(1, 0.2 * inch))
+                    self.add_classification_summary_table()
                 # Chart heading style
                 chart_header_style = ParagraphStyle(
                     name='ComplianceChartHeader',
@@ -2390,14 +2398,7 @@ class PDFReportGenerator:
                                        add_title=False, 
                                        add_description=False)
                 self.story.append(Spacer(1, 0.3 * inch))
-                # ADD PAGE BREAK AND COMPREHENSIVE CLASSIFICATION PAGE
-                self.story.append(PageBreak())
-                self.add_comprehensive_classification_page()
-              
-                # Add classification summary table (only if you want it later)
-                if self.vital_stats.get('compliance_analysis_available', False):
-                    self.story.append(Spacer(1, 0.2 * inch))
-                    self.add_classification_summary_table()
+                
                     
             except Exception as e:
                 print(f"Error adding nature of non compliance analysis: {e}")
