@@ -2333,7 +2333,7 @@ class PDFReportGenerator:
             try:
                 self.story.append(PageBreak())
                 # Section IV Header
-                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
+                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis1", text_color="#0E4C92")
                 
                 # Description
                 desc_style = ParagraphStyle(
