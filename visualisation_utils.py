@@ -8,6 +8,37 @@ from dropbox_utils import read_from_spreadsheet
 from config import MCM_DATA_PATH
 from plotly.subplots import make_subplots
 
+def wrap_text(text, max_length=15):
+    """
+    Helper function to wrap long text into multiple lines
+    """
+    if len(text) <= max_length:
+        return text
+    
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        if current_length + len(word) + 1 <= max_length:
+            current_line.append(word)
+            current_length += len(word) + 1
+        else:
+            if current_line:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_length = len(word)
+            else:
+                # Word is longer than max_length, split it
+                lines.append(word)
+                current_line = []
+                current_length = 0
+    
+    if current_line:
+        lines.append(' '.join(current_line))
+    
+    return '<br>'.join(lines)
 
 def get_visualization_data(dbx, selected_period):
     """
@@ -126,7 +157,7 @@ def get_visualization_data(dbx, selected_period):
         
         # --- 5. Generate ALL Charts (COMPREHENSIVE REPLICA) ---
         charts = []
-        def style_chart(fig, title_text, y_title, x_title):
+        def style_chart(fig, title_text, y_title, x_title, wrap_x_labels=False):
             """
             Applies a professional, report-style theme to a Plotly chart with corrected layout.
             """
@@ -145,12 +176,19 @@ def get_visualization_data(dbx, selected_period):
             # Use a small minimum range in case all values are zero
             #y_range_top = max_y * 1.50 if max_y > 0 else 1
             y_range_top = max_y * 1.25 if max_y > 0 else 1
+            # Wrap x-axis labels if requested
+            if wrap_x_labels:
+                for trace in fig.data:
+                    if hasattr(trace, 'x') and trace.x is not None:
+                        wrapped_labels = [wrap_text(str(label)) for label in trace.x]
+                        trace.x = wrapped_labels
             fig.update_layout(
                 paper_bgcolor=plot_bg_color,
                 plot_bgcolor=plot_bg_color,
                 font=dict(family="serif", color=border_color, size=12),
                 #margin=dict(l=60, r=40, t=80, b=60),
-                margin=dict(l=60, r=20, t=20, b=60),
+                #margin=dict(l=60, r=20, t=20, b=60),
+                margin=dict(l=60, r=20, t=20, b=80 if wrap_x_labels else 60),
                 showlegend=True,  # Remove default title area
         
                 shapes=[
@@ -266,7 +304,7 @@ def get_visualization_data(dbx, selected_period):
                     # fig3.update_layout(title_x=0.5, height=450, xaxis_title="Status of Para",
                     #                  yaxis_title="Detection Amount (₹ Lakhs)", xaxis={'tickangle': 45})
                     # fig3.update_traces(textposition="outside", cliponaxis=False)
-                    fig3 = style_chart(fig3, "Detection Amount by Status", "Detection Amount (₹ Lakhs)", "Status of Para")
+                    fig3 = style_chart(fig3, "Detection Amount by Status", "Detection Amount (₹ Lakhs)", "Status of Para", wrap_x_labels=True)
                     charts.append(fig3)
         
         # CHARTS 4-7: Group & Circle Performance (EXACT REPLICA)
@@ -614,7 +652,7 @@ def get_visualization_data(dbx, selected_period):
                           color_discrete_sequence=['#1f77b4'])
             # fig10.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Number of Paras")
             # fig10.update_traces(textposition="outside", cliponaxis=False)
-            fig10 = style_chart(fig10, "Number of Audit Paras by Categorisation", "Number of Paras", "Categorisation Code")
+            fig10 = style_chart(fig10, "Number of Audit Paras by Categorisation", "Number of Paras", "Categorisation Code", wrap_x_labels=True)
             charts.append(fig10)
             
             # Detection by Classification
@@ -624,7 +662,7 @@ def get_visualization_data(dbx, selected_period):
                           color_discrete_sequence=['#ff7f0e'])
             # fig11.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Detection (₹ Lakhs)")
             # fig11.update_traces(textposition="outside", cliponaxis=False)
-            fig11 = style_chart(fig11, "Detection Amount by Categorisation", "Detection (₹ Lakhs)", "Categorisation Code")
+            fig11 = style_chart(fig11, "Detection Amount by Categorisation", "Detection (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
             charts.append(fig11)
             
             # Recovery by Classification
@@ -634,7 +672,7 @@ def get_visualization_data(dbx, selected_period):
                           color_discrete_sequence=['#2ca02c'])
             # fig12.update_layout(title_x=0.5, xaxis_title="Categorisation  Code", yaxis_title="Recovery (₹ Lakhs)")
             # fig12.update_traces(textposition="outside", cliponaxis=False)
-            fig12 = style_chart(fig12, "Recovery Amount by Categorisation", "Recovery (₹ Lakhs)", "Categorisation Code")
+            fig12 = style_chart(fig12, "Recovery Amount by Categorisation", "Recovery (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
             charts.append(fig12)
         
         # CHARTS 13-14: Treemap Analysis (EXACT REPLICA)
@@ -815,7 +853,7 @@ def get_visualization_data(dbx, selected_period):
                     #     height=500
                     # )
                     # fig15.update_traces(textposition="outside", cliponaxis=False)
-                    fig15 = style_chart(fig15, "Top 15 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag")
+                    fig15 = style_chart(fig15, "Top 15 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag", wrap_x_labels=True)
                     charts.append(fig15)
                     
                     # Risk Detection Chart
@@ -836,7 +874,7 @@ def get_visualization_data(dbx, selected_period):
                         #     height=400
                         # )
                         # fig16.update_traces(textposition="outside", cliponaxis=False)
-                        fig16 = style_chart(fig16, "Top 10 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
+                        fig16 = style_chart(fig16, "Top 10 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
     
                         charts.append(fig16)
                     
@@ -858,7 +896,7 @@ def get_visualization_data(dbx, selected_period):
                         #     height=400
                         # )
                         # fig17.update_traces(textposition="outside", cliponaxis=False)
-                        fig17 = style_chart(fig17, "Top 10 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag")
+                        fig17 = style_chart(fig17, "Top 10 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
                         charts.append(fig17)
                     
                     # Risk Recovery Percentage Chart
@@ -874,7 +912,7 @@ def get_visualization_data(dbx, selected_period):
                             color='Percentage_Recovery', 
                             color_continuous_scale=px.colors.sequential.Greens
                         )
-                        fig18 = style_chart(fig18, "Top 10 Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag")
+                        fig18 = style_chart(fig18, "Top 10 Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag", wrap_x_labels=True)
     
                         fig18.update_traces(texttemplate='%{y:.1f}%', textposition='outside', cliponaxis=False)
                         fig18.update_layout(coloraxis_showscale=False)
