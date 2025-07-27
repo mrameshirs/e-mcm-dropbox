@@ -2228,7 +2228,7 @@ class PDFReportGenerator:
             textColor=colors.white,
             alignment=TA_CENTER,
             fontName='Helvetica',
-            leading=6
+            leading=11
         )
         
         # Single line legend text
