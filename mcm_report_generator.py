@@ -1548,20 +1548,383 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Error adding sectoral summary table: {e}")
             
-    def add_comprehensive_classification_page(self):
-        #"""Add a comprehensive classification page using pre-processed data"""
-        print(f"DEBUG: vital_stats contains: {list(self.vital_stats.keys())}")
-        classification_data = self.vital_stats.get('classification_page_data')
-        print(f"DEBUG: classification_page_data = {classification_data}")
+    # def add_comprehensive_classification_page(self):
+    #     #"""Add a comprehensive classification page using pre-processed data"""
+    #     print(f"DEBUG: vital_stats contains: {list(self.vital_stats.keys())}")
+    #     classification_data = self.vital_stats.get('classification_page_data')
+    #     print(f"DEBUG: classification_page_data = {classification_data}")
        
+    #     try:
+    #         # Get pre-processed classification data from vital_stats
+    #         classification_data = self.vital_stats.get('classification_page_data', {})
+    #         print("🔍 === CLASSIFICATION PAGE DEBUG ===")
+ 
+    
+    #         print(f"🔍 classification_page_data exists: {classification_data is not None}")
+    
+    #         if classification_data:
+    #             total_observations = classification_data.get('total_observations', 0)
+    #             main_categories_count = classification_data.get('main_categories_count', 0)  
+    #             sub_categories_count = classification_data.get('sub_categories_count', 0)
+                
+    #             # Convert category stats back to DataFrame for compatibility
+    #             category_stats_records = classification_data.get('category_stats', [])
+    #             category_stats = pd.DataFrame(category_stats_records)
+                
+    #             print(f"SUCCESS: Loaded classification data - {total_observations} observations")
+    #         else:
+    #             # Fallback values if no data
+    #             total_observations = main_categories_count = sub_categories_count = 0
+    #             category_stats = pd.DataFrame()
+    #             print("WARNING: No classification data found in vital_stats")
+    #         # PAGE HEADER with gradient effect using table
+    #         header_style = ParagraphStyle(
+    #             name='ClassificationHeader',
+    #             parent=self.styles['Heading1'],
+    #             fontSize=20,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=0,
+    #             spaceBefore=0
+    #         )
+                    
+    #         subtitle_style = ParagraphStyle(
+    #             name='ClassificationSubtitle',
+    #             parent=self.styles['Normal'],
+    #             fontSize=12,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica',
+    #             spaceAfter=0
+    #         )
+    
+    #         # Create header with blue gradient background
+    #         header_data = [
+    #             [Paragraph("GST Audit Para Classification", header_style)],
+    #             [Paragraph("Comprehensive categorization by Nature of Non-Compliance", subtitle_style)],
+    #             [Paragraph(f"📅 Period: {self.selected_period} | 🔍 Real-time Analysis Data", subtitle_style)]
+    #         ]
+            
+    #         header_table = Table(header_data, colWidths=[7.5*inch])
+    #         header_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#2a5298")),
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 15),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 20),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+    #         ]))
+            
+    #         self.story.append(header_table)
+            
+    #         # STATISTICS SECTION with purple gradient
+    #         stats_header_style = ParagraphStyle(
+    #             name='StatsHeader',
+    #             parent=self.styles['Heading2'],
+    #             fontSize=16,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold'
+    #         )
+            
+    #         stats_data = [
+    #             [Paragraph("Classification Overview", stats_header_style)],
+    #             [self._create_stats_grid(main_categories_count, sub_categories_count, total_observations)]
+    #         ]
+            
+    #         stats_table = Table(stats_data, colWidths=[7.5*inch])
+    #         stats_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#764ba2")),
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 15),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+    #         ]))
+            
+    #         self.story.append(stats_table)
+    #         self.story.append(Spacer(1, 0.2*inch))
+    
+    #         # CLASSIFICATION CATEGORIES GRID
+    #         self._add_classification_categories_grid(category_stats)
+            
+    #         # LEGEND SECTION
+    #         self._add_classification_legend()
+            
+    #     except Exception as e:
+    #         print(f"Error adding comprehensive classification page: {e}")
+    #         import traceback
+    #         traceback.print_exc()
+    
+    # def _create_stats_grid(self, main_categories, sub_categories, total_observations):
+    #         """Create statistics grid for the classification page"""
+            
+    #         stat_style = ParagraphStyle(
+    #             name='StatNumber',
+    #             fontSize=20,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=3
+    #         )
+            
+    #         label_style = ParagraphStyle(
+    #             name='StatLabel',
+    #             fontSize=10,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica',
+    #             spaceAfter=0
+    #         )
+            
+    #         # Create mini tables for each stat
+    #         stats_data = [
+    #             [
+    #                 Table([
+    #                     [Paragraph(str(main_categories), stat_style)],
+    #                     [Paragraph("Main Categories", label_style)]
+    #                 ], colWidths=[1.5*inch]),
+                    
+    #                 Table([
+    #                     [Paragraph(str(sub_categories), stat_style)],
+    #                     [Paragraph("Sub-Categories", label_style)]
+    #                 ], colWidths=[1.5*inch]),
+                    
+    #                 Table([
+    #                     [Paragraph(str(total_observations), stat_style)],
+    #                     [Paragraph("Audit Observations", label_style)]
+    #                 ], colWidths=[1.5*inch]),
+                    
+    #                 Table([
+    #                     [Paragraph("100%" if total_observations > 0 else "0%", stat_style)],
+    #                     [Paragraph("Coverage", label_style)]
+    #                 ], colWidths=[1.5*inch])
+    #             ]
+    #         ]
+            
+    #         grid_table = Table(stats_data, colWidths=[1.7*inch, 1.7*inch, 1.7*inch, 1.7*inch])
+    #         grid_table.setStyle(TableStyle([
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #         ]))
+            
+    #         return grid_table
+        
+    # def _add_classification_categories_grid(self, category_stats):
+    #         """Add the 9 classification categories in a 3x3 grid"""
+            
+    #         categories_info = [
+    #             ("TP", "Tax Payment Defaults", "#e74c3c", [
+    #                 "Output Tax Short Payment", "Output Tax on Other Income", 
+    #                 "Export & SEZ Related Issues", "Credit Note Related Errors"
+    #             ]),
+    #             ("RC", "Reverse Charge Mechanism", "#f39c12", [
+    #                 "Transportation & Logistics", "Professional & Legal Services",
+    #                 "Import of Services", "RCM Reconciliation Issues"
+    #             ]),
+    #             ("IT", "Input Tax Credit Violations", "#3498db", [
+    #                 "Blocked Credit Claims (Sec 17(5))", "Ineligible ITC Claims (Sec 16)",
+    #                 "Excess ITC Reconciliation", "ITC Reversal Defaults"
+    #             ]),
+    #             ("IN", "Interest Liability Defaults", "#9b59b6", [
+    #                 "Tax Payment Related Interest", "ITC Related Interest (Sec 50)",
+    #                 "Time of Supply Interest", "Self-Assessment Interest"
+    #             ]),
+    #             ("RF", "Return Filing Non-Compliance", "#2ecc71", [
+    #                 "Late Filing Penalties", "Non-Filing Issues (ITC-04)",
+    #                 "Filing Quality Issues", "Annual Return Issues"
+    #             ]),
+    #             ("PD", "Procedural & Documentation", "#34495e", [
+    #                 "Return Reconciliation", "Documentation Deficiencies",
+    #                 "Cash Payment Violations", "Record Maintenance"
+    #             ]),
+    #             ("CV", "Classification & Valuation", "#e67e22", [
+    #                 "Service Classification Errors", "Wrong Chapter Heading",
+    #                 "Incorrect Notification Claims", "Rate Classification Errors"
+    #             ]),
+    #             ("SS", "Special Situations", "#1abc9c", [
+    #                 "Construction/Real Estate", "Job Work Related Compliance",
+    #                 "Inter-Company Transactions", "Composition Scheme Issues"
+    #             ]),
+    #             ("PG", "Penalty & General Compliance", "#c0392b", [
+    #                 "Statutory Penalties (Sec 123)", "Stock & Physical Verification",
+    #                 "General Non-Compliance", "Compliance Monitoring"
+    #             ])
+    #         ]
+            
+    #         # Create 3x3 grid
+    #         rows_data = []
+    #         for i in range(0, 9, 3):
+    #             row_cards = []
+    #             for j in range(3):
+    #                 if i + j < len(categories_info):
+    #                     card = self._create_category_card(categories_info[i + j], category_stats)
+    #                     row_cards.append(card)
+    #                 else:
+    #                     row_cards.append("")  # Empty cell if needed
+    #             rows_data.append(row_cards)
+            
+    #         # Create the grid table
+    #         grid_table = Table(rows_data, colWidths=[2.5*inch, 2.5*inch, 2.5*inch])
+    #         grid_table.setStyle(TableStyle([
+    #             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 5),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 5),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    #         ]))
+            
+    #         self.story.append(grid_table)
+        
+    # def _create_category_card(self, category_info, category_stats):
+    #         """Create a visual card for each classification category"""
+    #         code, title, color, subcategories = category_info
+            
+    #         # Get real statistics for this category
+    #         stats_text = self._get_category_stats_text(category_stats, code)
+            
+    #         # Card title style
+    #         title_style = ParagraphStyle(
+    #             name=f'CardTitle_{code}',
+    #             fontSize=11,
+    #             textColor=colors.HexColor("#2c3e50"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=6
+    #         )
+            
+    #         # Subcategory style
+    #         sub_style = ParagraphStyle(
+    #             name=f'CardSub_{code}',
+    #             fontSize=8,
+    #             textColor=colors.HexColor("#5a6c7d"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica',
+    #             spaceAfter=2,
+    #             leftIndent=10
+    #         )
+            
+    #         # Stats style
+    #         stats_style = ParagraphStyle(
+    #             name=f'CardStats_{code}',
+    #             fontSize=8,
+    #             textColor=colors.HexColor("#34495e"),
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=0
+    #         )
+            
+    #         # Create card content
+    #         card_content = [
+    #             [Paragraph(f"<font color='{color}'>{code}</font> • {title}", title_style)]
+    #         ]
+            
+    #         # Add subcategories (limit to 3 for space)
+    #         for sub in subcategories[:3]:
+    #             card_content.append([Paragraph(f"▶ {sub}", sub_style)])
+            
+    #         # Add statistics
+    #         card_content.append([Paragraph(stats_text, stats_style)])
+            
+    #         # Create the card table
+    #         card_table = Table(card_content, colWidths=[2.3*inch])
+    #         card_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8f9fa")),
+    #             ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#e0e0e0")),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 8),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    #             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    #             # Add colored left border
+    #             ('LINEABOVE', (0, 0), (0, 0), 4, colors.HexColor(color)),
+    #         ]))
+            
+    #         return card_table
+        
+    # def _get_category_stats_text(self, category_stats, category_code):
+    #         """Get formatted statistics text for a category"""
+    #         if category_stats.empty:
+    #             return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+            
+    #         category_data = category_stats[category_stats['major_code'] == category_code]
+    #         if category_data.empty:
+    #             return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+            
+    #         paras = int(category_data['para_count'].iloc[0])
+    #         detection = float(category_data['total_detection'].iloc[0])
+    #         recovery = float(category_data['total_recovery'].iloc[0])
+            
+    #         return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
+        
+    # def _add_classification_legend(self):
+    #         """Add color legend and usage guide"""
+    #         legend_style = ParagraphStyle(
+    #             name='LegendHeader',
+    #             fontSize=14,
+    #             textColor=colors.white,
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold'
+    #         )
+            
+    #         legend_item_style = ParagraphStyle(
+    #             name='LegendItem',
+    #             fontSize=9,
+    #             textColor=colors.white,
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica'
+    #         )
+            
+    #         # Legend items with color indicators
+    #         legend_items = [
+    #             ("■", "#e74c3c", "High Risk - Tax Payment Issues"),
+    #             ("■", "#f39c12", "Medium Risk - RCM Compliance"), 
+    #             ("■", "#3498db", "High Volume - ITC Issues"),
+    #             ("■", "#9b59b6", "Financial Impact - Interest"),
+    #             ("■", "#2ecc71", "Administrative - Filing Issues"),
+    #             ("■", "#34495e", "Process Related - Documentation")
+    #         ]
+            
+    #         # Create legend grid
+    #         legend_data = [
+    #             [Paragraph("🎯 Classification Guide & Impact Assessment", legend_style)]
+    #         ]
+            
+    #         # Add legend items in 2 columns
+    #         for i in range(0, len(legend_items), 2):
+    #             row = []
+    #             for j in range(2):
+    #                 if i + j < len(legend_items):
+    #                     symbol, color, text = legend_items[i + j]
+    #                     colored_text = f"<font color='{color}'>{symbol}</font> {text}"
+    #                     row.append(Paragraph(colored_text, legend_item_style))
+    #                 else:
+    #                     row.append("")
+    #             legend_data.append(row)
+            
+    #         legend_table = Table(legend_data, colWidths=[3.75*inch, 3.75*inch])
+    #         legend_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#34495e")),
+    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center header
+    #             ('ALIGN', (0, 1), (-1, -1), 'LEFT'),   # Left align items
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 15),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    #             ('SPAN', (0, 0), (1, 0)),  # Span header across both columns
+    #         ]))
+            
+    #         self.story.append(Spacer(1, 0.2*inch))
+    #         self.story.append(legend_table)
+    def add_comprehensive_classification_page(self):
+        """Add an ultra-compact classification page that fits on one page"""
         try:
             # Get pre-processed classification data from vital_stats
             classification_data = self.vital_stats.get('classification_page_data', {})
-            print("🔍 === CLASSIFICATION PAGE DEBUG ===")
- 
-    
-            print(f"🔍 classification_page_data exists: {classification_data is not None}")
-    
+            
             if classification_data:
                 total_observations = classification_data.get('total_observations', 0)
                 main_categories_count = classification_data.get('main_categories_count', 0)  
@@ -1577,29 +1940,30 @@ class PDFReportGenerator:
                 total_observations = main_categories_count = sub_categories_count = 0
                 category_stats = pd.DataFrame()
                 print("WARNING: No classification data found in vital_stats")
-            # PAGE HEADER with gradient effect using table
+    
+            # ULTRA COMPACT HEADER - Reduced height by 50%
             header_style = ParagraphStyle(
                 name='ClassificationHeader',
                 parent=self.styles['Heading1'],
-                fontSize=20,
+                fontSize=16,  # Reduced from 20
                 textColor=colors.white,
                 alignment=TA_CENTER,
                 fontName='Helvetica-Bold',
                 spaceAfter=0,
                 spaceBefore=0
             )
-                    
+            
             subtitle_style = ParagraphStyle(
                 name='ClassificationSubtitle',
                 parent=self.styles['Normal'],
-                fontSize=12,
+                fontSize=10,  # Reduced from 12
                 textColor=colors.white,
                 alignment=TA_CENTER,
                 fontName='Helvetica',
                 spaceAfter=0
             )
     
-            # Create header with blue gradient background
+            # Create compact header with reduced padding
             header_data = [
                 [Paragraph("GST Audit Para Classification", header_style)],
                 [Paragraph("Comprehensive categorization by Nature of Non-Compliance", subtitle_style)],
@@ -1611,19 +1975,19 @@ class PDFReportGenerator:
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#2a5298")),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 15),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-                ('LEFTPADDING', (0, 0), (-1, -1), 20),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),     # Reduced from 15
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),  # Reduced from 15
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),   # Reduced from 20
+                ('RIGHTPADDING', (0, 0), (-1, -1), 10),  # Reduced from 20
             ]))
             
             self.story.append(header_table)
             
-            # STATISTICS SECTION with purple gradient
+            # ULTRA COMPACT STATISTICS SECTION - Reduced height by 60%
             stats_header_style = ParagraphStyle(
                 name='StatsHeader',
                 parent=self.styles['Heading2'],
-                fontSize=16,
+                fontSize=12,  # Reduced from 16
                 textColor=colors.white,
                 alignment=TA_CENTER,
                 fontName='Helvetica-Bold'
@@ -1631,7 +1995,7 @@ class PDFReportGenerator:
             
             stats_data = [
                 [Paragraph("Classification Overview", stats_header_style)],
-                [self._create_stats_grid(main_categories_count, sub_categories_count, total_observations)]
+                [self._create_compact_stats_grid(main_categories_count, sub_categories_count, total_observations)]
             ]
             
             stats_table = Table(stats_data, colWidths=[7.5*inch])
@@ -1639,287 +2003,284 @@ class PDFReportGenerator:
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#764ba2")),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 15),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),     # Reduced from 15
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),  # Reduced from 15
             ]))
             
             self.story.append(stats_table)
-            self.story.append(Spacer(1, 0.2*inch))
+            self.story.append(Spacer(1, 0.1*inch))  # Reduced from 0.2*inch
     
-            # CLASSIFICATION CATEGORIES GRID
-            self._add_classification_categories_grid(category_stats)
+            # ULTRA COMPACT CLASSIFICATION CATEGORIES GRID
+            self._add_compact_classification_categories_grid(category_stats)
             
-            # LEGEND SECTION
-            self._add_classification_legend()
+            # ULTRA COMPACT LEGEND SECTION
+            self._add_compact_classification_legend()
             
         except Exception as e:
             print(f"Error adding comprehensive classification page: {e}")
             import traceback
             traceback.print_exc()
     
-    def _create_stats_grid(self, main_categories, sub_categories, total_observations):
-            """Create statistics grid for the classification page"""
-            
-            stat_style = ParagraphStyle(
-                name='StatNumber',
-                fontSize=20,
-                textColor=colors.white,
-                alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                spaceAfter=3
-            )
-            
-            label_style = ParagraphStyle(
-                name='StatLabel',
-                fontSize=10,
-                textColor=colors.white,
-                alignment=TA_CENTER,
-                fontName='Helvetica',
-                spaceAfter=0
-            )
-            
-            # Create mini tables for each stat
-            stats_data = [
-                [
-                    Table([
-                        [Paragraph(str(main_categories), stat_style)],
-                        [Paragraph("Main Categories", label_style)]
-                    ], colWidths=[1.5*inch]),
-                    
-                    Table([
-                        [Paragraph(str(sub_categories), stat_style)],
-                        [Paragraph("Sub-Categories", label_style)]
-                    ], colWidths=[1.5*inch]),
-                    
-                    Table([
-                        [Paragraph(str(total_observations), stat_style)],
-                        [Paragraph("Audit Observations", label_style)]
-                    ], colWidths=[1.5*inch]),
-                    
-                    Table([
-                        [Paragraph("100%" if total_observations > 0 else "0%", stat_style)],
-                        [Paragraph("Coverage", label_style)]
-                    ], colWidths=[1.5*inch])
-                ]
-            ]
-            
-            grid_table = Table(stats_data, colWidths=[1.7*inch, 1.7*inch, 1.7*inch, 1.7*inch])
-            grid_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            
-            return grid_table
+    def _create_compact_stats_grid(self, main_categories, sub_categories, total_observations):
+        """Create ultra-compact statistics grid with minimal spacing"""
         
-    def _add_classification_categories_grid(self, category_stats):
-            """Add the 9 classification categories in a 3x3 grid"""
-            
-            categories_info = [
-                ("TP", "Tax Payment Defaults", "#e74c3c", [
-                    "Output Tax Short Payment", "Output Tax on Other Income", 
-                    "Export & SEZ Related Issues", "Credit Note Related Errors"
-                ]),
-                ("RC", "Reverse Charge Mechanism", "#f39c12", [
-                    "Transportation & Logistics", "Professional & Legal Services",
-                    "Import of Services", "RCM Reconciliation Issues"
-                ]),
-                ("IT", "Input Tax Credit Violations", "#3498db", [
-                    "Blocked Credit Claims (Sec 17(5))", "Ineligible ITC Claims (Sec 16)",
-                    "Excess ITC Reconciliation", "ITC Reversal Defaults"
-                ]),
-                ("IN", "Interest Liability Defaults", "#9b59b6", [
-                    "Tax Payment Related Interest", "ITC Related Interest (Sec 50)",
-                    "Time of Supply Interest", "Self-Assessment Interest"
-                ]),
-                ("RF", "Return Filing Non-Compliance", "#2ecc71", [
-                    "Late Filing Penalties", "Non-Filing Issues (ITC-04)",
-                    "Filing Quality Issues", "Annual Return Issues"
-                ]),
-                ("PD", "Procedural & Documentation", "#34495e", [
-                    "Return Reconciliation", "Documentation Deficiencies",
-                    "Cash Payment Violations", "Record Maintenance"
-                ]),
-                ("CV", "Classification & Valuation", "#e67e22", [
-                    "Service Classification Errors", "Wrong Chapter Heading",
-                    "Incorrect Notification Claims", "Rate Classification Errors"
-                ]),
-                ("SS", "Special Situations", "#1abc9c", [
-                    "Construction/Real Estate", "Job Work Related Compliance",
-                    "Inter-Company Transactions", "Composition Scheme Issues"
-                ]),
-                ("PG", "Penalty & General Compliance", "#c0392b", [
-                    "Statutory Penalties (Sec 123)", "Stock & Physical Verification",
-                    "General Non-Compliance", "Compliance Monitoring"
-                ])
-            ]
-            
-            # Create 3x3 grid
-            rows_data = []
-            for i in range(0, 9, 3):
-                row_cards = []
-                for j in range(3):
-                    if i + j < len(categories_info):
-                        card = self._create_category_card(categories_info[i + j], category_stats)
-                        row_cards.append(card)
-                    else:
-                        row_cards.append("")  # Empty cell if needed
-                rows_data.append(row_cards)
-            
-            # Create the grid table
-            grid_table = Table(rows_data, colWidths=[2.5*inch, 2.5*inch, 2.5*inch])
-            grid_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 5),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-                ('TOPPADDING', (0, 0), (-1, -1), 5),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ]))
-            
-            self.story.append(grid_table)
+        stat_style = ParagraphStyle(
+            name='StatNumber',
+            fontSize=16,  # Reduced from 20
+            textColor=colors.white,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=1,  # Reduced from 3
+            spaceBefore=0
+        )
         
-    def _create_category_card(self, category_info, category_stats):
-            """Create a visual card for each classification category"""
-            code, title, color, subcategories = category_info
-            
-            # Get real statistics for this category
-            stats_text = self._get_category_stats_text(category_stats, code)
-            
-            # Card title style
-            title_style = ParagraphStyle(
-                name=f'CardTitle_{code}',
-                fontSize=11,
-                textColor=colors.HexColor("#2c3e50"),
-                alignment=TA_LEFT,
-                fontName='Helvetica-Bold',
-                spaceAfter=6
-            )
-            
-            # Subcategory style
-            sub_style = ParagraphStyle(
-                name=f'CardSub_{code}',
-                fontSize=8,
-                textColor=colors.HexColor("#5a6c7d"),
-                alignment=TA_LEFT,
-                fontName='Helvetica',
-                spaceAfter=2,
-                leftIndent=10
-            )
-            
-            # Stats style
-            stats_style = ParagraphStyle(
-                name=f'CardStats_{code}',
-                fontSize=8,
-                textColor=colors.HexColor("#34495e"),
-                alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                spaceAfter=0
-            )
-            
-            # Create card content
-            card_content = [
-                [Paragraph(f"<font color='{color}'>{code}</font> • {title}", title_style)]
-            ]
-            
-            # Add subcategories (limit to 3 for space)
-            for sub in subcategories[:3]:
-                card_content.append([Paragraph(f"▶ {sub}", sub_style)])
-            
-            # Add statistics
-            card_content.append([Paragraph(stats_text, stats_style)])
-            
-            # Create the card table
-            card_table = Table(card_content, colWidths=[2.3*inch])
-            card_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8f9fa")),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#e0e0e0")),
-                ('LEFTPADDING', (0, 0), (-1, -1), 8),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                # Add colored left border
-                ('LINEABOVE', (0, 0), (0, 0), 4, colors.HexColor(color)),
-            ]))
-            
-            return card_table
+        label_style = ParagraphStyle(
+            name='StatLabel',
+            fontSize=8,   # Reduced from 10
+            textColor=colors.white,
+            alignment=TA_CENTER,
+            fontName='Helvetica',
+            spaceAfter=0
+        )
         
-    def _get_category_stats_text(self, category_stats, category_code):
-            """Get formatted statistics text for a category"""
-            if category_stats.empty:
-                return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
-            
-            category_data = category_stats[category_stats['major_code'] == category_code]
-            if category_data.empty:
-                return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
-            
-            paras = int(category_data['para_count'].iloc[0])
-            detection = float(category_data['total_detection'].iloc[0])
-            recovery = float(category_data['total_recovery'].iloc[0])
-            
-            return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
+        # Create mini tables for each stat with minimal padding
+        stats_data = [
+            [
+                Table([
+                    [Paragraph(str(main_categories), stat_style)],
+                    [Paragraph("Main Categories", label_style)]
+                ], colWidths=[1.3*inch]),  # Reduced width
+                
+                Table([
+                    [Paragraph(str(sub_categories), stat_style)],
+                    [Paragraph("Sub-Categories", label_style)]
+                ], colWidths=[1.3*inch]),  # Reduced width
+                
+                Table([
+                    [Paragraph(str(total_observations), stat_style)],
+                    [Paragraph("Audit Observations", label_style)]
+                ], colWidths=[1.3*inch]),  # Reduced width
+                
+                Table([
+                    [Paragraph("100%" if total_observations > 0 else "0%", stat_style)],
+                    [Paragraph("Coverage", label_style)]
+                ], colWidths=[1.3*inch])  # Reduced width
+            ]
+        ]
         
-    def _add_classification_legend(self):
-            """Add color legend and usage guide"""
-            legend_style = ParagraphStyle(
-                name='LegendHeader',
-                fontSize=14,
-                textColor=colors.white,
-                alignment=TA_CENTER,
-                fontName='Helvetica-Bold'
-            )
-            
-            legend_item_style = ParagraphStyle(
-                name='LegendItem',
-                fontSize=9,
-                textColor=colors.white,
-                alignment=TA_LEFT,
-                fontName='Helvetica'
-            )
-            
-            # Legend items with color indicators
-            legend_items = [
-                ("■", "#e74c3c", "High Risk - Tax Payment Issues"),
-                ("■", "#f39c12", "Medium Risk - RCM Compliance"), 
-                ("■", "#3498db", "High Volume - ITC Issues"),
-                ("■", "#9b59b6", "Financial Impact - Interest"),
-                ("■", "#2ecc71", "Administrative - Filing Issues"),
-                ("■", "#34495e", "Process Related - Documentation")
-            ]
-            
-            # Create legend grid
-            legend_data = [
-                [Paragraph("🎯 Classification Guide & Impact Assessment", legend_style)]
-            ]
-            
-            # Add legend items in 2 columns
-            for i in range(0, len(legend_items), 2):
-                row = []
-                for j in range(2):
-                    if i + j < len(legend_items):
-                        symbol, color, text = legend_items[i + j]
-                        colored_text = f"<font color='{color}'>{symbol}</font> {text}"
-                        row.append(Paragraph(colored_text, legend_item_style))
-                    else:
-                        row.append("")
-                legend_data.append(row)
-            
-            legend_table = Table(legend_data, colWidths=[3.75*inch, 3.75*inch])
-            legend_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#34495e")),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center header
-                ('ALIGN', (0, 1), (-1, -1), 'LEFT'),   # Left align items
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                ('LEFTPADDING', (0, 0), (-1, -1), 15),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-                ('SPAN', (0, 0), (1, 0)),  # Span header across both columns
-            ]))
-            
-            self.story.append(Spacer(1, 0.2*inch))
-            self.story.append(legend_table)
+        grid_table = Table(stats_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+        grid_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),     # Minimal padding
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),  # Minimal padding
+        ]))
+        
+        return grid_table
     
+    def _add_compact_classification_categories_grid(self, category_stats):
+        """Add ultra-compact 3x3 grid with minimal spacing"""
+        
+        categories_info = [
+            ("TP", "Tax Payment Defaults", "#e74c3c", [
+                "Output Tax Short Payment", "Output Tax on Other Income", "Export & SEZ Related Issues"
+            ]),
+            ("RC", "Reverse Charge Mechanism", "#f39c12", [
+                "Transportation & Logistics", "Professional & Legal Services", "Import of Services"
+            ]),
+            ("IT", "Input Tax Credit Violations", "#3498db", [
+                "Blocked Credit Claims (Sec 17(5))", "Ineligible ITC Claims (Sec 16)", "Excess ITC Reconciliation"
+            ]),
+            ("IN", "Interest Liability Defaults", "#9b59b6", [
+                "Tax Payment Related Interest", "ITC Related Interest (Sec 50)", "Time of Supply Interest"
+            ]),
+            ("RF", "Return Filing Non-Compliance", "#2ecc71", [
+                "Late Filing Penalties", "Non-Filing Issues (ITC-04)", "Filing Quality Issues"
+            ]),
+            ("PD", "Procedural & Documentation", "#34495e", [
+                "Return Reconciliation", "Documentation Deficiencies", "Cash Payment Violations"
+            ]),
+            ("CV", "Classification & Valuation", "#e67e22", [
+                "Service Classification Errors", "Wrong Chapter Heading", "Incorrect Notification Claims"
+            ]),
+            ("SS", "Special Situations", "#1abc9c", [
+                "Construction/Real Estate", "Job Work Related Compliance", "Inter-Company Transactions"
+            ]),
+            ("PG", "Penalty & General Compliance", "#c0392b", [
+                "Statutory Penalties (Sec 123)", "Stock & Physical Verification", "General Non-Compliance"
+            ])
+        ]
+        
+        # Create ultra-compact 3x3 grid
+        rows_data = []
+        for i in range(0, 9, 3):
+            row_cards = []
+            for j in range(3):
+                if i + j < len(categories_info):
+                    card = self._create_ultra_compact_category_card(categories_info[i + j], category_stats)
+                    row_cards.append(card)
+                else:
+                    row_cards.append("")
+            rows_data.append(row_cards)
+        
+        # Create the grid table with minimal spacing
+        grid_table = Table(rows_data, colWidths=[2.4*inch, 2.4*inch, 2.4*inch])  # Slightly reduced
+        grid_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 2),    # Minimal padding
+            ('RIGHTPADDING', (0, 0), (-1, -1), 2),   # Minimal padding
+            ('TOPPADDING', (0, 0), (-1, -1), 2),     # Minimal padding
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),  # Minimal padding
+        ]))
+        
+        self.story.append(grid_table)
+    
+    def _create_ultra_compact_category_card(self, category_info, category_stats):
+        """Create ultra-compact visual card with minimal spacing"""
+        code, title, color, subcategories = category_info
+        
+        # Get real statistics for this category
+        stats_text = self._get_category_stats_text(category_stats, code)
+        
+        # Ultra-compact card title style
+        title_style = ParagraphStyle(
+            name=f'CardTitle_{code}',
+            fontSize=9,    # Reduced from 11
+            textColor=colors.HexColor("#2c3e50"),
+            alignment=TA_LEFT,
+            fontName='Helvetica-Bold',
+            spaceAfter=3,  # Reduced from 6
+            spaceBefore=0
+        )
+        
+        # Ultra-compact subcategory style
+        sub_style = ParagraphStyle(
+            name=f'CardSub_{code}',
+            fontSize=7,    # Reduced from 8
+            textColor=colors.HexColor("#5a6c7d"),
+            alignment=TA_LEFT,
+            fontName='Helvetica',
+            spaceAfter=1,  # Reduced from 2
+            leftIndent=8,  # Reduced from 10
+            leading=8      # Tight line spacing
+        )
+        
+        # Ultra-compact stats style
+        stats_style = ParagraphStyle(
+            name=f'CardStats_{code}',
+            fontSize=7,    # Reduced from 8
+            textColor=colors.HexColor("#34495e"),
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=0,
+            spaceBefore=2  # Minimal space above
+        )
+        
+        # Create ultra-compact card content
+        card_content = [
+            [Paragraph(f"<font color='{color}'>{code}</font> • {title}", title_style)]
+        ]
+        
+        # Add only 2 subcategories for space saving
+        for sub in subcategories[:2]:  # Reduced from 3 to 2
+            card_content.append([Paragraph(f"▶ {sub}", sub_style)])
+        
+        # Add statistics
+        card_content.append([Paragraph(stats_text, stats_style)])
+        
+        # Create the ultra-compact card table
+        card_table = Table(card_content, colWidths=[2.2*inch])  # Slightly reduced
+        card_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8f9fa")),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#e0e0e0")),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),    # Reduced from 8
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),   # Reduced from 8
+            ('TOPPADDING', (0, 0), (-1, -1), 4),     # Reduced from 8
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),  # Reduced from 8
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            # Add colored left border
+            ('LINEABOVE', (0, 0), (0, 0), 3, colors.HexColor(color)),  # Reduced from 4
+        ]))
+        
+        return card_table
+    
+    def _get_category_stats_text(self, category_stats, category_code):
+        """Get formatted statistics text for a category"""
+        if category_stats.empty:
+            return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+        
+        category_data = category_stats[category_stats['major_code'] == category_code]
+        if category_data.empty:
+            return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
+        
+        paras = int(category_data['para_count'].iloc[0])
+        detection = float(category_data['total_detection'].iloc[0])
+        recovery = float(category_data['total_recovery'].iloc[0])
+        
+        return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
+    
+    def _add_compact_classification_legend(self):
+        """Add ultra-compact color legend"""
+        legend_style = ParagraphStyle(
+            name='LegendHeader',
+            fontSize=10,   # Reduced from 14
+            textColor=colors.white,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        legend_item_style = ParagraphStyle(
+            name='LegendItem',
+            fontSize=7,    # Reduced from 9
+            textColor=colors.white,
+            alignment=TA_LEFT,
+            fontName='Helvetica',
+            leading=9      # Tight line spacing
+        )
+        
+        # Compact legend items
+        legend_items = [
+            ("■", "#e74c3c", "High Risk - Tax Payment"),
+            ("■", "#f39c12", "Medium Risk - RCM"), 
+            ("■", "#3498db", "High Volume - ITC"),
+            ("■", "#9b59b6", "Financial Impact - Interest"),
+            ("■", "#2ecc71", "Administrative - Filing"),
+            ("■", "#34495e", "Process Related - Documentation")
+        ]
+        
+        # Create compact legend grid
+        legend_data = [
+            [Paragraph("🎯 Classification Guide & Impact Assessment", legend_style)]
+        ]
+        
+        # Add legend items in 3 columns instead of 2 for compactness
+        for i in range(0, len(legend_items), 3):
+            row = []
+            for j in range(3):
+                if i + j < len(legend_items):
+                    symbol, color, text = legend_items[i + j]
+                    colored_text = f"<font color='{color}'>{symbol}</font> {text}"
+                    row.append(Paragraph(colored_text, legend_item_style))
+                else:
+                    row.append("")
+            legend_data.append(row)
+        
+        legend_table = Table(legend_data, colWidths=[2.5*inch, 2.5*inch, 2.5*inch])
+        legend_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#34495e")),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center header
+            ('ALIGN', (0, 1), (-1, -1), 'LEFT'),   # Left align items
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),     # Reduced from 10
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),  # Reduced from 10
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),    # Reduced from 15
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),   # Reduced from 15
+            ('SPAN', (0, 0), (2, 0)),  # Span header across 3 columns
+        ]))
+        
+        self.story.append(Spacer(1, 0.05*inch))  # Minimal spacer
+        self.story.append(legend_table)
     def add_classification_summary_table(self):
             """Add classification summary table"""  
             try:
