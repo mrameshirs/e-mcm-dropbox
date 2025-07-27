@@ -2228,7 +2228,7 @@ class PDFReportGenerator:
             textColor=colors.white,
             alignment=TA_CENTER,
             fontName='Helvetica',
-            leading=12
+            leading=6
         )
         
         # Single line legend text
@@ -2285,7 +2285,7 @@ class PDFReportGenerator:
                     }
                     
                     # Create classification table
-                    classification_data = [['Code', 'Description', 'Paras', 'Detection (₹ L)', 'Recovery (₹ L)']]
+                    classification_data = [['Code', 'Description', 'Paras', 'Detection (Rs. L)', 'Recovery (Rs. L)']]
                     
                     for item in classification_summary[:7]:  # Top 7 categories
                         code = item.get('major_code', 'Unknown')
@@ -2298,8 +2298,8 @@ class PDFReportGenerator:
                             code,
                             description[:35] + '...' if len(description) > 35 else description,
                             str(para_count),
-                            f'₹{detection:.2f} L',
-                            f'₹{recovery:.2f} L'
+                            f'Rs.{detection:.2f} L',
+                            f'Rs.{recovery:.2f} L'
                         ])
                     
                     classification_table = Table(classification_data, 
@@ -2361,7 +2361,7 @@ class PDFReportGenerator:
               
                 # Add classification summary table (only if you want it later)
                 if self.vital_stats.get('compliance_analysis_available', False):
-                    self.story.append(Spacer(1, 0.2 * inch))
+                    self.story.append(Spacer(1, 0.05 * inch))
                     self.add_classification_summary_table()
                 # Chart heading style
                 chart_header_style = ParagraphStyle(
