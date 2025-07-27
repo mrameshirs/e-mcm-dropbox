@@ -226,8 +226,9 @@ def get_visualization_data(dbx, selected_period):
             
             # FIX 2: Use a more direct method to set axis titles, preventing raw column names.
             fig.update_xaxes(title_text=f'<b>{x_title}</b>', title_font_family="serif", title_font_size=14)
-            fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14)
-            
+            # fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14)
+            fig.update_yaxes(title_text=f'<b>{y_title}</b>', title_font_family="serif", title_font_size=14, tickfont_size=10)
+            fig.update_xaxes(tickangle=0)
             fig.update_traces(
                 marker_line_color=border_color,
                 marker_line_width=1.5,
