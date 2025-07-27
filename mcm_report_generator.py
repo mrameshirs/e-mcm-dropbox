@@ -1441,7 +1441,7 @@ class PDFReportGenerator:
             
             description_text = """
             This section provides sectoral analysis of audit performance across different taxpayer classifications and business categories. 
-            The analysis helps identify sector-wise compliance patterns and focus areas for targeted audit interventions 1.
+            The analysis helps identify sector-wise compliance patterns and focus areas for targeted audit interventions .
             """
             
             self.story.append(Paragraph(description_text, desc_style))
