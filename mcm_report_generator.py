@@ -2334,24 +2334,9 @@ class PDFReportGenerator:
             
             """Add Section IV - Nature of Non Compliance Analysis"""
             try:
-                # Create temporary frame with smaller top margin
-                temp_frame = Frame(
-                    self.doc.leftMargin,
-                    self.doc.bottomMargin, 
-                    self.doc.width,
-                    self.doc.height + 0.5*inch,  # Extend height by reducing top margin
-                    topPadding=0.2*inch  # Reduced from default
-                )
-                
-                temp_template = PageTemplate(id='temp', frames=temp_frame)
-                self.doc.addPageTemplates([temp_template])
-                
-                self.story.append(NextPageTemplate('temp'))
+              
                 self.story.append(PageBreak())
-                
-                # Your content here
-                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
-                
+                             
                 # Switch back to normal template after this section
                 
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
