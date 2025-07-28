@@ -2723,18 +2723,18 @@ class PDFReportGenerator:
                 
                 # PART B: DETAILED SUBCATEGORY ANALYSIS WITH 2x3 LAYOUT
                 # Add subsection header for detailed analysis
-                detailed_header_style = ParagraphStyle(
-                    name='DetailedComplianceHeader',
-                    parent=self.styles['Heading3'],
-                    fontSize=13,
-                    textColor=colors.HexColor("#8B4A9C"),
-                    alignment=TA_LEFT,
-                    fontName='Helvetica-Bold',
-                    spaceAfter=8,
-                    spaceBefore=12
-                )
+                # detailed_header_style = ParagraphStyle(
+                #     name='DetailedComplianceHeader',
+                #     parent=self.styles['Heading3'],
+                #     fontSize=13,
+                #     textColor=colors.HexColor("#8B4A9C"),
+                #     alignment=TA_LEFT,
+                #     fontName='Helvetica-Bold',
+                #     spaceAfter=8,
+                #     spaceBefore=12
+                # )
                 
-                self.story.append(Paragraph("🔍 Detailed Subcategory Analysis", detailed_header_style))
+                # self.story.append(Paragraph("🔍 Detailed Subcategory Analysis", detailed_header_style))
                 
                 # Add description for detailed section
                 detailed_desc_style = ParagraphStyle(
@@ -2755,28 +2755,18 @@ class PDFReportGenerator:
                 showing exact types of violations and their financial impact for targeted corrective actions.
                 """
                 
-                self.story.append(Paragraph(detailed_description, detailed_desc_style))
+                
                 
                 # PART B1: DETAILED DETECTION ANALYSIS (2x3 Layout)
-                sub_header_style = ParagraphStyle(
-                    name='SubHeaderStyle',
-                    parent=self.styles['Heading4'],
-                    fontSize=12,
-                    textColor=colors.HexColor("#1134A6"),
-                    alignment=TA_LEFT,
-                    fontName='Helvetica-Bold',
-                    spaceAfter=4,
-                    spaceBefore=8
-                )
                 
-                self.story.append(Paragraph("💰 Detection Analysis by Detailed Subcategorization", sub_header_style))
-                
+                self.story.append(Paragraph("💰 Detection Analysis by Detailed Subcategorization", chart_header_style))
+                self.story.append(Paragraph(detailed_description, detailed_desc_style))
                 # Add detailed detection charts in 2x3 layout
                 self._add_detailed_charts_2x3_layout("detection")
                 
                 # PART B2: DETAILED RECOVERY ANALYSIS (2x3 Layout)
                 self.story.append(PageBreak())  # Start recovery analysis on new page
-                self.story.append(Paragraph("💎 Recovery Analysis by Detailed Subcategorization", sub_header_style))
+                self.story.append(Paragraph("💎 Recovery Analysis by Detailed Subcategorization", chart_header_style))
                 
                 # Add detailed recovery charts in 2x3 layout
                 self._add_detailed_charts_2x3_layout("recovery")
