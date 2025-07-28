@@ -1059,7 +1059,13 @@ def get_visualization_data(dbx, selected_period):
                     text_auto='.2f',
                     color_discrete_sequence=['#3498db']  # Single color since we removed color mapping
                 )
-                
+                fig_detailed_det = style_chart(
+                    fig_detailed_det, 
+                    title_text=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                    y_title="Detection (₹ Lakhs)", 
+                    x_title="Detailed Code",
+                    wrap_x_labels=True
+                )
                 # ENHANCED STYLING - Remove titles, y-axis title, rotate labels
                 fig_detailed_det.update_layout(
                     # REMOVE ALL TITLES
@@ -1073,7 +1079,7 @@ def get_visualization_data(dbx, selected_period):
                     xaxis=dict(
                         title='',  # Remove x-axis title
                         tickangle=-30,  # 30 degree inclination
-                        tickfont=dict(size=8, family="Arial", color='#2C3E50'),  # Smaller font
+                        tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),  # Smaller font
                         showgrid=False,
                         tickmode='array',
                         tickvals=list(range(len(df_agg))),
@@ -1082,7 +1088,7 @@ def get_visualization_data(dbx, selected_period):
                     
                     # Y-AXIS STYLING
                     yaxis=dict(
-                        tickfont=dict(size=10, family="Arial", color='#2C3E50'),
+                        tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),
                         gridcolor='#E5E5E5',
                         showgrid=True
                     ),
@@ -1092,13 +1098,13 @@ def get_visualization_data(dbx, selected_period):
                     plot_bgcolor='#FFFFFF',
                     
                     # MARGINS - Increased bottom margin for rotated labels
-                    margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
+                    margin=dict(l=50, r=20, t=10, b=80),  # Increased bottom margin
                     
                     # FONT
-                    font=dict(family="Arial", size=10, color="#2C3E50"),
+                    font=dict(family="Helvetica", size=10, color="#2C3E50"),
                     
                     # HEIGHT - Increased slightly for better label visibility
-                    height=350
+                    height=300
                 )
                 
                 # UPDATE TRACES - Remove text position to avoid clutter
@@ -1153,7 +1159,7 @@ def get_visualization_data(dbx, selected_period):
                     xaxis=dict(
                         title='',
                         tickangle=-30,  # 30 degree inclination
-                        tickfont=dict(size=8, family="Arial", color='#2C3E50'),
+                        tickfont=dict(size=8, family="Helvetica", color='#2C3E50'),
                         showgrid=False,
                         tickmode='array',
                         tickvals=list(range(len(df_agg))),
@@ -1175,7 +1181,7 @@ def get_visualization_data(dbx, selected_period):
                     margin=dict(l=50, r=20, t=10, b=100),
                     
                     # FONT
-                    font=dict(family="Arial", size=10, color="#2C3E50"),
+                    font=dict(family="Helvetica", size=10, color="#2C3E50"),
                     
                     # HEIGHT
                     height=350
