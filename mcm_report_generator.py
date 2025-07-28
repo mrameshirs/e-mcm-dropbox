@@ -2386,7 +2386,7 @@ class PDFReportGenerator:
                 # Second Chart: Detection Amount by Classification
                 self.story.append(Paragraph("🎯 Detection Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_detection", 
-                                       size="medium", 
+                                       size="large", 
                                        add_title=False, 
                                        add_description=False)
                 self.story.append(Spacer(1, 0.2 * inch))
@@ -2394,7 +2394,7 @@ class PDFReportGenerator:
                 # Third Chart: Recovery Amount by Classification
                 self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_recovery", 
-                                       size="medium", 
+                                       size="large", 
                                        add_title=False, 
                                        add_description=False)
                 self.story.append(Spacer(1, 0.3 * inch))
