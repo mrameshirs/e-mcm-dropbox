@@ -429,9 +429,9 @@ class PDFReportGenerator:
             scaled_drawing.add(content_group)
             scaled_drawing.hAlign = 'CENTER'
             
-            self.story.append(Spacer(1, 0.1 * inch))
+            self.story.append(Spacer(1, 0.01 * inch))
             self.story.append(scaled_drawing)
-            self.story.append(Spacer(1, 0.15 * inch))
+            self.story.append(Spacer(1, 0.001 * inch))
             
             print(f"SUCCESS: Perfectly scaled chart '{chart_id}' added")
             return True
