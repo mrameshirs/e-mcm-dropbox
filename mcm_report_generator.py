@@ -2353,7 +2353,7 @@ class PDFReportGenerator:
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Switch back to normal template after this section
-                self.story.append(NextPageTemplate('normal'))
+                
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Description
