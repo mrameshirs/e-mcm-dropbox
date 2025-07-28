@@ -961,6 +961,140 @@ def get_visualization_data(dbx, selected_period):
                     
                     gstins_with_risk_data = valid_risk_data['gstin'].nunique()
                     paras_linked_to_risks = df_risk_analysis[['gstin', 'audit_para_number']].drop_duplicates().shape[0]
+                    
+        # CHARTS 19+: Detailed Classification Analysis (Multiple Charts for nc_tab2 and nc_tab3)
+        if not df_paras.empty:
+            DETAILED_CLASSIFICATION_DESC = {
+                'TP01': 'Output Tax Short Payment - GSTR Discrepancies', 'TP02': 'Output Tax on Other Income',
+                'TP03': 'Output Tax on Asset Sales', 'TP04': 'Export & SEZ Related Issues',
+                'TP05': 'Credit Note Adjustment Errors', 'TP06': 'Turnover Reconciliation Issues',
+                'TP07': 'Scheme Migration Issues', 'TP08': 'Other Tax Payment Issues',
+                'RC01': 'RCM on Transportation Services', 'RC02': 'RCM on Professional Services',
+                'RC03': 'RCM on Administrative Services', 'RC04': 'RCM on Import of Services',
+                'RC05': 'RCM Reconciliation Issues', 'RC06': 'RCM on Other Services', 'RC07': 'Other RCM Issues',
+                'IT01': 'Blocked Credit Claims (Sec 17(5))', 'IT02': 'Ineligible ITC Claims (Sec 16)',
+                'IT03': 'Excess ITC - GSTR Reconciliation', 'IT04': 'Supplier Registration Issues',
+                'IT05': 'ITC Reversal - 180 Day Rule', 'IT06': 'ITC Reversal - Other Reasons',
+                'IT07': 'Proportionate ITC Issues (Rule 42)', 'IT08': 'RCM ITC Mismatches',
+                'IT09': 'Import IGST ITC Issues', 'IT10': 'Migration Related ITC Issues', 'IT11': 'Other ITC Issues',
+                'IN01': 'Interest on Delayed Tax Payment', 'IN02': 'Interest on Delayed Filing',
+                'IN03': 'Interest on ITC - 180 Day Rule', 'IN04': 'Interest on ITC Reversals',
+                'IN05': 'Interest on Time of Supply Issues', 'IN06': 'Interest on Self-Assessment (DRC-03)',
+                'IN07': 'Other Interest Issues', 'RF01': 'GSTR-1 Late Filing Fees', 'RF02': 'GSTR-3B Late Filing Fees',
+                'RF03': 'GSTR-9 Late Filing Fees', 'RF04': 'GSTR-9C Late Filing Fees',
+                'RF05': 'ITC-04 Non-Filing', 'RF06': 'General Return Filing Issues', 'RF07': 'Other Return Filing Issues',
+                'PD01': 'Return Reconciliation Mismatches', 'PD02': 'Documentation Deficiencies',
+                'PD03': 'Cash Payment Violations (Rule 86B)', 'PD04': 'Record Maintenance Issues', 'PD05': 'Other Procedural Issues',
+                'CV01': 'Service Classification Errors', 'CV02': 'Rate Classification Errors',
+                'CV03': 'Place of Supply Issues', 'CV04': 'Other Classification Issues',
+                'SS01': 'Construction/Real Estate Issues', 'SS02': 'Job Work Related Issues',
+                'SS03': 'Inter-Company Transaction Issues', 'SS04': 'Composition Scheme Issues', 'SS05': 'Other Special Situations',
+                'PG01': 'Statutory Penalties (Sec 123)', 'PG02': 'Stock & Physical Verification Issues',
+                'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
+            }
+            
+            # DETAILED DETECTION CHARTS (nc_tab2 equivalent)
+            unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
+            for code in sorted(unique_major_codes_det):
+                df_filtered = df_paras[df_paras['major_code'] == code].copy()
+                if df_filtered.empty:
+                    continue
+                    
+                df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
+                df_agg = df_agg[df_agg['Para Detection in Lakhs'] > 0]  # Filter zero values
+                
+                if df_agg.empty:
+                    continue
+                    
+                df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                
+                fig_detailed_det = px.bar(
+                    df_agg, 
+                    x='para_classification_code', 
+                    y='Para Detection in Lakhs',
+                    color='description',
+                    title=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                    labels={
+                        'para_classification_code': 'Detailed Code', 
+                        'Para Detection in Lakhs': 'Detection (₹ Lakhs)',
+                        'description': 'Classification Description'
+                    },
+                    text_auto='.2f',
+                    color_discrete_sequence=px.colors.qualitative.Set3
+                )
+                fig_detailed_det = style_chart(
+                    fig_detailed_det, 
+                    f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}", 
+                    "Detection (₹ Lakhs)", 
+                    "Detailed Code",
+                    wrap_x_labels=True
+                )
+                fig_detailed_det.update_layout(showlegend=False)  # Hide legend to save space
+                charts.append(fig_detailed_det)
+            
+            # DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
+            unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
+            for code in sorted(unique_major_codes_rec):
+                df_filtered = df_paras[df_paras['major_code'] == code].copy()
+                if df_filtered.empty:
+                    continue
+                    
+                df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
+                df_agg = df_agg[df_agg['Para Recovery in Lakhs'] > 0]  # Filter zero values
+                
+                if df_agg.empty:
+                    continue
+                    
+                df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                
+                fig_detailed_rec = px.bar(
+                    df_agg, 
+                    x='para_classification_code', 
+                    y='Para Recovery in Lakhs',
+                    color='description',
+                    title=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                    labels={
+                        'para_classification_code': 'Detailed Code', 
+                        'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)',
+                        'description': 'Classification Description'
+                    },
+                    text_auto='.2f',
+                    color_discrete_sequence=px.colors.qualitative.Pastel1
+                )
+                fig_detailed_rec = style_chart(
+                    fig_detailed_rec, 
+                    f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}", 
+                    "Recovery (₹ Lakhs)", 
+                    "Detailed Code",
+                    wrap_x_labels=True
+                )
+                fig_detailed_rec.update_layout(showlegend=False)  # Hide legend to save space
+                charts.append(fig_detailed_rec)
+
+        # ADD THIS SECTION - Pre-process classification data for PDF
+        classification_page_data = None
+        if not df_paras.empty:  # df_paras is already created in your classification analysis
+            # Calculate comprehensive stats
+            total_observations = len(df_paras)
+            main_categories_count = df_paras['major_code'].nunique()
+            sub_categories_count = df_paras['para_classification_code'].nunique()
+            
+            # Category-wise detailed stats  
+            category_stats = df_paras.groupby('major_code').agg(
+                para_count=('major_code', 'count'),
+                total_detection=('Para Detection in Lakhs', 'sum'),
+                total_recovery=('Para Recovery in Lakhs', 'sum')
+            ).reset_index()
+            
+            classification_page_data = {
+                'total_observations': total_observations,
+                'main_categories_count': main_categories_count,
+                'sub_categories_count': sub_categories_count,
+                'category_stats': category_stats.to_dict('records'),
+                'coverage_percentage': 100 if total_observations > 0 else 0
+            }
+            
+            print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
         # ADD SECTORAL SUMMARY DATA (after chart generation)
         sectoral_summary = []
         if 'taxpayer_classification' in df_unique_reports.columns:
