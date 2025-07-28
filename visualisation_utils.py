@@ -662,9 +662,12 @@ def get_visualization_data(dbx, selected_period):
             
             # Paras by Classification
             fig10 = px.bar(major_code_agg, x='description', y='Para_Count', text_auto=True,
-                          title="Number of Audit Paras by Classification",
+                          # title="Number of Audit Paras by Classification",
                           labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                           color_discrete_sequence=['#1f77b4'])
+            # Add this line to reduce Y-axis tick values font size
+            fig10.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+
             # fig10.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Number of Paras")
             # fig10.update_traces(textposition="outside", cliponaxis=False)
             fig10 = style_chart(fig10, "Number of Audit Paras by Categorisation", "Number of Paras", "Categorisation Code", wrap_x_labels=True)
@@ -672,9 +675,12 @@ def get_visualization_data(dbx, selected_period):
             
             # Detection by Classification
             fig11 = px.bar(major_code_agg, x='description', y='Total_Detection', text_auto='.2f',
-                          title="Detection Amount by Classification",
+                          # title="Detection Amount by Classification",
                           labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
                           color_discrete_sequence=['#ff7f0e'])
+            # Add this line to reduce Y-axis tick values font size
+            fig11.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+
             # fig11.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Detection (₹ Lakhs)")
             # fig11.update_traces(textposition="outside", cliponaxis=False)
             fig11 = style_chart(fig11, "Detection Amount by Categorisation", "Detection (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
@@ -682,9 +688,12 @@ def get_visualization_data(dbx, selected_period):
             
             # Recovery by Classification
             fig12 = px.bar(major_code_agg, x='description', y='Total_Recovery', text_auto='.2f',
-                          title="Recovery Amount by Classification",
+                          # title="Recovery Amount by Classification",
                           labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
                           color_discrete_sequence=['#2ca02c'])
+            # Add this line to reduce Y-axis tick values font size
+            fig12.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+ 
             # fig12.update_layout(title_x=0.5, xaxis_title="Categorisation  Code", yaxis_title="Recovery (₹ Lakhs)")
             # fig12.update_traces(textposition="outside", cliponaxis=False)
             fig12 = style_chart(fig12, "Recovery Amount by Categorisation", "Recovery (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
