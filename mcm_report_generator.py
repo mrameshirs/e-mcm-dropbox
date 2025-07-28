@@ -2766,7 +2766,7 @@ class PDFReportGenerator:
                 self._add_detailed_charts_2x3_layout("detection")
                 
                 # PART B2: DETAILED RECOVERY ANALYSIS (2x3 Layout)
-                self.story.append(PageBreak())  # Start recovery analysis on new page
+                #self.story.append(PageBreak())  # Start recovery analysis on new page
                 self.story.append(Paragraph("💎 Recovery Analysis by Detailed Subcategorization", chart_header_style))
                 
                 # Add detailed recovery charts in 2x3 layout
