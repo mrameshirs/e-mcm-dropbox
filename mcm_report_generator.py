@@ -402,7 +402,7 @@ class PDFReportGenerator:
                 size_configs = {
                     "tiny": 3.5 * inch,
                     "small": 4 * inch,
-                    "compact":4.5 * inch,
+                    "compact":4.9 * inch,
                     "medium": 5.0 * inch,
                     "large": 6.5 * inch
                 }
