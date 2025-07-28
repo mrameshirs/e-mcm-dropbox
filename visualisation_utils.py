@@ -1143,15 +1143,24 @@ def get_visualization_data(dbx, selected_period):
                     text_auto='.2f',
                     color_discrete_sequence=['#27AE60']  # Single green color
                 )
+                # CRITICAL: Apply the SAME professional styling as detection charts
+                fig_detailed_rec = style_chart(
+                    fig_detailed_rec, 
+                    title_text=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                    y_title="Recovery (₹ Lakhs)", 
+                    x_title="Detailed Code",
+                    wrap_x_labels=True
+                )
                 
+            
                 # ENHANCED STYLING - Same styling as detection charts
                 fig_detailed_rec.update_layout(
                     # REMOVE ALL TITLES
                     title='',
                     showlegend=False,
                     
-                    # # REMOVE Y-AXIS TITLE
-                    # yaxis_title='',
+                    # REMOVE Y-AXIS TITLE
+                    yaxis_title='',
                     
                     # ENHANCED X-AXIS STYLING
                     xaxis=dict(
