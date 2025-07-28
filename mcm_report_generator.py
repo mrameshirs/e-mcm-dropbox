@@ -521,7 +521,7 @@ class PDFReportGenerator:
                 "tiny": 3.0 * inch,
                 "small": 4.0 * inch,
                 "compact": 4.5 * inch,     # Perfect for detailed classification charts
-                "medium": 5.5 * inch,
+                "medium": 5.0 * inch,
                 "large": 6.5 * inch,
                 "extra_large": 7.5 * inch
             }
