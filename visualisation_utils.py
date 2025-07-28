@@ -1177,7 +1177,7 @@ def get_visualization_data(dbx, selected_period):
 
 def get_agreed_yet_to_pay_analysis(dbx, selected_period):
     """
-    Helper function to get the "Agreed yet to pay" analysis data
+    Helper function to get the "Agreed yet to pay " analysis data
     This replicates the specific analysis from the original visualization tab
     """
     try:
