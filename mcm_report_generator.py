@@ -2323,7 +2323,7 @@ class PDFReportGenerator:
                     ]))
                     
                     self.story.append(classification_table)
-                    self.story.append(Spacer(1, 0.2 * inch))
+                    self.story.append(Spacer(1, 0.01 * inch))
                     
             except Exception as e:
                 print(f"Error adding classification summary table: {e}")
@@ -2333,6 +2333,7 @@ class PDFReportGenerator:
             try:
                 self.story.append(PageBreak())
                 # Section IV Header
+                self.story.append(Spacer(1, -1.0 * inch))
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Description
