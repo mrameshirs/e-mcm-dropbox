@@ -39,6 +39,45 @@ def wrap_text(text, max_length=15):
         lines.append(' '.join(current_line))
     
     return '<br>'.join(lines)
+# Add this function to visualization_utils.py - REPLACE the existing detailed charts section
+
+def wrap_text_for_labels(text, max_chars_per_line=20, max_lines=3):# for nature of non compliance analysis function 
+    """
+    Wrap text into multiple lines for chart labels with character limit per line
+    """
+    if len(text) <= max_chars_per_line:
+        return text
+    
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        # Check if adding this word would exceed the character limit
+        word_length = len(word)
+        if current_length + word_length + len(current_line) <= max_chars_per_line:
+            current_line.append(word)
+            current_length += word_length
+        else:
+            if current_line:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_length = word_length
+                
+                # Stop if we've reached max lines
+                if len(lines) >= max_lines - 1:
+                    break
+            else:
+                # Single word is too long, truncate it
+                lines.append(word[:max_chars_per_line-3] + '...')
+                break
+    
+    # Add remaining words to the last line if within limits
+    if current_line and len(lines) < max_lines:
+        lines.append(' '.join(current_line))
+    
+    return '<br>'.join(lines)
 
 def get_visualization_data(dbx, selected_period):
     """
@@ -993,7 +1032,7 @@ def get_visualization_data(dbx, selected_period):
                 'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
             }
             
-            # DETAILED DETECTION CHARTS (nc_tab2 equivalent)
+            # ENHANCED DETAILED DETECTION CHARTS (nc_tab2 equivalent)
             unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
             for code in sorted(unique_major_codes_det):
                 df_filtered = df_paras[df_paras['major_code'] == code].copy()
@@ -1006,33 +1045,74 @@ def get_visualization_data(dbx, selected_period):
                 if df_agg.empty:
                     continue
                     
+                # ENHANCED: Add description and create combined labels
                 df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                df_agg['combined_label'] = df_agg.apply(
+                    lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+                    axis=1
+                )
                 
                 fig_detailed_det = px.bar(
                     df_agg, 
-                    x='para_classification_code', 
+                    x='combined_label',  # Use combined label instead of code only
                     y='Para Detection in Lakhs',
-                    color='description',
-                    title=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                    labels={
-                        'para_classification_code': 'Detailed Code', 
-                        'Para Detection in Lakhs': 'Detection (₹ Lakhs)',
-                        'description': 'Classification Description'
-                    },
                     text_auto='.2f',
-                    color_discrete_sequence=px.colors.qualitative.Set3
+                    color_discrete_sequence=['#3498db']  # Single color since we removed color mapping
                 )
-                fig_detailed_det = style_chart(
-                    fig_detailed_det, 
-                    f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}", 
-                    "Detection (₹ Lakhs)", 
-                    "Detailed Code",
-                    wrap_x_labels=True
+                
+                # ENHANCED STYLING - Remove titles, y-axis title, rotate labels
+                fig_detailed_det.update_layout(
+                    # REMOVE ALL TITLES
+                    title='',  # Remove main title
+                    showlegend=False,  # Remove legend
+                    
+                    # REMOVE Y-AXIS TITLE
+                    yaxis_title='',
+                    
+                    # ENHANCED X-AXIS STYLING
+                    xaxis=dict(
+                        title='',  # Remove x-axis title
+                        tickangle=-30,  # 30 degree inclination
+                        tickfont=dict(size=8, family="Arial", color='#2C3E50'),  # Smaller font
+                        showgrid=False,
+                        tickmode='array',
+                        tickvals=list(range(len(df_agg))),
+                        ticktext=df_agg['combined_label'].tolist()
+                    ),
+                    
+                    # Y-AXIS STYLING
+                    yaxis=dict(
+                        tickfont=dict(size=10, family="Arial", color='#2C3E50'),
+                        gridcolor='#E5E5E5',
+                        showgrid=True
+                    ),
+                    
+                    # CHART BACKGROUND
+                    paper_bgcolor='#FAFAFA',
+                    plot_bgcolor='#FFFFFF',
+                    
+                    # MARGINS - Increased bottom margin for rotated labels
+                    margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
+                    
+                    # FONT
+                    font=dict(family="Arial", size=10, color="#2C3E50"),
+                    
+                    # HEIGHT - Increased slightly for better label visibility
+                    height=350
                 )
-                fig_detailed_det.update_layout(showlegend=False)  # Hide legend to save space
+                
+                # UPDATE TRACES - Remove text position to avoid clutter
+                fig_detailed_det.update_traces(
+                    marker_line_color='#2C3E50',
+                    marker_line_width=1,
+                    textposition="outside",
+                    cliponaxis=False,
+                    textfont=dict(size=9, color='#2C3E50')
+                )
+                
                 charts.append(fig_detailed_det)
             
-            # DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
+            # ENHANCED DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
             unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
             for code in sorted(unique_major_codes_rec):
                 df_filtered = df_paras[df_paras['major_code'] == code].copy()
@@ -1045,30 +1125,71 @@ def get_visualization_data(dbx, selected_period):
                 if df_agg.empty:
                     continue
                     
+                # ENHANCED: Add description and create combined labels
                 df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                df_agg['combined_label'] = df_agg.apply(
+                    lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+                    axis=1
+                )
                 
                 fig_detailed_rec = px.bar(
                     df_agg, 
-                    x='para_classification_code', 
+                    x='combined_label',  # Use combined label instead of code only
                     y='Para Recovery in Lakhs',
-                    color='description',
-                    title=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                    labels={
-                        'para_classification_code': 'Detailed Code', 
-                        'Para Recovery in Lakhs': 'Recovery (₹ Lakhs)',
-                        'description': 'Classification Description'
-                    },
                     text_auto='.2f',
-                    color_discrete_sequence=px.colors.qualitative.Pastel1
+                    color_discrete_sequence=['#27AE60']  # Single green color
                 )
-                fig_detailed_rec = style_chart(
-                    fig_detailed_rec, 
-                    f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}", 
-                    "Recovery (₹ Lakhs)", 
-                    "Detailed Code",
-                    wrap_x_labels=True
+                
+                # ENHANCED STYLING - Same styling as detection charts
+                fig_detailed_rec.update_layout(
+                    # REMOVE ALL TITLES
+                    title='',
+                    showlegend=False,
+                    
+                    # REMOVE Y-AXIS TITLE
+                    yaxis_title='',
+                    
+                    # ENHANCED X-AXIS STYLING
+                    xaxis=dict(
+                        title='',
+                        tickangle=-30,  # 30 degree inclination
+                        tickfont=dict(size=8, family="Arial", color='#2C3E50'),
+                        showgrid=False,
+                        tickmode='array',
+                        tickvals=list(range(len(df_agg))),
+                        ticktext=df_agg['combined_label'].tolist()
+                    ),
+                    
+                    # Y-AXIS STYLING
+                    yaxis=dict(
+                        tickfont=dict(size=10, family="Arial", color='#2C3E50'),
+                        gridcolor='#E5E5E5',
+                        showgrid=True
+                    ),
+                    
+                    # CHART BACKGROUND
+                    paper_bgcolor='#FAFAFA',
+                    plot_bgcolor='#FFFFFF',
+                    
+                    # MARGINS
+                    margin=dict(l=50, r=20, t=10, b=100),
+                    
+                    # FONT
+                    font=dict(family="Arial", size=10, color="#2C3E50"),
+                    
+                    # HEIGHT
+                    height=350
                 )
-                fig_detailed_rec.update_layout(showlegend=False)  # Hide legend to save space
+                
+                # UPDATE TRACES
+                fig_detailed_rec.update_traces(
+                    marker_line_color='#2C3E50',
+                    marker_line_width=1,
+                    textposition="outside",
+                    cliponaxis=False,
+                    textfont=dict(size=9, color='#2C3E50')
+                )
+                
                 charts.append(fig_detailed_rec)
 
         # ADD THIS SECTION - Pre-process classification data for PDF
