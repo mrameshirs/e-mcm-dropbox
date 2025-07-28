@@ -2333,7 +2333,7 @@ class PDFReportGenerator:
             try:
                 self.story.append(PageBreak())
                 # Section IV Header
-                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis1", text_color="#0E4C92")
+                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Description
                 desc_style = ParagraphStyle(
@@ -2381,23 +2381,23 @@ class PDFReportGenerator:
                                        size="medium", 
                                        add_title=False, 
                                        add_description=False)
-                self.story.append(Spacer(1, 0.2 * inch))
+                self.story.append(Spacer(1, 0.01 * inch))
                 
                 # Second Chart: Detection Amount by Classification
                 self.story.append(Paragraph("🎯 Detection Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_detection", 
-                                       size="large", 
+                                       size="medium", 
                                        add_title=False, 
                                        add_description=False)
-                self.story.append(Spacer(1, 0.2 * inch))
+                self.story.append(Spacer(1, 0.01 * inch))
                 
                 # Third Chart: Recovery Amount by Classification
                 self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_recovery", 
-                                       size="large", 
+                                       size="medium", 
                                        add_title=False, 
                                        add_description=False)
-                self.story.append(Spacer(1, 0.3 * inch))
+                self.story.append(Spacer(1, 0.01 * inch))
                 
                     
             except Exception as e:
