@@ -357,7 +357,7 @@ class PDFReportGenerator:
             fontName='Helvetica-Bold',
             spaceAfter=16,
             spaceBefore=24
-    #     )
+         )
         
  
     
