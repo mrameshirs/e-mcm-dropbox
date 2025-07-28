@@ -401,7 +401,8 @@ class PDFReportGenerator:
                 # Regular sizing for other charts
                 size_configs = {
                     "tiny": 3.5 * inch,
-                    "small": 4.5 * inch,
+                    "small": 4 * inch,
+                    "compact":4.5 * inch,
                     "medium": 5.0 * inch,
                     "large": 6.5 * inch
                 }
@@ -2400,7 +2401,7 @@ class PDFReportGenerator:
                 # Third Chart: Recovery Amount by Classification
                 self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_recovery", 
-                                       size="medium", 
+                                       size="compact", 
                                        add_title=False, 
                                        add_description=False)
                 self.story.append(Spacer(1, 0.01 * inch))
