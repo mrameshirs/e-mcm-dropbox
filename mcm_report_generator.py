@@ -2329,11 +2329,29 @@ class PDFReportGenerator:
                 print(f"Error adding classification summary table: {e}")
                 
     def add_nature_of_non_compliance_analysis(self):
+            def create_reduced_margin_template(self):
+                """Create a page template with reduced top margin"""
+                from reportlab.platypus import PageTemplate, Frame
+                
+                frame = Frame(
+                    0.75*inch,  # left margin
+                    0.5*inch,   # bottom margin  
+                    7*inch,     # width
+                    10*inch,    # height (increased because top margin is reduced)
+                    leftPadding=0,
+                    bottomPadding=0,
+                    rightPadding=0,
+                    topPadding=0,
+                    id='reduced_margin'
+                )
+                
+                template = PageTemplate(id='reduced_margin', frames=frame)
+                return template
             """Add Section IV - Nature of Non Compliance Analysis"""
             try:
                 self.story.append(PageBreak())
                 # Section IV Header
-                self.story.append(Spacer(1, -1.0 * inch))
+                self.story.append(NextPageTemplate('reduced_margin'))
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Description
