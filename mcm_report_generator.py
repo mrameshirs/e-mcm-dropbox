@@ -377,26 +377,26 @@ class PDFReportGenerator:
             # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
             is_pie_row = 'combined' in chart_id or 'three_pie' in chart_id or 'taxpayer_classification_distribution' in chart_id
        
-            is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
+            #is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
             if is_pie_row:
                 # Wide format for three pies in row
                 target_width = 8.5 * inch
                 target_height = 4.5 * inch
-            elif is_pie_chart:
-                # SQUARE dimensions for pie charts - CRITICAL for circular shape
-                target_size = 3.0 * inch  # Same width and height
-                target_width = target_size
-                target_height = target_size
+            # elif is_pie_chart:
+            #     # SQUARE dimensions for pie charts - CRITICAL for circular shape
+            #     target_size = 3.0 * inch  # Same width and height
+            #     target_width = target_size
+            #     target_height = target_size
                
-                # Force square aspect ratio
-                original_width = getattr(drawing, 'width', 500)
-                original_height = getattr(drawing, 'height', 500)
-                print('Piechart found',original_width,original_height)
-                # Use the same scale for both dimensions to maintain circular shape
-                scale_factor = target_size / max(original_width, original_height)
-                scale_x = scale_factor
-                scale_y = scale_factor
-                print('Scale factor ',scale_x,scale_y)
+            #     # Force square aspect ratio
+            #     original_width = getattr(drawing, 'width', 500)
+            #     original_height = getattr(drawing, 'height', 500)
+            #     print('Piechart found',original_width,original_height)
+            #     # Use the same scale for both dimensions to maintain circular shape
+            #     scale_factor = target_size / max(original_width, original_height)
+            #     scale_x = scale_factor
+            #     scale_y = scale_factor
+            #     print('Scale factor ',scale_x,scale_y)
             else:
                 # Regular sizing for other charts
                 size_configs = {
