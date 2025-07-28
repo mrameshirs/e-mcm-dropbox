@@ -2377,8 +2377,8 @@ class PDFReportGenerator:
                     textColor=colors.HexColor("#1134A6"),
                     alignment=TA_LEFT,
                     fontName='Helvetica-Bold',
-                    spaceAfter=12,
-                    spaceBefore=16
+                    spaceAfter=6,
+                    spaceBefore=6
                 )
                 
                 # First Chart: Number of Paras by Classification
