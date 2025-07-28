@@ -437,7 +437,7 @@ class PDFReportGenerator:
     #             size_configs = {
     #                 "tiny": 3.5 * inch,
     #                 "small": 4 * inch,
-    #                 "compact":4.9 * inch,
+    #                 "compact":4.5 * inch,
     #                 "medium": 5.0 * inch,
     #                 "large": 6.5 * inch
     #             }
@@ -2595,8 +2595,8 @@ class PDFReportGenerator:
                 return chart_title  # Return at least the title
             
             # Compact size for side-by-side layout
-            target_width = 3.5 * inch
-            target_height = 2.3 * inch
+            target_width = 4 * inch
+            target_height = 2.5 * inch
             
             # Calculate scale factors
             original_width = getattr(drawing, 'width', 400)
@@ -2717,7 +2717,7 @@ class PDFReportGenerator:
                 # Third Chart: Recovery Amount by Classification
                 self.story.append(Paragraph("🎯 Recovery Amount by Categorisation", chart_header_style))
                 self.insert_chart_by_id("classification_recovery", 
-                                       size="compact", 
+                                       size="medium", 
                                        add_title=False, 
                                        add_description=False)
                 self.story.append(Spacer(1, 0.01 * inch))
