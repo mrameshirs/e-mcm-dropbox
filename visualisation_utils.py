@@ -1072,14 +1072,12 @@ def get_visualization_data(dbx, selected_period):
                     title='',  # Remove main title
                     showlegend=False,  # Remove legend
                     
-                    # REMOVE Y-AXIS TITLE
-                    yaxis_title='',
-                    
+                                    
                     # ENHANCED X-AXIS STYLING
                     xaxis=dict(
                         title='',  # Remove x-axis title
-                        tickangle=-30,  # 30 degree inclination
-                        tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),  # Smaller font
+                        tickangle=30,  # 30 degree inclination
+                        tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),  # Smaller font
                         showgrid=False,
                         tickmode='array',
                         tickvals=list(range(len(df_agg))),
@@ -1098,7 +1096,7 @@ def get_visualization_data(dbx, selected_period):
                     plot_bgcolor='#FFFFFF',
                     
                     # MARGINS - Increased bottom margin for rotated labels
-                    margin=dict(l=50, r=20, t=10, b=80),  # Increased bottom margin
+                    margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
                     
                     # FONT
                     font=dict(family="Helvetica", size=10, color="#2C3E50"),
@@ -1152,14 +1150,14 @@ def get_visualization_data(dbx, selected_period):
                     title='',
                     showlegend=False,
                     
-                    # REMOVE Y-AXIS TITLE
-                    yaxis_title='',
+                    # # REMOVE Y-AXIS TITLE
+                    # yaxis_title='',
                     
                     # ENHANCED X-AXIS STYLING
                     xaxis=dict(
                         title='',
-                        tickangle=-30,  # 30 degree inclination
-                        tickfont=dict(size=8, family="Helvetica", color='#2C3E50'),
+                        tickangle=30,  # 30 degree inclination
+                        tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),
                         showgrid=False,
                         tickmode='array',
                         tickvals=list(range(len(df_agg))),
@@ -1168,7 +1166,7 @@ def get_visualization_data(dbx, selected_period):
                     
                     # Y-AXIS STYLING
                     yaxis=dict(
-                        tickfont=dict(size=10, family="Arial", color='#2C3E50'),
+                        tickfont=dict(size=10, family="Helvetica", color='#2C3E50'),
                         gridcolor='#E5E5E5',
                         showgrid=True
                     ),
@@ -1184,7 +1182,7 @@ def get_visualization_data(dbx, selected_period):
                     font=dict(family="Helvetica", size=10, color="#2C3E50"),
                     
                     # HEIGHT
-                    height=350
+                    height=300
                 )
                 
                 # UPDATE TRACES
