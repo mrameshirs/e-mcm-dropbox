@@ -14,7 +14,7 @@ import os
 import re
 import xml.etree.ElementTree as ET
 import pandas as pd
-
+from reportlab.platypus import NextPageTemplate, PageTemplate, Frame
 class PDFReportGenerator:
     """
     A structured PDF report generator with controlled chart placement and descriptions.
@@ -2328,30 +2328,32 @@ class PDFReportGenerator:
             except Exception as e:
                 print(f"Error adding classification summary table: {e}")
                 
+   
+        
     def add_nature_of_non_compliance_analysis(self):
-            def create_reduced_margin_template(self):
-                """Create a page template with reduced top margin"""
-                from reportlab.platypus import PageTemplate, Frame
-                
-                frame = Frame(
-                    0.75*inch,  # left margin
-                    0.5*inch,   # bottom margin  
-                    7*inch,     # width
-                    10*inch,    # height (increased because top margin is reduced)
-                    leftPadding=0,
-                    bottomPadding=0,
-                    rightPadding=0,
-                    topPadding=0,
-                    id='reduced_margin'
-                )
-                
-                template = PageTemplate(id='reduced_margin', frames=frame)
-                return template
+            
             """Add Section IV - Nature of Non Compliance Analysis"""
             try:
+                # Create temporary frame with smaller top margin
+                temp_frame = Frame(
+                    self.doc.leftMargin,
+                    self.doc.bottomMargin, 
+                    self.doc.width,
+                    self.doc.height + 0.5*inch,  # Extend height by reducing top margin
+                    topPadding=0.2*inch  # Reduced from default
+                )
+                
+                temp_template = PageTemplate(id='temp', frames=temp_frame)
+                self.doc.addPageTemplates([temp_template])
+                
+                self.story.append(NextPageTemplate('temp'))
                 self.story.append(PageBreak())
-                # Section IV Header
-                self.story.append(NextPageTemplate('reduced_margin'))
+                
+                # Your content here
+                self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
+                
+                # Switch back to normal template after this section
+                self.story.append(NextPageTemplate('normal'))
                 self.add_section_highlight_bar("IV. Nature of Non Compliance Analysis", text_color="#0E4C92")
                 
                 # Description
