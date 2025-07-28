@@ -1003,6 +1003,104 @@ def get_visualization_data(dbx, selected_period):
                     
         # CHARTS 19+: Detailed Classification Analysis (Multiple Charts for nc_tab2 and nc_tab3)
         if not df_paras.empty:
+            
+            def wrap_text_for_labels(text, max_chars_per_line=18, max_lines=3):
+                """Wrap text into multiple lines for chart labels"""
+                if len(text) <= max_chars_per_line:
+                    return text
+                
+                words = text.split()
+                lines = []
+                current_line = []
+                current_length = 0
+                
+                for word in words:
+                    word_length = len(word)
+                    if current_length + word_length + len(current_line) <= max_chars_per_line:
+                        current_line.append(word)
+                        current_length += word_length
+                    else:
+                        if current_line:
+                            lines.append(' '.join(current_line))
+                            current_line = [word]
+                            current_length = word_length
+                            
+                            if len(lines) >= max_lines - 1:
+                                break
+                        else:
+                            lines.append(word[:max_chars_per_line-3] + '...')
+                            break
+                
+                if current_line and len(lines) < max_lines:
+                    lines.append(' '.join(current_line))
+                
+                return '<br>'.join(lines)
+            
+            def create_empty_chart(code, chart_type, classification_desc):
+                """Create an empty chart when no data is available"""
+                # Create a dummy dataframe with a single bar showing "No Data"
+                df_empty = pd.DataFrame({
+                    'category': ['No Data Available'],
+                    'value': [0],
+                    'combined_label': ['No Data<br>Available']
+                })
+                
+                color = '#3498db' if chart_type == 'detection' else '#27AE60'
+                y_column = f'Para {chart_type.title()} in Lakhs'
+                df_empty[y_column] = [0]
+                
+                fig_empty = px.bar(
+                    df_empty,
+                    x='combined_label',
+                    y=y_column,
+                    color_discrete_sequence=[color]
+                )
+                
+                # Apply professional styling
+                fig_empty = style_chart(
+                    fig_empty,
+                    title_text=f"{chart_type.title()} for {code} - {classification_desc}",
+                    y_title=f"{chart_type.title()} (₹ Lakhs)",
+                    x_title="Detailed Code",
+                    wrap_x_labels=True
+                )
+                
+                # Override for empty chart styling
+                fig_empty.update_layout(
+                    title="",
+                    xaxis_title="",
+                    yaxis_title="",
+                    xaxis=dict(
+                        tickangle=-30,
+                        tickfont=dict(size=8, family="serif", color='#5A4A4A'),
+                        showgrid=False
+                    ),
+                    yaxis=dict(
+                        range=[0, 1],  # Set a small range so the chart isn't completely flat
+                        tickfont=dict(size=10, family="serif", color='#5A4A4A')
+                    ),
+                    margin=dict(l=60, r=20, t=20, b=120),
+                    height=380,
+                    # Add annotation for "No Data"
+                    annotations=[
+                        dict(
+                            text="No Data Available",
+                            x=0.5, y=0.5,
+                            xref='paper', yref='paper',
+                            showarrow=False,
+                            font=dict(size=14, color='#666666'),
+                            bgcolor='rgba(255,255,255,0.8)',
+                            bordercolor='#CCCCCC',
+                            borderwidth=1
+                        )
+                    ]
+                )
+                
+                # Remove the bar data values text
+                fig_empty.update_traces(texttemplate='')
+                
+                return fig_empty
+            
             DETAILED_CLASSIFICATION_DESC = {
                 'TP01': 'Output Tax Short Payment - GSTR Discrepancies', 'TP02': 'Output Tax on Other Income',
                 'TP03': 'Output Tax on Asset Sales', 'TP04': 'Export & SEZ Related Issues',
@@ -1032,178 +1130,331 @@ def get_visualization_data(dbx, selected_period):
                 'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
             }
             
-            # ENHANCED DETAILED DETECTION CHARTS (nc_tab2 equivalent)
-            unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
-            for code in sorted(unique_major_codes_det):
+            # ALL CLASSIFICATION CODES - ensure we always have 9 charts
+            all_classification_codes = ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']
+            
+            # DETAILED DETECTION CHARTS - ALWAYS 9 CHARTS
+            print("Generating detection charts...")
+            for code in all_classification_codes:
                 df_filtered = df_paras[df_paras['major_code'] == code].copy()
-                if df_filtered.empty:
-                    continue
-                    
-                df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
-                df_agg = df_agg[df_agg['Para Detection in Lakhs'] > 0]  # Filter zero values
                 
-                if df_agg.empty:
-                    continue
-                    
-                # ENHANCED: Add description and create combined labels
-                df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
-                df_agg['combined_label'] = df_agg.apply(
-                    lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
-                    axis=1
-                )
+                if not df_filtered.empty:
+                    df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
+                    df_agg = df_agg[df_agg['Para Detection in Lakhs'] > 0]
+                else:
+                    df_agg = pd.DataFrame()  # Empty dataframe
                 
-                fig_detailed_det = px.bar(
-                    df_agg, 
-                    x='combined_label',  # Use combined label instead of code only
-                    y='Para Detection in Lakhs',
-                    text_auto='.2f',
-                    color_discrete_sequence=['#3498db']  # Single color since we removed color mapping
-                )
-                fig_detailed_det = style_chart(
-                    fig_detailed_det, 
-                    title_text=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                    y_title="Detection (₹ Lakhs)", 
-                    x_title="Detailed Code",
-                    wrap_x_labels=True
-                )
-                # ENHANCED STYLING - Remove titles, y-axis title, rotate labels
-                fig_detailed_det.update_layout(
-                    # REMOVE ALL TITLES
-                    title='',  # Remove main title
-                    showlegend=False,  # Remove legend
+                if not df_agg.empty:
+                    # Create normal chart with data
+                    df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                    df_agg['combined_label'] = df_agg.apply(
+                        lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+                        axis=1
+                    )
+                    
+                    fig_detailed_det = px.bar(
+                        df_agg, 
+                        x='combined_label',
+                        y='Para Detection in Lakhs',
+                        text_auto='.2f',
+                        color_discrete_sequence=['#3498db']
+                    )
+                    
+                    # Apply professional styling
+                    fig_detailed_det = style_chart(
+                        fig_detailed_det, 
+                        title_text=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                        y_title="Detection (₹ Lakhs)", 
+                        x_title="Detailed Code",
+                        wrap_x_labels=True
+                    )
+                    
+                    # Override for detailed charts
+                    fig_detailed_det.update_layout(
+                        title="",
+                        xaxis_title="",
+                        yaxis_title="",
+                        xaxis=dict(
+                            tickangle=-30,
+                            tickfont=dict(size=8, family="serif", color='#5A4A4A'),
+                            showgrid=False
+                        ),
+                        margin=dict(l=60, r=20, t=20, b=120),
+                        height=380
+                    )
+                    
+                    charts.append(fig_detailed_det)
+                    print(f"Added detection chart for {code} with data")
+                    
+                else:
+                    # Create empty chart
+                    fig_empty = create_empty_chart(code, 'detection', CLASSIFICATION_CODES_DESC.get(code, ''))
+                    charts.append(fig_empty)
+                    print(f"Added EMPTY detection chart for {code}")
+            
+            # DETAILED RECOVERY CHARTS - ALWAYS 9 CHARTS  
+            print("Generating recovery charts...")
+            for code in all_classification_codes:
+                df_filtered = df_paras[df_paras['major_code'] == code].copy()
+                
+                if not df_filtered.empty:
+                    df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
+                    df_agg = df_agg[df_agg['Para Recovery in Lakhs'] > 0]
+                else:
+                    df_agg = pd.DataFrame()  # Empty dataframe
+                
+                if not df_agg.empty:
+                    # Create normal chart with data
+                    df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+                    df_agg['combined_label'] = df_agg.apply(
+                        lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+                        axis=1
+                    )
+                    
+                    fig_detailed_rec = px.bar(
+                        df_agg, 
+                        x='combined_label',
+                        y='Para Recovery in Lakhs',
+                        text_auto='.2f',
+                        color_discrete_sequence=['#27AE60']
+                    )
+                    
+                    # Apply professional styling
+                    fig_detailed_rec = style_chart(
+                        fig_detailed_rec, 
+                        title_text=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+                        y_title="Recovery (₹ Lakhs)", 
+                        x_title="Detailed Code",
+                        wrap_x_labels=True
+                    )
+                    
+                    # Override for detailed charts
+                    fig_detailed_rec.update_layout(
+                        title="",
+                        xaxis_title="",
+                        yaxis_title="",
+                        xaxis=dict(
+                            tickangle=-30,
+                            tickfont=dict(size=8, family="serif", color='#5A4A4A'),
+                            showgrid=False
+                        ),
+                        margin=dict(l=60, r=20, t=20, b=120),
+                        height=380
+                    )
+                    
+                    charts.append(fig_detailed_rec)
+                    print(f"Added recovery chart for {code} with data")
+                    
+                else:
+                    # Create empty chart
+                    fig_empty = create_empty_chart(code, 'recovery', CLASSIFICATION_CODES_DESC.get(code, ''))
+                    charts.append(fig_empty)
+                    print(f"Added EMPTY recovery chart for {code}")
+            
+            print(f"Total detailed charts generated: 18 (9 detection + 9 recovery)")
+            print("This ensures consistent 2x3 layout on each page")
+        # if not df_paras.empty:
+        #     DETAILED_CLASSIFICATION_DESC = {
+        #         'TP01': 'Output Tax Short Payment - GSTR Discrepancies', 'TP02': 'Output Tax on Other Income',
+        #         'TP03': 'Output Tax on Asset Sales', 'TP04': 'Export & SEZ Related Issues',
+        #         'TP05': 'Credit Note Adjustment Errors', 'TP06': 'Turnover Reconciliation Issues',
+        #         'TP07': 'Scheme Migration Issues', 'TP08': 'Other Tax Payment Issues',
+        #         'RC01': 'RCM on Transportation Services', 'RC02': 'RCM on Professional Services',
+        #         'RC03': 'RCM on Administrative Services', 'RC04': 'RCM on Import of Services',
+        #         'RC05': 'RCM Reconciliation Issues', 'RC06': 'RCM on Other Services', 'RC07': 'Other RCM Issues',
+        #         'IT01': 'Blocked Credit Claims (Sec 17(5))', 'IT02': 'Ineligible ITC Claims (Sec 16)',
+        #         'IT03': 'Excess ITC - GSTR Reconciliation', 'IT04': 'Supplier Registration Issues',
+        #         'IT05': 'ITC Reversal - 180 Day Rule', 'IT06': 'ITC Reversal - Other Reasons',
+        #         'IT07': 'Proportionate ITC Issues (Rule 42)', 'IT08': 'RCM ITC Mismatches',
+        #         'IT09': 'Import IGST ITC Issues', 'IT10': 'Migration Related ITC Issues', 'IT11': 'Other ITC Issues',
+        #         'IN01': 'Interest on Delayed Tax Payment', 'IN02': 'Interest on Delayed Filing',
+        #         'IN03': 'Interest on ITC - 180 Day Rule', 'IN04': 'Interest on ITC Reversals',
+        #         'IN05': 'Interest on Time of Supply Issues', 'IN06': 'Interest on Self-Assessment (DRC-03)',
+        #         'IN07': 'Other Interest Issues', 'RF01': 'GSTR-1 Late Filing Fees', 'RF02': 'GSTR-3B Late Filing Fees',
+        #         'RF03': 'GSTR-9 Late Filing Fees', 'RF04': 'GSTR-9C Late Filing Fees',
+        #         'RF05': 'ITC-04 Non-Filing', 'RF06': 'General Return Filing Issues', 'RF07': 'Other Return Filing Issues',
+        #         'PD01': 'Return Reconciliation Mismatches', 'PD02': 'Documentation Deficiencies',
+        #         'PD03': 'Cash Payment Violations (Rule 86B)', 'PD04': 'Record Maintenance Issues', 'PD05': 'Other Procedural Issues',
+        #         'CV01': 'Service Classification Errors', 'CV02': 'Rate Classification Errors',
+        #         'CV03': 'Place of Supply Issues', 'CV04': 'Other Classification Issues',
+        #         'SS01': 'Construction/Real Estate Issues', 'SS02': 'Job Work Related Issues',
+        #         'SS03': 'Inter-Company Transaction Issues', 'SS04': 'Composition Scheme Issues', 'SS05': 'Other Special Situations',
+        #         'PG01': 'Statutory Penalties (Sec 123)', 'PG02': 'Stock & Physical Verification Issues',
+        #         'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
+        #     }
+            
+        #     # ENHANCED DETAILED DETECTION CHARTS (nc_tab2 equivalent)
+        #     unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
+        #     for code in sorted(unique_major_codes_det):
+        #         df_filtered = df_paras[df_paras['major_code'] == code].copy()
+        #         if df_filtered.empty:
+        #             continue
+                    
+        #         df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
+        #         df_agg = df_agg[df_agg['Para Detection in Lakhs'] > 0]  # Filter zero values
+                
+        #         if df_agg.empty:
+        #             continue
+                    
+        #         # ENHANCED: Add description and create combined labels
+        #         df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+        #         df_agg['combined_label'] = df_agg.apply(
+        #             lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+        #             axis=1
+        #         )
+                
+        #         fig_detailed_det = px.bar(
+        #             df_agg, 
+        #             x='combined_label',  # Use combined label instead of code only
+        #             y='Para Detection in Lakhs',
+        #             text_auto='.2f',
+        #             color_discrete_sequence=['#3498db']  # Single color since we removed color mapping
+        #         )
+        #         fig_detailed_det = style_chart(
+        #             fig_detailed_det, 
+        #             title_text=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+        #             y_title="Detection (₹ Lakhs)", 
+        #             x_title="Detailed Code",
+        #             wrap_x_labels=True
+        #         )
+        #         # ENHANCED STYLING - Remove titles, y-axis title, rotate labels
+        #         fig_detailed_det.update_layout(
+        #             # REMOVE ALL TITLES
+        #             title='',  # Remove main title
+        #             showlegend=False,  # Remove legend
                     
                                     
-                    # ENHANCED X-AXIS STYLING
-                    xaxis=dict(
-                        title='',  # Remove x-axis title
-                        tickangle=30,  # 30 degree inclination
-                        tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),  # Smaller font
-                        showgrid=False,
-                        tickmode='array',
-                        tickvals=list(range(len(df_agg))),
-                        ticktext=df_agg['combined_label'].tolist()
-                    ),
+        #             # ENHANCED X-AXIS STYLING
+        #             xaxis=dict(
+        #                 title='',  # Remove x-axis title
+        #                 tickangle=30,  # 30 degree inclination
+        #                 tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),  # Smaller font
+        #                 showgrid=False,
+        #                 tickmode='array',
+        #                 tickvals=list(range(len(df_agg))),
+        #                 ticktext=df_agg['combined_label'].tolist()
+        #             ),
                     
-                    # Y-AXIS STYLING
-                    yaxis=dict(
-                        tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),
-                        gridcolor='#E5E5E5',
-                        showgrid=True
-                    ),
+        #             # Y-AXIS STYLING
+        #             yaxis=dict(
+        #                 tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),
+        #                 gridcolor='#E5E5E5',
+        #                 showgrid=True
+        #             ),
                     
-                    # CHART BACKGROUND
-                    paper_bgcolor='#FAFAFA',
-                    plot_bgcolor='#FFFFFF',
+        #             # CHART BACKGROUND
+        #             paper_bgcolor='#FAFAFA',
+        #             plot_bgcolor='#FFFFFF',
                     
-                    # MARGINS - Increased bottom margin for rotated labels
-                    margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
+        #             # MARGINS - Increased bottom margin for rotated labels
+        #             margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
                     
-                    # FONT
-                    font=dict(family="Helvetica", size=10, color="#2C3E50"),
+        #             # FONT
+        #             font=dict(family="Helvetica", size=10, color="#2C3E50"),
                     
-                    # HEIGHT - Increased slightly for better label visibility
-                    height=300
-                )
+        #             # HEIGHT - Increased slightly for better label visibility
+        #             height=300
+        #         )
                 
-                # UPDATE TRACES - Remove text position to avoid clutter
-                fig_detailed_det.update_traces(
-                    marker_line_color='#2C3E50',
-                    marker_line_width=1,
-                    textposition="outside",
-                    cliponaxis=False,
-                    textfont=dict(size=9, color='#2C3E50')
-                )
+        #         # UPDATE TRACES - Remove text position to avoid clutter
+        #         fig_detailed_det.update_traces(
+        #             marker_line_color='#2C3E50',
+        #             marker_line_width=1,
+        #             textposition="outside",
+        #             cliponaxis=False,
+        #             textfont=dict(size=9, color='#2C3E50')
+        #         )
                 
-                charts.append(fig_detailed_det)
+        #         charts.append(fig_detailed_det)
             
-            # ENHANCED DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
-            unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
-            for code in sorted(unique_major_codes_rec):
-                df_filtered = df_paras[df_paras['major_code'] == code].copy()
-                if df_filtered.empty:
-                    continue
+        #     # ENHANCED DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
+        #     unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
+        #     for code in sorted(unique_major_codes_rec):
+        #         df_filtered = df_paras[df_paras['major_code'] == code].copy()
+        #         if df_filtered.empty:
+        #             continue
                     
-                df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
-                df_agg = df_agg[df_agg['Para Recovery in Lakhs'] > 0]  # Filter zero values
+        #         df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
+        #         df_agg = df_agg[df_agg['Para Recovery in Lakhs'] > 0]  # Filter zero values
                 
-                if df_agg.empty:
-                    continue
+        #         if df_agg.empty:
+        #             continue
                     
-                # ENHANCED: Add description and create combined labels
-                df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
-                df_agg['combined_label'] = df_agg.apply(
-                    lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
-                    axis=1
-                )
+        #         # ENHANCED: Add description and create combined labels
+        #         df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
+        #         df_agg['combined_label'] = df_agg.apply(
+        #             lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
+        #             axis=1
+        #         )
                 
-                fig_detailed_rec = px.bar(
-                    df_agg, 
-                    x='combined_label',  # Use combined label instead of code only
-                    y='Para Recovery in Lakhs',
-                    text_auto='.2f',
-                    color_discrete_sequence=['#27AE60']  # Single green color
-                )
-                # CRITICAL: Apply the SAME professional styling as detection charts
-                fig_detailed_rec = style_chart(
-                    fig_detailed_rec, 
-                    title_text=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-                    y_title="Recovery (₹ Lakhs)", 
-                    x_title="Detailed Code",
-                    wrap_x_labels=True
-                )
+        #         fig_detailed_rec = px.bar(
+        #             df_agg, 
+        #             x='combined_label',  # Use combined label instead of code only
+        #             y='Para Recovery in Lakhs',
+        #             text_auto='.2f',
+        #             color_discrete_sequence=['#27AE60']  # Single green color
+        #         )
+        #         # CRITICAL: Apply the SAME professional styling as detection charts
+        #         fig_detailed_rec = style_chart(
+        #             fig_detailed_rec, 
+        #             title_text=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
+        #             y_title="Recovery (₹ Lakhs)", 
+        #             x_title="Detailed Code",
+        #             wrap_x_labels=True
+        #         )
                 
             
-                # ENHANCED STYLING - Same styling as detection charts
-                fig_detailed_rec.update_layout(
-                    # REMOVE ALL TITLES
-                    title='',
-                    showlegend=False,
+        #         # ENHANCED STYLING - Same styling as detection charts
+        #         fig_detailed_rec.update_layout(
+        #             # REMOVE ALL TITLES
+        #             title='',
+        #             showlegend=False,
                     
-                    # REMOVE Y-AXIS TITLE
-                    yaxis_title='',
+        #             # REMOVE Y-AXIS TITLE
+        #             yaxis_title='',
                     
-                    # ENHANCED X-AXIS STYLING
-                    xaxis=dict(
-                        title='',
-                        tickangle=30,  # 30 degree inclination
-                        tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),
-                        showgrid=False,
-                        tickmode='array',
-                        tickvals=list(range(len(df_agg))),
-                        ticktext=df_agg['combined_label'].tolist()
-                    ),
+        #             # ENHANCED X-AXIS STYLING
+        #             xaxis=dict(
+        #                 title='',
+        #                 tickangle=30,  # 30 degree inclination
+        #                 tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),
+        #                 showgrid=False,
+        #                 tickmode='array',
+        #                 tickvals=list(range(len(df_agg))),
+        #                 ticktext=df_agg['combined_label'].tolist()
+        #             ),
                     
-                    # Y-AXIS STYLING
-                    yaxis=dict(
-                        tickfont=dict(size=10, family="Helvetica", color='#2C3E50'),
-                        gridcolor='#E5E5E5',
-                        showgrid=True
-                    ),
+        #             # Y-AXIS STYLING
+        #             yaxis=dict(
+        #                 tickfont=dict(size=10, family="Helvetica", color='#2C3E50'),
+        #                 gridcolor='#E5E5E5',
+        #                 showgrid=True
+        #             ),
                     
-                    # CHART BACKGROUND
-                    paper_bgcolor='#FAFAFA',
-                    plot_bgcolor='#FFFFFF',
+        #             # CHART BACKGROUND
+        #             paper_bgcolor='#FAFAFA',
+        #             plot_bgcolor='#FFFFFF',
                     
-                    # MARGINS
-                    margin=dict(l=50, r=20, t=10, b=100),
+        #             # MARGINS
+        #             margin=dict(l=50, r=20, t=10, b=100),
                     
-                    # FONT
-                    font=dict(family="Helvetica", size=10, color="#2C3E50"),
+        #             # FONT
+        #             font=dict(family="Helvetica", size=10, color="#2C3E50"),
                     
-                    # HEIGHT
-                    height=300
-                )
+        #             # HEIGHT
+        #             height=300
+        #         )
                 
-                # UPDATE TRACES
-                fig_detailed_rec.update_traces(
-                    marker_line_color='#2C3E50',
-                    marker_line_width=1,
-                    textposition="outside",
-                    cliponaxis=False,
-                    textfont=dict(size=9, color='#2C3E50')
-                )
+        #         # UPDATE TRACES
+        #         fig_detailed_rec.update_traces(
+        #             marker_line_color='#2C3E50',
+        #             marker_line_width=1,
+        #             textposition="outside",
+        #             cliponaxis=False,
+        #             textfont=dict(size=9, color='#2C3E50')
+        #         )
                 
-                charts.append(fig_detailed_rec)
+        #         charts.append(fig_detailed_rec)
 
         # ADD THIS SECTION - Pre-process classification data for PDF
         classification_page_data = None
