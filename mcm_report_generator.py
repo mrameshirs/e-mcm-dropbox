@@ -221,9 +221,39 @@ class PDFReportGenerator:
                 "size": "medium"
             }
         ]
+        #ADD DETAILED CLASSIFICATION CHARTS (Charts 19+)
+        # These correspond to the nc_tab2 and nc_tab3 detailed breakdown charts
+        CLASSIFICATION_CODES_DESC = {
+            'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
+            'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
+            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
+            'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
+            'PG': 'PENALTY & GENERAL COMPLIANCE'
+        }
         
-        # No need for additional charts since we have proper IDs for all 18 charts
+        # Add detailed DETECTION charts for each classification code
+        for code in ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']:
+            chart_configs.append({
+                "id": f"detailed_detection_{code}",
+                "title": f"Detection for {code} - {CLASSIFICATION_CODES_DESC[code]}",
+                "description": f"Detailed breakdown of detection amounts for {CLASSIFICATION_CODES_DESC[code]} subcategories.",
+                "section": "detailed_compliance_analysis",
+                "size": "medium"
+            })
+        
+        # Add detailed RECOVERY charts for each classification code  
+        for code in ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']:
+            chart_configs.append({
+                "id": f"detailed_recovery_{code}",
+                "title": f"Recovery for {code} - {CLASSIFICATION_CODES_DESC[code]}",
+                "description": f"Detailed breakdown of recovery amounts for {CLASSIFICATION_CODES_DESC[code]} subcategories.",
+                "section": "detailed_compliance_analysis", 
+                "size": "medium"
+            })
+        
+        # Return only the number of charts that actually exist
         return chart_configs[:len(self.chart_images)]
+      
         
     def add_section_highlight_bar(self, section_title,text_color, bar_color="#FAD6a5"):
         """Add a highlight bar for section separation"""
@@ -327,31 +357,131 @@ class PDFReportGenerator:
             fontName='Helvetica-Bold',
             spaceAfter=16,
             spaceBefore=24
-        )
+    #     )
         
+ 
+    
     def _create_chart_registry(self):
-        """Create a registry of charts with IDs for easy access"""
+        """Create a registry of charts with IDs for easy access - ENHANCED for all chart types"""
         registry = {}
         print(f"Creating chart registry with {len(self.chart_images)} images and {len(self.chart_metadata)} metadata entries")
         
         for i, chart_data in enumerate(self.chart_metadata):
+            if i >= len(self.chart_images):
+                print(f"Warning: Metadata entry {i} has no corresponding chart image")
+                break
+                
             chart_id = chart_data.get('id', f'chart_{i+1}')
             registry[chart_id] = {
                 'index': i,
-                'image': self.chart_images[i] if i < len(self.chart_images) else None,
+                'image': self.chart_images[i],
                 'metadata': chart_data
             }
             print(f"Registered chart {i}: {chart_id} -> {chart_data.get('title', 'No title')}")
         
         print(f"Final registry keys: {list(registry.keys())}")
         return registry
-
     
+    # def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
+    #     """Insert chart with proper scaling - FIXED for pie charts"""
+    #     try:
+    #         print('Processing Chart inside insert ',chart_id)
+    #         if chart_id not in self.chart_registry:
+    #             return False
+    
+    #         chart_info = self.chart_registry[chart_id]
+    #         chart_data = chart_info['metadata']
+    #         img_bytes = chart_info['image']
+    
+    #         if img_bytes is None:
+    #             return False
+    
+    #         # Add title and description
+    #         if add_title:
+    #             self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
+    #         if add_description:
+    #             self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
+    
+    #         # Create drawing
+    #         drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
+    #         if error or drawing is None:
+    #             return False
+    
+    #         # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
+    #         # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
+    #         is_pie_row = 'combined' in chart_id or 'three_pie' in chart_id or 'taxpayer_classification_distribution' in chart_id
+       
+    #         #is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
+    #         if is_pie_row:
+    #             # Wide format for three pies in row
+    #             target_width = 8.5 * inch
+    #             target_height = 4.5 * inch
+    #         # elif is_pie_chart:
+    #         #     # SQUARE dimensions for pie charts - CRITICAL for circular shape
+    #         #     target_size = 3.0 * inch  # Same width and height
+    #         #     target_width = target_size
+    #         #     target_height = target_size
+               
+    #         #     # Force square aspect ratio
+    #         #     original_width = getattr(drawing, 'width', 500)
+    #         #     original_height = getattr(drawing, 'height', 500)
+    #         #     print('Piechart found',original_width,original_height)
+    #         #     # Use the same scale for both dimensions to maintain circular shape
+    #         #     scale_factor = target_size / max(original_width, original_height)
+    #         #     scale_x = scale_factor
+    #         #     scale_y = scale_factor
+    #         #     print('Scale factor ',scale_x,scale_y)
+    #         else:
+    #             # Regular sizing for other charts
+    #             size_configs = {
+    #                 "tiny": 3.5 * inch,
+    #                 "small": 4 * inch,
+    #                 "compact":4.9 * inch,
+    #                 "medium": 5.0 * inch,
+    #                 "large": 6.5 * inch
+    #             }
+    #             target_width = size_configs.get(size, 5.0 * inch)
+    #             target_height = target_width * 0.6
+    
+    #         # Calculate scale factors
+    #         original_width = getattr(drawing, 'width', 400)
+    #         original_height = getattr(drawing, 'height', 400)
+    #         scale_x = target_width / original_width
+    #         scale_y = target_height / original_height
+    
+    #         # Create properly scaled drawing
+    #         from reportlab.graphics.shapes import Drawing, Group
+            
+    #         scaled_drawing = Drawing(target_width, target_height)
+    #         content_group = Group()
+    #         content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
+            
+    #         # Add original contents
+    #         if hasattr(drawing, 'contents'):
+    #             for item in drawing.contents:
+    #                 content_group.add(item)
+            
+    #         scaled_drawing.add(content_group)
+    #         scaled_drawing.hAlign = 'CENTER'
+            
+    #         self.story.append(Spacer(1, 0.01 * inch))
+    #         self.story.append(scaled_drawing)
+    #         self.story.append(Spacer(1, 0.001 * inch))
+            
+    #         print(f"SUCCESS: Perfectly scaled chart '{chart_id}' added")
+    #         return True
+            
+    #     except Exception as e:
+    #         print(f"ERROR: {e}")
+    #         return False
     def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
-        """Insert chart with proper scaling - FIXED for pie charts"""
+        """Insert chart with proper scaling - ENHANCED for all chart types including detailed classification"""
         try:
-            print('Processing Chart inside insert ',chart_id)
+            print(f'Processing Chart ID: {chart_id}')
             if chart_id not in self.chart_registry:
+                print(f"Chart ID '{chart_id}' not found in registry")
+                print(f"Available IDs: {list(self.chart_registry.keys())[:10]}...")  # Show first 10
                 return False
     
             chart_info = self.chart_registry[chart_id]
@@ -359,11 +489,23 @@ class PDFReportGenerator:
             img_bytes = chart_info['image']
     
             if img_bytes is None:
+                print(f"No image data for chart '{chart_id}'")
                 return False
     
-            # Add title and description
+            # Add title and description with reduced spacing for detailed charts
             if add_title:
-                self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
+                # Use smaller title style for detailed charts
+                title_style = self.chart_title_style
+                if 'detailed_' in chart_id:
+                    title_style = ParagraphStyle(
+                        name='DetailedChartTitle',
+                        parent=self.chart_title_style,
+                        fontSize=12,  # Smaller font for detailed charts
+                        spaceAfter=4,  # Less space after
+                        spaceBefore=6  # Less space before
+                    )
+                self.story.append(Paragraph(chart_data.get('title', ''), title_style))
+                
             if add_description:
                 self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
     
@@ -371,47 +513,49 @@ class PDFReportGenerator:
             drawing, error = self._create_safe_svg_drawing(img_bytes)
             
             if error or drawing is None:
+                print(f"Failed to create drawing for '{chart_id}': {error}")
                 return False
     
-            # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
-            # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
-            is_pie_row = 'combined' in chart_id or 'three_pie' in chart_id or 'taxpayer_classification_distribution' in chart_id
-       
-            #is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
+            # Enhanced size configurations with more options
+            size_configs = {
+                "tiny": 3.0 * inch,
+                "small": 4.0 * inch,
+                "compact": 4.5 * inch,     # Perfect for detailed classification charts
+                "medium": 5.5 * inch,
+                "large": 6.5 * inch,
+                "extra_large": 7.5 * inch
+            }
+    
+            # Special handling for different chart types
+            is_pie_row = any(keyword in chart_id for keyword in ['combined', 'three_pie', 'taxpayer_classification_distribution'])
+            is_treemap = 'treemap' in chart_id
+            is_detailed = 'detailed_' in chart_id
+            
             if is_pie_row:
-                # Wide format for three pies in row
-                target_width = 8.5 * inch
-                target_height = 4.5 * inch
-            # elif is_pie_chart:
-            #     # SQUARE dimensions for pie charts - CRITICAL for circular shape
-            #     target_size = 3.0 * inch  # Same width and height
-            #     target_width = target_size
-            #     target_height = target_size
-               
-            #     # Force square aspect ratio
-            #     original_width = getattr(drawing, 'width', 500)
-            #     original_height = getattr(drawing, 'height', 500)
-            #     print('Piechart found',original_width,original_height)
-            #     # Use the same scale for both dimensions to maintain circular shape
-            #     scale_factor = target_size / max(original_width, original_height)
-            #     scale_x = scale_factor
-            #     scale_y = scale_factor
-            #     print('Scale factor ',scale_x,scale_y)
+                # Wide format for three pies in row  
+                target_width = 7.5 * inch
+                target_height = 4.0 * inch
+            elif is_treemap:
+                # Larger format for treemaps
+                target_width = 7.0 * inch
+                target_height = 5.0 * inch
+            elif is_detailed:
+                # Compact format for detailed breakdown charts
+                target_width = 5.0 * inch
+                target_height = 3.5 * inch
             else:
                 # Regular sizing for other charts
-                size_configs = {
-                    "tiny": 3.5 * inch,
-                    "small": 4 * inch,
-                    "compact":4.9 * inch,
-                    "medium": 5.0 * inch,
-                    "large": 6.5 * inch
-                }
-                target_width = size_configs.get(size, 5.0 * inch)
-                target_height = target_width * 0.6
+                target_width = size_configs.get(size, 5.5 * inch)
+                target_height = target_width * 0.6  # Standard aspect ratio
     
             # Calculate scale factors
             original_width = getattr(drawing, 'width', 400)
             original_height = getattr(drawing, 'height', 400)
+            
+            if original_width <= 0 or original_height <= 0:
+                print(f"Invalid original dimensions for '{chart_id}': {original_width}x{original_height}")
+                return False
+                
             scale_x = target_width / original_width
             scale_y = target_height / original_height
     
@@ -422,7 +566,7 @@ class PDFReportGenerator:
             content_group = Group()
             content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
             
-            # Add original contents
+            # Add original contents safely
             if hasattr(drawing, 'contents'):
                 for item in drawing.contents:
                     content_group.add(item)
@@ -430,15 +574,26 @@ class PDFReportGenerator:
             scaled_drawing.add(content_group)
             scaled_drawing.hAlign = 'CENTER'
             
-            self.story.append(Spacer(1, 0.01 * inch))
+            # Add minimal spacing for detailed charts, regular spacing for others
+            if is_detailed:
+                self.story.append(Spacer(1, 0.005 * inch))  # Minimal spacing
+            else:
+                self.story.append(Spacer(1, 0.01 * inch))
+                
             self.story.append(scaled_drawing)
-            self.story.append(Spacer(1, 0.001 * inch))
             
-            print(f"SUCCESS: Perfectly scaled chart '{chart_id}' added")
+            if is_detailed:
+                self.story.append(Spacer(1, 0.005 * inch))  # Minimal spacing
+            else:
+                self.story.append(Spacer(1, 0.01 * inch))
+            
+            print(f"SUCCESS: Chart '{chart_id}' added with size {size} ({target_width:.1f}x{target_height:.1f})")
             return True
             
         except Exception as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR inserting chart '{chart_id}': {e}")
+            import traceback
+            traceback.print_exc()
             return False
     def _register_fonts(self):
         """Register fonts with proper error handling"""
@@ -2329,7 +2484,167 @@ class PDFReportGenerator:
             except Exception as e:
                 print(f"Error adding classification summary table: {e}")
                 
-   
+    def _add_detailed_charts_2x3_layout_simple(self, chart_type):
+        """Simple approach: Add detailed charts in 2x3 layout using direct insertion"""
+        try:
+            # Classification codes in logical order (first 6 for first page, next 6 for second page)
+            classification_codes = ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']
+            
+            # Filter available charts for this type
+            available_charts = []
+            for code in classification_codes:
+                chart_id = f"detailed_{chart_type}_{code}"
+                if chart_id in self.chart_registry:
+                    available_charts.append(chart_id)
+            
+            print(f"Found {len(available_charts)} available {chart_type} charts")
+            
+            if not available_charts:
+                print(f"No {chart_type} charts available")
+                return
+            
+            # Process charts in groups of 6 (2x3 layout per page)
+            charts_per_page = 6
+            
+            for page_start in range(0, len(available_charts), charts_per_page):
+                page_charts = available_charts[page_start:page_start + charts_per_page]
+                
+                # Add charts in pairs (2 per row)
+                for i in range(0, len(page_charts), 2):
+                    # Create a table for this row (2 charts side by side)
+                    row_charts = []
+                    
+                    # First chart in the row
+                    if i < len(page_charts):
+                        chart1_content = self._create_compact_chart_for_row(page_charts[i])
+                        row_charts.append(chart1_content)
+                    
+                    # Second chart in the row (if available)
+                    if i + 1 < len(page_charts):
+                        chart2_content = self._create_compact_chart_for_row(page_charts[i + 1])
+                        row_charts.append(chart2_content)
+                    else:
+                        # Empty cell if odd number of charts
+                        row_charts.append("")
+                    
+                    # Create table for this row
+                    if len(row_charts) >= 2:
+                        row_table = Table([row_charts], colWidths=[3.75*inch, 3.75*inch])
+                        row_table.setStyle(TableStyle([
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                            ('LEFTPADDING', (0, 0), (-1, -1), 2),
+                            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+                            ('TOPPADDING', (0, 0), (-1, -1), 2),
+                            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                        ]))
+                        
+                        self.story.append(row_table)
+                        self.story.append(Spacer(1, 0.1 * inch))
+                    else:
+                        # Single chart - center it
+                        single_table = Table([row_charts], colWidths=[7.5*inch])
+                        single_table.setStyle(TableStyle([
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ]))
+                        self.story.append(single_table)
+                        self.story.append(Spacer(1, 0.1 * inch))
+                
+                # Add page break if there are more charts
+                if page_start + charts_per_page < len(available_charts):
+                    self.story.append(PageBreak())
+                    
+        except Exception as e:
+            print(f"Error adding {chart_type} charts in simple 2x3 layout: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _create_compact_chart_for_row(self, chart_id):
+        """Create a compact chart with title for row layout"""
+        try:
+            if chart_id not in self.chart_registry:
+                return ""
+                
+            chart_info = self.chart_registry[chart_id]
+            chart_data = chart_info['metadata']
+            img_bytes = chart_info['image']
+            
+            if img_bytes is None:
+                return ""
+            
+            # Create title
+            title_style = ParagraphStyle(
+                name='CompactChartTitle',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor("#1F3A4D"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=3,
+                spaceBefore=0
+            )
+            
+            chart_title = Paragraph(chart_data.get('title', ''), title_style)
+            
+            # Create drawing
+            drawing, error = self._create_safe_svg_drawing(img_bytes)
+            
+            if error or drawing is None:
+                print(f"Failed to create compact drawing for '{chart_id}': {error}")
+                return chart_title  # Return at least the title
+            
+            # Compact size for side-by-side layout
+            target_width = 3.5 * inch
+            target_height = 2.3 * inch
+            
+            # Calculate scale factors
+            original_width = getattr(drawing, 'width', 400)
+            original_height = getattr(drawing, 'height', 400)
+            
+            if original_width <= 0 or original_height <= 0:
+                return chart_title
+                
+            scale_x = target_width / original_width
+            scale_y = target_height / original_height
+            
+            # Create properly scaled drawing
+            from reportlab.graphics.shapes import Drawing, Group
+            
+            scaled_drawing = Drawing(target_width, target_height)
+            content_group = Group()
+            content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
+            
+            # Add original contents safely
+            if hasattr(drawing, 'contents'):
+                for item in drawing.contents:
+                    content_group.add(item)
+            
+            scaled_drawing.add(content_group)
+            scaled_drawing.hAlign = 'CENTER'
+            
+            # Create container with title and chart
+            container_data = [[chart_title], [scaled_drawing]]
+            container_table = Table(container_data, colWidths=[3.5*inch])
+            container_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            
+            return container_table
+            
+        except Exception as e:
+            print(f"Error creating compact chart for row: {e}")
+            return ""
+    
+    # UPDATED VERSION - Replace the _add_detailed_charts_2x3_layout method with the simple version
+    def _add_detailed_charts_2x3_layout(self, chart_type):
+        """Add detailed charts in 2 charts per row, 3 rows per page (6 charts per page) - SIMPLE VERSION"""
+        return self._add_detailed_charts_2x3_layout_simple(chart_type)
         
     def add_nature_of_non_compliance_analysis(self):
             
@@ -2406,6 +2721,67 @@ class PDFReportGenerator:
                                        add_description=False)
                 self.story.append(Spacer(1, 0.01 * inch))
                 
+                # PART B: DETAILED SUBCATEGORY ANALYSIS WITH 2x3 LAYOUT
+                # Add subsection header for detailed analysis
+                detailed_header_style = ParagraphStyle(
+                    name='DetailedComplianceHeader',
+                    parent=self.styles['Heading3'],
+                    fontSize=13,
+                    textColor=colors.HexColor("#8B4A9C"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=8,
+                    spaceBefore=12
+                )
+                
+                self.story.append(Paragraph("🔍 Detailed Subcategory Analysis", detailed_header_style))
+                
+                # Add description for detailed section
+                detailed_desc_style = ParagraphStyle(
+                    name='DetailedDesc',
+                    parent=self.styles['Normal'],
+                    fontSize=10,
+                    textColor=colors.HexColor("#2C2C2C"),
+                    alignment=TA_JUSTIFY,
+                    fontName='Helvetica',
+                    leftIndent=0.25*inch,
+                    rightIndent=0.25*inch,
+                    leading=12,
+                    spaceAfter=12
+                )
+                
+                detailed_description = """
+                The following charts provide detailed breakdown of each major compliance category into specific subcategories, 
+                showing exact types of violations and their financial impact for targeted corrective actions.
+                """
+                
+                self.story.append(Paragraph(detailed_description, detailed_desc_style))
+                
+                # PART B1: DETAILED DETECTION ANALYSIS (2x3 Layout)
+                sub_header_style = ParagraphStyle(
+                    name='SubHeaderStyle',
+                    parent=self.styles['Heading4'],
+                    fontSize=12,
+                    textColor=colors.HexColor("#1134A6"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=4,
+                    spaceBefore=8
+                )
+                
+                self.story.append(Paragraph("💰 Detection Analysis by Detailed Subcategorization", sub_header_style))
+                
+                # Add detailed detection charts in 2x3 layout
+                self._add_detailed_charts_2x3_layout("detection")
+                
+                # PART B2: DETAILED RECOVERY ANALYSIS (2x3 Layout)
+                self.story.append(PageBreak())  # Start recovery analysis on new page
+                self.story.append(Paragraph("💎 Recovery Analysis by Detailed Subcategorization", sub_header_style))
+                
+                # Add detailed recovery charts in 2x3 layout
+                self._add_detailed_charts_2x3_layout("recovery")
+                
+                print("Added detailed classification analysis with 2x3 layout")
                     
             except Exception as e:
                 print(f"Error adding nature of non compliance analysis: {e}")
