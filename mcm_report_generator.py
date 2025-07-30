@@ -3290,7 +3290,7 @@ class PDFReportGenerator:
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             
-            Recovery Treemap
+            #Recovery Treemap
             self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
             self.insert_chart_by_id("recovery_treemap", 
                                    size="large", 
