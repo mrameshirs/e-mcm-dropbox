@@ -1262,61 +1262,61 @@ def get_visualization_data(dbx, selected_period):
         #         'top_recovery': top_recovery.to_dict('records')
         #     }
         def create_top_taxpayers_data_safe(df_unique_reports):
-        """Create top taxpayers data with bulletproof error handling"""
-        result = {'top_detection': [], 'top_recovery': []}
-        
-        try:
-            if df_unique_reports is None or df_unique_reports.empty:
-                print("WARNING: df_unique_reports is empty")
-                return result
+            """Create top taxpayers data with bulletproof error handling"""
+            result = {'top_detection': [], 'top_recovery': []}
             
-            required_cols = ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs']
-            if not all(col in df_unique_reports.columns for col in required_cols):
-                print(f"ERROR: Missing required columns. Available: {list(df_unique_reports.columns)}")
-                return result
-            
-            # Top Detection - Safe processing
-            detection_data = df_unique_reports[df_unique_reports['Detection in Lakhs'] > 0]
-            if not detection_data.empty:
-                top_detection = detection_data.nlargest(10, 'Detection in Lakhs')[required_cols].copy()
-                top_detection['recovery_percentage'] = np.where(
-                    top_detection['Detection in Lakhs'] > 0,
-                    (top_detection['Recovery in Lakhs'] / top_detection['Detection in Lakhs']) * 100,
-                    0
-                )
-                # Rename for consistency
-                top_detection.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'recovery_percentage']
+            try:
+                if df_unique_reports is None or df_unique_reports.empty:
+                    print("WARNING: df_unique_reports is empty")
+                    return result
                 
-                # CRITICAL: Convert to list immediately and validate
-                detection_records = top_detection.to_dict('records')
-                print(f"Created {len(detection_records)} detection records")
-                if detection_records:
-                    print(f"Sample detection record: {detection_records[0]}")
-                result['top_detection'] = detection_records
-            
-            # Top Recovery - Safe processing
-            recovery_data = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0]
-            if not recovery_data.empty:
-                top_recovery = recovery_data.nlargest(10, 'Recovery in Lakhs')[required_cols].copy()
-                top_recovery['recovery_percentage'] = np.where(
-                    top_recovery['Detection in Lakhs'] > 0,
-                    (top_recovery['Recovery in Lakhs'] / top_recovery['Detection in Lakhs']) * 100,
-                    0
-                )
-                top_recovery.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'recovery_percentage']
+                required_cols = ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs']
+                if not all(col in df_unique_reports.columns for col in required_cols):
+                    print(f"ERROR: Missing required columns. Available: {list(df_unique_reports.columns)}")
+                    return result
                 
-                # CRITICAL: Convert to list immediately and validate
-                recovery_records = top_recovery.to_dict('records')
-                print(f"Created {len(recovery_records)} recovery records")
-                result['top_recovery'] = recovery_records
-            
-            return result
-            
-        except Exception as e:
-            print(f"ERROR in create_top_taxpayers_data_safe: {e}")
-            import traceback
-            traceback.print_exc()
-            return result
+                # Top Detection - Safe processing
+                detection_data = df_unique_reports[df_unique_reports['Detection in Lakhs'] > 0]
+                if not detection_data.empty:
+                    top_detection = detection_data.nlargest(10, 'Detection in Lakhs')[required_cols].copy()
+                    top_detection['recovery_percentage'] = np.where(
+                        top_detection['Detection in Lakhs'] > 0,
+                        (top_detection['Recovery in Lakhs'] / top_detection['Detection in Lakhs']) * 100,
+                        0
+                    )
+                    # Rename for consistency
+                    top_detection.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'recovery_percentage']
+                    
+                    # CRITICAL: Convert to list immediately and validate
+                    detection_records = top_detection.to_dict('records')
+                    print(f"Created {len(detection_records)} detection records")
+                    if detection_records:
+                        print(f"Sample detection record: {detection_records[0]}")
+                    result['top_detection'] = detection_records
+                
+                # Top Recovery - Safe processing
+                recovery_data = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0]
+                if not recovery_data.empty:
+                    top_recovery = recovery_data.nlargest(10, 'Recovery in Lakhs')[required_cols].copy()
+                    top_recovery['recovery_percentage'] = np.where(
+                        top_recovery['Detection in Lakhs'] > 0,
+                        (top_recovery['Recovery in Lakhs'] / top_recovery['Detection in Lakhs']) * 100,
+                        0
+                    )
+                    top_recovery.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'recovery_percentage']
+                    
+                    # CRITICAL: Convert to list immediately and validate
+                    recovery_records = top_recovery.to_dict('records')
+                    print(f"Created {len(recovery_records)} recovery records")
+                    result['top_recovery'] = recovery_records
+                
+                return result
+                
+            except Exception as e:
+                print(f"ERROR in create_top_taxpayers_data_safe: {e}")
+                import traceback
+                traceback.print_exc()
+                return result
         
         # STEP 3: UPDATE get_visualization_data function
         # Find the top taxpayers section and replace with:
