@@ -617,70 +617,7 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Fallback font registration failed: {e}")
 
-    # def run(self, detailed=False):
-    #     """Generate the full report with comprehensive error handling"""
-    #     try:
-    #         # 1. Create cover page
-    #         self.create_cover_page_story()
-    #         self.story.append(PageBreak())
-            
-    #         # 2. Create summary header
-    #         self.create_summary_header()
-            
-          
-    #         # 3. Add comprehensive monthly performance summary with charts Section II and II
-    #         self.add_monthly_performance_summary()
-
-    #         # 4. Add Section III Sectoral analysis (Two sectoral graphs Pie charts)
-    #         self.add_sectoral_analysis()
-        
-    #         # 5. Add Section IV Nature of Non Compliance Analysis
-    #         self.add_nature_of_non_compliance_analysis()
-
-    #         # 6. Add Risk Parameter Analysis if available
-    #         if self.vital_stats.get('risk_analysis_available', False):
-    #             self.add_risk_parameter_analysis()
-    #          # 7. Add Section V - Top Audit Group and Circle Performance
-    #         self.add_top_performance_analysis()
-            
-    #         # 8. Add Section VI - Top Taxpayers of Detection and Recovery
-    #         self.add_top_taxpayers_analysis()
-    
-    #         # 9. Clean and validate story before building
-    #         print(f"Story has {len(self.story)} elements before cleaning")
-            
-    #         # 9. Debug the actual build error
-    #         print(f"Story has {len(self.story)} elements")
-            
-    #         # Don't remove valid elements - just try to build and catch the specific error
-    #         try:
-    #             print("Building final PDF document...")
-    #             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-    #             print("✓ PDF document built successfully")
-    #         except IndexError as e:
-    #             print(f"IndexError during build: {e}")
-    #             import traceback
-    #             traceback.print_exc()
-                
-    #         # Try without page callbacks
-    #         print("Retrying without page callbacks...")
-    #         try:
-    #             self.doc.build(self.story)
-    #             print("✓ PDF built successfully without page callbacks")
-    #         except Exception as e2:
-    #             print(f"Build failed completely: {e2}")
-    #             raise e2
-                    
-      
-    #         # 4. Build the document
-    #         #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-           
-    #         self.buffer.seek(0)
-    #         return self.buffer
-            
-    #     except Exception as e:
-    #         print(f"Error generating PDF: {e}")
-    #         return self._generate_error_pdf(str(e))
+   
     def run(self, detailed=False):
         """Generate the full report with comprehensive error handling"""
         try:
@@ -3388,21 +3325,7 @@ class PDFReportGenerator:
                 spaceBefore=12
             )
             
-            # Detection Treemap
-            self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
-            self.insert_chart_by_id("detection_treemap", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
-            
-            #Recovery Treemap
-            self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
-            self.insert_chart_by_id("recovery_treemap", 
-                                   size="medium", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
+          
             
             # Add top taxpayers summary table if data is available
             if self.vital_stats.get('top_taxpayers_data'):
@@ -3435,6 +3358,8 @@ class PDFReportGenerator:
                 spaceAfter=12,
                 spaceBefore=16
             )
+           
+            
             
             # Process Top Detection
             self._process_top_taxpayers_table(
@@ -3444,6 +3369,14 @@ class PDFReportGenerator:
                 table_color="#6F2E2E"
             )
             
+            # Detection Treemap
+            self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
+            self.insert_chart_by_id("detection_treemap", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
             # Process Top Recovery
             self._process_top_taxpayers_table(
                 data_key='top_recovery', 
@@ -3451,7 +3384,13 @@ class PDFReportGenerator:
                 header_style=table_header_style,
                 table_color="#2E8B57"
             )
-            
+            #Recovery Treemap
+            self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
+            self.insert_chart_by_id("recovery_treemap", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
             print("=== TOP TAXPAYERS SUMMARY TABLE COMPLETED ===")
             
         except Exception as e:
