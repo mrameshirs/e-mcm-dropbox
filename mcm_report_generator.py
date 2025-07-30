@@ -636,9 +636,9 @@ class PDFReportGenerator:
             # 5. Add Section IV Nature of Non Compliance Analysis
             self.add_nature_of_non_compliance_analysis()
 
-            # 6. Add Risk Parameter Analysis if available
-            if self.vital_stats.get('risk_analysis_available', False):
-                self.add_risk_parameter_analysis()
+            # # 6. Add Risk Parameter Analysis if available
+            # if self.vital_stats.get('risk_analysis_available', False):
+            #     self.add_risk_parameter_analysis()
              # 7. Add Section V - Top Audit Group and Circle Performance
             self.add_top_performance_analysis()
             
