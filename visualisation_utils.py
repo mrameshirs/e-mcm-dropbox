@@ -788,12 +788,16 @@ def get_visualization_data(dbx, selected_period):
                 )
                 
                 if not df_risk_analysis.empty:
+                    # risk_agg = df_risk_analysis.groupby('risk_flag').agg(
+                    #     Para_Count=('risk_flag', 'count'),
+                    #     Total_Detection=('Para Detection in Lakhs', 'sum'),
+                    #     Total_Recovery=('Para Recovery in Lakhs', 'sum')
+                    # ).reset_index()
                     risk_agg = df_risk_analysis.groupby('risk_flag').agg(
-                        Para_Count=('risk_flag', 'count'),
+                        Para_Count=('audit_para_number', 'nunique'),  # ← FIXED: Unique paras per risk
                         Total_Detection=('Para Detection in Lakhs', 'sum'),
                         Total_Recovery=('Para Recovery in Lakhs', 'sum')
                     ).reset_index()
-                    
                     # Risk Paras Chart
                     risk_agg_sorted_count = risk_agg.sort_values('Para_Count', ascending=False).head(5)
                     fig15 = px.bar(
