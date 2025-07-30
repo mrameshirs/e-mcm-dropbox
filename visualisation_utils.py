@@ -369,6 +369,7 @@ def get_visualization_data(dbx, selected_period):
         if not group_detection.empty:
             fig4 = px.bar(group_detection, x='audit_group_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Vivid)
             fig4 = style_chart(fig4, "Top 10 Groups by Detection", "Amount (₹ Lakhs)", "Audit Group")
+            fig4.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
             charts.append(fig4)
         
         # Circle Detection Performance
@@ -388,6 +389,7 @@ def get_visualization_data(dbx, selected_period):
         if not group_recovery.empty:
             fig6 = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Set2)
             fig6 = style_chart(fig6, "Top 10 Groups by Recovery", "Amount (₹ Lakhs)", "Audit Group")
+            fig6..update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
             charts.append(fig6)
         
         # Circle Recovery Performance
@@ -398,6 +400,7 @@ def get_visualization_data(dbx, selected_period):
         if not circle_recovery.empty:
             fig7 = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.G10)
             fig7 = style_chart(fig7, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
+            fig7.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
             charts.append(fig7)
         # CHARTS 8-10: Taxpayer Classification Analysis (ULTRA COMPACT - NO TITLE)
       
@@ -793,14 +796,13 @@ def get_visualization_data(dbx, selected_period):
                         title="Top 15 Risk Flags by Number of Audit Paras",
                         color_discrete_sequence=px.colors.qualitative.Bold
                     )
-                    # fig15.update_layout(
-                    #     title_x=0.5,
-                    #     xaxis_title="Risk Flag",
-                    #     yaxis_title="Number of Paras",
-                    #     height=500
-                    # )
+                    fig15.update_layout(xaxis_tickfont=dict(size=14, family='Helvetica', color='black'))
+
                     # fig15.update_traces(textposition="outside", cliponaxis=False)
                     fig15 = style_chart(fig15, "Top 15 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag", wrap_x_labels=True)
+                    fig15.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+
+
                     charts.append(fig15)
                     
                     # Risk Detection Chart
@@ -814,15 +816,11 @@ def get_visualization_data(dbx, selected_period):
                             title="Top 10 Detection Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Prism
                         )
-                        # fig16.update_layout(
-                        #     title_x=0.5,
-                        #     xaxis_title="Risk Flag",
-                        #     yaxis_title="Amount (₹ Lakhs)",
-                        #     height=400
-                        # )
+                        
                         # fig16.update_traces(textposition="outside", cliponaxis=False)
                         fig16 = style_chart(fig16, "Top 10 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
-    
+                        fig16.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+
                         charts.append(fig16)
                     
                     # Risk Recovery Chart
@@ -836,14 +834,11 @@ def get_visualization_data(dbx, selected_period):
                             title="Top 10 Recovery Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Safe
                         )
-                        # fig17.update_layout(
-                        #     title_x=0.5,
-                        #     xaxis_title="Risk Flag",
-                        #     yaxis_title="Amount (₹ Lakhs)",
-                        #     height=400
-                        # )
+                     
                         # fig17.update_traces(textposition="outside", cliponaxis=False)
                         fig17 = style_chart(fig17, "Top 10 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
+                        fig17.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+
                         charts.append(fig17)
                     
                     # Risk Recovery Percentage Chart
@@ -863,13 +858,8 @@ def get_visualization_data(dbx, selected_period):
     
                         fig18.update_traces(texttemplate='%{y:.1f}%', textposition='outside', cliponaxis=False)
                         fig18.update_layout(coloraxis_showscale=False)
-                        # fig18.update_layout(
-                        #     title_x=0.5,
-                        #     xaxis_title="Risk Flag",
-                        #     yaxis_title="Recovery (%)",
-                        #     height=400,
-                        #     coloraxis_showscale=False
-                        # )
+                        fig18.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+
                         charts.append(fig18)
          
                     risk_agg = df_risk_analysis.groupby('risk_flag').agg(
