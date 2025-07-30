@@ -3298,9 +3298,9 @@ class PDFReportGenerator:
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             
-            # # Add top taxpayers summary table if data is available
-            # if self.vital_stats.get('top_taxpayers_data'):
-            #     self.add_top_taxpayers_summary_table()
+            # Add top taxpayers summary table if data is available
+            if self.vital_stats.get('top_taxpayers_data'):
+                self.add_top_taxpayers_summary_table()
                 
         except Exception as e:
             print(f"Error adding top taxpayers analysis: {e}")
