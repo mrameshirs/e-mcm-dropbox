@@ -598,8 +598,8 @@ class PDFReportGenerator:
     def _register_fonts(self):
         """Register fonts with proper error handling"""
         try:
-            #font_path = 'NotoSansDevanagari-VariableFont_wdth,wght.ttf'
-            font_path='Mangal Regular.ttf'
+            font_path = 'NotoSansDevanagari-VariableFont_wdth,wght.ttf'
+            #font_path='Mangal Regular.ttf'
             if os.path.exists(font_path):
                 pdfmetrics.registerFont(TTFont('HindiFont', font_path))
                 print("Hindi font registered successfully")
@@ -1104,7 +1104,7 @@ class PDFReportGenerator:
                 hindi_font = 'Helvetica-Bold'
             hindi_style = ParagraphStyle(name='HindiTitle', parent=title_style, fontName=hindi_font, fontSize=24)
             
-            self.story.append(Paragraph("MONITORING COMMITTEE MEETING1", title_style))
+            self.story.append(Paragraph("MONITORING COMMITTEE MEETING", title_style))
             #self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
             self.story.append(Paragraph(" िनगरानी सिमित की बैठक", hindi_style))
            
