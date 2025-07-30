@@ -563,123 +563,7 @@ def get_visualization_data(dbx, selected_period):
                 charts.append(fig_combined)
                 charts.append(fig_combined)# twice added to maintain the chart count and id matching
                 charts.append(fig_combined)
-        # if 'taxpayer_classification' in df_unique_reports.columns:
-        #     class_counts = df_unique_reports['taxpayer_classification'].value_counts().reset_index()
-        #     class_counts.columns = ['classification', 'count']
-        #     class_counts = class_counts[class_counts['count'] > 0]
-            
-        #     # Detection and Recovery aggregations
-        #     class_agg = df_unique_reports.groupby('taxpayer_classification').agg(
-        #         Total_Detection=('Detection in Lakhs', 'sum'),
-        #         Total_Recovery=('Recovery in Lakhs', 'sum')
-        #     ).reset_index()
-            
-        #     class_agg_detection = class_agg[class_agg['Total_Detection'] > 0]
-        #     class_agg_recovery = class_agg[class_agg['Total_Recovery'] > 0]
-            
-        #     if not class_counts.empty:
-        #         # Create subplots - 3 pie charts in one row (ULTRA COMPACT)
-        #         fig_combined = make_subplots(
-        #             rows=1, cols=3,
-        #             subplot_titles=[
-        #                 "<b>Distribution of DARs</b>",
-        #                 "<b>Detection Amount</b>", 
-        #                 "<b>Recovery Amount</b>"
-        #             ],
-        #             specs=[[{"type": "domain"}, {"type": "domain"}, {"type": "domain"}]],
-        #             horizontal_spacing=0.01,  # Minimal spacing for ultra compact look
-        #         )
-                
-        #         # Enhanced color schemes for better visual appeal
-        #         colors_distribution = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#6A994E']
-        #         colors_detection = ['#C1272D', '#F15BB5', '#FEE75C', '#00BBF9', '#00F5FF']  
-        #         colors_recovery = ['#2D5016', '#61A5C2', '#A9DEF9', '#D0F4DE', '#FCF6BD']
-                
-        #         # Chart 1: Count Distribution (Left) - MAXIMIZED DOMAIN
-        #         fig_combined.add_trace(
-        #             go.Pie(
-        #                 labels=class_counts['classification'],
-        #                 values=class_counts['count'],
-        #                 name="DAR Count",
-        #                 marker=dict(colors=colors_distribution, line=dict(color='white', width=2)),
-        #                 textinfo='label+percent',
-        #                 textfont=dict(size=11, color='white', family='Arial Black'),
-        #                 textposition='inside',
-        #                 pull=[0.02] * len(class_counts),  # Even smaller pull for ultra compact
-        #                 hole=0,
-        #                 domain=dict(x=[0.0, 0.33], y=[0.0, 1.0])  # Full space utilization
-        #             ),
-        #             row=1, col=1
-        #         )
-                
-        #         # Chart 2: Detection Amount (Center) - MAXIMIZED DOMAIN
-        #         if not class_agg_detection.empty:
-        #             fig_combined.add_trace(
-        #                 go.Pie(
-        #                     labels=class_agg_detection['taxpayer_classification'],
-        #                     values=class_agg_detection['Total_Detection'],
-        #                     name="Detection",
-        #                     marker=dict(colors=colors_detection, line=dict(color='white', width=2)),
-        #                     textinfo='label+percent',
-        #                     textfont=dict(size=11, color='white', family='Arial Black'),
-        #                     textposition='inside',
-        #                     pull=[0.02] * len(class_agg_detection),
-        #                     hole=0,
-        #                     domain=dict(x=[0.33, 0.67], y=[0.0, 1.0])  # Full height usage
-        #                 ),
-        #                 row=1, col=2
-        #             )
-                
-        #         # Chart 3: Recovery Amount (Right) - MAXIMIZED DOMAIN
-        #         if not class_agg_recovery.empty:
-        #             fig_combined.add_trace(
-        #                 go.Pie(
-        #                     labels=class_agg_recovery['taxpayer_classification'],
-        #                     values=class_agg_recovery['Total_Recovery'],
-        #                     name="Recovery",
-        #                     marker=dict(colors=colors_recovery, line=dict(color='white', width=2)),
-        #                     textinfo='label+percent',
-        #                     textfont=dict(size=11, color='white', family='Arial Black'),
-        #                     textposition='inside',
-        #                     pull=[0.02] * len(class_agg_recovery),
-        #                     hole=0,
-        #                     domain=dict(x=[0.67, 1.0], y=[0.0, 1.0])  # Full space usage
-        #                 ),
-        #                 row=1, col=3
-        #             )
-                
-        #         # ULTRA COMPACT LAYOUT - No title, minimal margins
-        #         fig_combined.update_layout(
-        #             # NO TITLE - Removed completely for maximum compactness
-        #             paper_bgcolor='#F8F9FA',  
-        #             plot_bgcolor='#F8F9FA',
-        #             font=dict(family="Arial", color='#2C3E50', size=10),
-                    
-        #             # ULTRA COMPACT DIMENSIONS - Minimal margins
-        #             width=1000,   # Further reduced width
-        #             height=320,   # Much smaller height without title
-        #             margin=dict(l=10, r=10, t=10, b=25),  # Minimal margins, small bottom for labels
-                    
-        #             showlegend=False,  # No legend since labels are inside pies
-        #             autosize=False,
-                    
-        #             # COMPACT SUBTITLE positioning at bottom
-        #             annotations=[
-        #                 dict(text="<b>Distribution</b>", x=0.17, y=0.01, 
-        #                      font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False),
-        #                 dict(text="<b>Detection</b>", x=0.5, y=0.01,
-        #                      font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False),
-        #                 dict(text="<b>Recovery</b>", x=0.83, y=0.01,
-        #                      font=dict(size=10, color='#2C3E50', family='Arial Bold'), showarrow=False)
-        #             ]
-        #         )
-                
-        #         # ENHANCED STYLING - Add subtle shadows and better borders
-        #         for i in range(len(fig_combined.data)):
-        #             fig_combined.data[i].marker.line = dict(color='white', width=2)
-                    
-        #         print(f"Ultra compact three pie charts (no title) created successfully!")
-        #         charts.append(fig_combined)
+       
         # CHARTS 10-12: Nature of Compliance Analysis (EXACT REPLICA)
         CLASSIFICATION_CODES_DESC = {
             'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
@@ -1253,209 +1137,7 @@ def get_visualization_data(dbx, selected_period):
             
             print(f"Total detailed charts generated: 18 (9 detection + 9 recovery)")
             print("This ensures consistent 2x3 layout on each page")
-        # if not df_paras.empty:
-        #     DETAILED_CLASSIFICATION_DESC = {
-        #         'TP01': 'Output Tax Short Payment - GSTR Discrepancies', 'TP02': 'Output Tax on Other Income',
-        #         'TP03': 'Output Tax on Asset Sales', 'TP04': 'Export & SEZ Related Issues',
-        #         'TP05': 'Credit Note Adjustment Errors', 'TP06': 'Turnover Reconciliation Issues',
-        #         'TP07': 'Scheme Migration Issues', 'TP08': 'Other Tax Payment Issues',
-        #         'RC01': 'RCM on Transportation Services', 'RC02': 'RCM on Professional Services',
-        #         'RC03': 'RCM on Administrative Services', 'RC04': 'RCM on Import of Services',
-        #         'RC05': 'RCM Reconciliation Issues', 'RC06': 'RCM on Other Services', 'RC07': 'Other RCM Issues',
-        #         'IT01': 'Blocked Credit Claims (Sec 17(5))', 'IT02': 'Ineligible ITC Claims (Sec 16)',
-        #         'IT03': 'Excess ITC - GSTR Reconciliation', 'IT04': 'Supplier Registration Issues',
-        #         'IT05': 'ITC Reversal - 180 Day Rule', 'IT06': 'ITC Reversal - Other Reasons',
-        #         'IT07': 'Proportionate ITC Issues (Rule 42)', 'IT08': 'RCM ITC Mismatches',
-        #         'IT09': 'Import IGST ITC Issues', 'IT10': 'Migration Related ITC Issues', 'IT11': 'Other ITC Issues',
-        #         'IN01': 'Interest on Delayed Tax Payment', 'IN02': 'Interest on Delayed Filing',
-        #         'IN03': 'Interest on ITC - 180 Day Rule', 'IN04': 'Interest on ITC Reversals',
-        #         'IN05': 'Interest on Time of Supply Issues', 'IN06': 'Interest on Self-Assessment (DRC-03)',
-        #         'IN07': 'Other Interest Issues', 'RF01': 'GSTR-1 Late Filing Fees', 'RF02': 'GSTR-3B Late Filing Fees',
-        #         'RF03': 'GSTR-9 Late Filing Fees', 'RF04': 'GSTR-9C Late Filing Fees',
-        #         'RF05': 'ITC-04 Non-Filing', 'RF06': 'General Return Filing Issues', 'RF07': 'Other Return Filing Issues',
-        #         'PD01': 'Return Reconciliation Mismatches', 'PD02': 'Documentation Deficiencies',
-        #         'PD03': 'Cash Payment Violations (Rule 86B)', 'PD04': 'Record Maintenance Issues', 'PD05': 'Other Procedural Issues',
-        #         'CV01': 'Service Classification Errors', 'CV02': 'Rate Classification Errors',
-        #         'CV03': 'Place of Supply Issues', 'CV04': 'Other Classification Issues',
-        #         'SS01': 'Construction/Real Estate Issues', 'SS02': 'Job Work Related Issues',
-        #         'SS03': 'Inter-Company Transaction Issues', 'SS04': 'Composition Scheme Issues', 'SS05': 'Other Special Situations',
-        #         'PG01': 'Statutory Penalties (Sec 123)', 'PG02': 'Stock & Physical Verification Issues',
-        #         'PG03': 'Compliance Monitoring Issues', 'PG04': 'Other Penalty Issues'
-        #     }
-            
-        #     # ENHANCED DETAILED DETECTION CHARTS (nc_tab2 equivalent)
-        #     unique_major_codes_det = df_paras[df_paras['Para Detection in Lakhs'] > 0]['major_code'].unique()
-        #     for code in sorted(unique_major_codes_det):
-        #         df_filtered = df_paras[df_paras['major_code'] == code].copy()
-        #         if df_filtered.empty:
-        #             continue
-                    
-        #         df_agg = df_filtered.groupby('para_classification_code')['Para Detection in Lakhs'].sum().reset_index()
-        #         df_agg = df_agg[df_agg['Para Detection in Lakhs'] > 0]  # Filter zero values
-                
-        #         if df_agg.empty:
-        #             continue
-                    
-        #         # ENHANCED: Add description and create combined labels
-        #         df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
-        #         df_agg['combined_label'] = df_agg.apply(
-        #             lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
-        #             axis=1
-        #         )
-                
-        #         fig_detailed_det = px.bar(
-        #             df_agg, 
-        #             x='combined_label',  # Use combined label instead of code only
-        #             y='Para Detection in Lakhs',
-        #             text_auto='.2f',
-        #             color_discrete_sequence=['#3498db']  # Single color since we removed color mapping
-        #         )
-        #         fig_detailed_det = style_chart(
-        #             fig_detailed_det, 
-        #             title_text=f"Detection for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-        #             y_title="Detection (₹ Lakhs)", 
-        #             x_title="Detailed Code",
-        #             wrap_x_labels=True
-        #         )
-        #         # ENHANCED STYLING - Remove titles, y-axis title, rotate labels
-        #         fig_detailed_det.update_layout(
-        #             # REMOVE ALL TITLES
-        #             title='',  # Remove main title
-        #             showlegend=False,  # Remove legend
-                    
-                                    
-        #             # ENHANCED X-AXIS STYLING
-        #             xaxis=dict(
-        #                 title='',  # Remove x-axis title
-        #                 tickangle=30,  # 30 degree inclination
-        #                 tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),  # Smaller font
-        #                 showgrid=False,
-        #                 tickmode='array',
-        #                 tickvals=list(range(len(df_agg))),
-        #                 ticktext=df_agg['combined_label'].tolist()
-        #             ),
-                    
-        #             # Y-AXIS STYLING
-        #             yaxis=dict(
-        #                 tickfont=dict(size=12, family="Helvetica", color='#2C3E50'),
-        #                 gridcolor='#E5E5E5',
-        #                 showgrid=True
-        #             ),
-                    
-        #             # CHART BACKGROUND
-        #             paper_bgcolor='#FAFAFA',
-        #             plot_bgcolor='#FFFFFF',
-                    
-        #             # MARGINS - Increased bottom margin for rotated labels
-        #             margin=dict(l=50, r=20, t=10, b=100),  # Increased bottom margin
-                    
-        #             # FONT
-        #             font=dict(family="Helvetica", size=10, color="#2C3E50"),
-                    
-        #             # HEIGHT - Increased slightly for better label visibility
-        #             height=300
-        #         )
-                
-        #         # UPDATE TRACES - Remove text position to avoid clutter
-        #         fig_detailed_det.update_traces(
-        #             marker_line_color='#2C3E50',
-        #             marker_line_width=1,
-        #             textposition="outside",
-        #             cliponaxis=False,
-        #             textfont=dict(size=9, color='#2C3E50')
-        #         )
-                
-        #         charts.append(fig_detailed_det)
-            
-        #     # ENHANCED DETAILED RECOVERY CHARTS (nc_tab3 equivalent)
-        #     unique_major_codes_rec = df_paras[df_paras['Para Recovery in Lakhs'] > 0]['major_code'].unique()
-        #     for code in sorted(unique_major_codes_rec):
-        #         df_filtered = df_paras[df_paras['major_code'] == code].copy()
-        #         if df_filtered.empty:
-        #             continue
-                    
-        #         df_agg = df_filtered.groupby('para_classification_code')['Para Recovery in Lakhs'].sum().reset_index()
-        #         df_agg = df_agg[df_agg['Para Recovery in Lakhs'] > 0]  # Filter zero values
-                
-        #         if df_agg.empty:
-        #             continue
-                    
-        #         # ENHANCED: Add description and create combined labels
-        #         df_agg['description'] = df_agg['para_classification_code'].map(DETAILED_CLASSIFICATION_DESC)
-        #         df_agg['combined_label'] = df_agg.apply(
-        #             lambda row: f"{row['para_classification_code']}<br>{wrap_text_for_labels(row['description'] or 'Unknown', max_chars_per_line=18, max_lines=3)}", 
-        #             axis=1
-        #         )
-                
-        #         fig_detailed_rec = px.bar(
-        #             df_agg, 
-        #             x='combined_label',  # Use combined label instead of code only
-        #             y='Para Recovery in Lakhs',
-        #             text_auto='.2f',
-        #             color_discrete_sequence=['#27AE60']  # Single green color
-        #         )
-        #         # CRITICAL: Apply the SAME professional styling as detection charts
-        #         fig_detailed_rec = style_chart(
-        #             fig_detailed_rec, 
-        #             title_text=f"Recovery for {code} - {CLASSIFICATION_CODES_DESC.get(code, '')}",
-        #             y_title="Recovery (₹ Lakhs)", 
-        #             x_title="Detailed Code",
-        #             wrap_x_labels=True
-        #         )
-                
-            
-        #         # ENHANCED STYLING - Same styling as detection charts
-        #         fig_detailed_rec.update_layout(
-        #             # REMOVE ALL TITLES
-        #             title='',
-        #             showlegend=False,
-                    
-        #             # REMOVE Y-AXIS TITLE
-        #             yaxis_title='',
-                    
-        #             # ENHANCED X-AXIS STYLING
-        #             xaxis=dict(
-        #                 title='',
-        #                 tickangle=30,  # 30 degree inclination
-        #                 tickfont=dict(size=11, family="Helvetica", color='#2C3E50'),
-        #                 showgrid=False,
-        #                 tickmode='array',
-        #                 tickvals=list(range(len(df_agg))),
-        #                 ticktext=df_agg['combined_label'].tolist()
-        #             ),
-                    
-        #             # Y-AXIS STYLING
-        #             yaxis=dict(
-        #                 tickfont=dict(size=10, family="Helvetica", color='#2C3E50'),
-        #                 gridcolor='#E5E5E5',
-        #                 showgrid=True
-        #             ),
-                    
-        #             # CHART BACKGROUND
-        #             paper_bgcolor='#FAFAFA',
-        #             plot_bgcolor='#FFFFFF',
-                    
-        #             # MARGINS
-        #             margin=dict(l=50, r=20, t=10, b=100),
-                    
-        #             # FONT
-        #             font=dict(family="Helvetica", size=10, color="#2C3E50"),
-                    
-        #             # HEIGHT
-        #             height=300
-        #         )
-                
-        #         # UPDATE TRACES
-        #         fig_detailed_rec.update_traces(
-        #             marker_line_color='#2C3E50',
-        #             marker_line_width=1,
-        #             textposition="outside",
-        #             cliponaxis=False,
-        #             textfont=dict(size=9, color='#2C3E50')
-        #         )
-                
-        #         charts.append(fig_detailed_rec)
-
+    
         # ADD THIS SECTION - Pre-process classification data for PDF
         classification_page_data = None
         if not df_paras.empty:  # df_paras is already created in your classification analysis
@@ -1533,6 +1215,66 @@ def get_visualization_data(dbx, selected_period):
             }
             
             print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
+        # ADD TOP TAXPAYERS ANALYSIS DATA (before return statement)
+        top_taxpayers_data = {}
+        
+        # Get top taxpayers by detection
+        if not df_unique_reports.empty:
+            # Top Detection Taxpayers
+            top_detection = df_unique_reports.nlargest(10, 'Detection in Lakhs')[
+                ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs', 'audit_group_number_str']
+            ].copy()
+            
+            # Add recovery percentage
+            top_detection['recovery_percentage'] = (
+                top_detection['Recovery in Lakhs'] / 
+                top_detection['Detection in Lakhs'].replace(0, np.nan)
+            ).fillna(0) * 100
+            
+            # Rename columns for consistency
+            top_detection.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'audit_group', 'recovery_percentage']
+            
+            # Top Recovery Taxpayers
+            top_recovery = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0].nlargest(10, 'Recovery in Lakhs')[
+                ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs', 'audit_group_number_str']
+            ].copy()
+            
+            # Add recovery percentage for top recovery
+            top_recovery['recovery_percentage'] = (
+                top_recovery['Recovery in Lakhs'] / 
+                top_recovery['Detection in Lakhs'].replace(0, np.nan)
+            ).fillna(0) * 100
+            
+            # Rename columns for consistency
+            top_recovery.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'audit_group', 'recovery_percentage']
+            
+            top_taxpayers_data = {
+                'top_detection': top_detection.to_dict('records'),
+                'top_recovery': top_recovery.to_dict('records')
+            }
+        
+        # ADD GROUP PERFORMANCE DATA (for the performance analysis section)
+        group_performance_data = []
+        if not df_unique_reports.empty:
+            # Group performance by detection
+            group_performance = df_unique_reports.groupby('audit_group_number_str').agg(
+                dar_count=('dar_pdf_path', 'nunique'),
+                total_detection=('Detection in Lakhs', 'sum'),
+                total_recovery=('Recovery in Lakhs', 'sum')
+            ).reset_index()
+            
+            # Add recovery percentage
+            group_performance['recovery_percentage'] = (
+                group_performance['total_recovery'] / 
+                group_performance['total_detection'].replace(0, np.nan)
+            ).fillna(0) * 100
+            
+            # Rename for consistency
+            group_performance.columns = ['audit_group', 'dar_count', 'total_detection', 'total_recovery', 'recovery_percentage']
+            
+            # Sort by detection and get top performers
+            group_performance_data = group_performance.sort_values('total_detection', ascending=False).to_dict('records')
+            
         # Add additional summary data for detailed analysis
         vital_stats.update({
             'status_summary': status_summary,
@@ -1549,7 +1291,9 @@ def get_visualization_data(dbx, selected_period):
             'classification_summary': classification_summary , # <-- Add this too
             'sectoral_analysis_available': len(sectoral_summary) > 0,  # NEW
             'compliance_analysis_available': len(classification_summary) > 0,  # NEW
-            'classification_page_data': classification_page_data  # ADD THIS LINE
+            'classification_page_data': classification_page_data,  
+            'top_taxpayers_data': top_taxpayers_data,  
+            'group_performance_data': group_performance_data 
         })
         
         return vital_stats, charts
