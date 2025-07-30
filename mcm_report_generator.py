@@ -2785,7 +2785,185 @@ class PDFReportGenerator:
                     
             except Exception as e:
                 print(f"Error adding nature of non compliance analysis: {e}")
-    
+    def _add_risk_charts_2x2_layout(self):
+            """Add risk parameter charts in 2x2 layout"""
+            try:
+                # Define the 4 risk charts in order
+                risk_chart_configs = [
+                    ('risk_para_distribution', "Risk Flags by Audit Paras"),
+                    ('risk_detection_analysis', "Detection by Risk Flag"), 
+                    ('risk_recovery_analysis', "Recovery by Risk Flag"),
+                    ('risk_distribution', "Recovery Percentage by Risk")
+                ]
+                
+                # Check which charts are available
+                available_charts = []
+                for chart_id, title in risk_chart_configs:
+                    if chart_id in self.chart_registry:
+                        available_charts.append((chart_id, title))
+                        print(f"Risk chart available: {chart_id}")
+                    else:
+                        print(f"Risk chart NOT available: {chart_id}")
+                
+                if len(available_charts) < 4:
+                    print(f"Warning: Only {len(available_charts)} risk charts available out of 4")
+                
+                # Create 2x2 layout using tables
+                # Row 1: First two charts
+                if len(available_charts) >= 2:
+                    row1_charts = []
+                    
+                    # First chart
+                    chart1_content = self._create_compact_chart_for_risk(available_charts[0][0], available_charts[0][1])
+                    row1_charts.append(chart1_content)
+                    
+                    # Second chart
+                    chart2_content = self._create_compact_chart_for_risk(available_charts[1][0], available_charts[1][1])
+                    row1_charts.append(chart2_content)
+                    
+                    # Create table for row 1
+                    row1_table = Table([row1_charts], colWidths=[3.75*inch, 3.75*inch])
+                    row1_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                        ('TOPPADDING', (0, 0), (-1, -1), 5),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ]))
+                    
+                    self.story.append(row1_table)
+                    self.story.append(Spacer(1, 0.15 * inch))
+                
+                # Row 2: Next two charts
+                if len(available_charts) >= 4:
+                    row2_charts = []
+                    
+                    # Third chart
+                    chart3_content = self._create_compact_chart_for_risk(available_charts[2][0], available_charts[2][1])
+                    row2_charts.append(chart3_content)
+                    
+                    # Fourth chart
+                    chart4_content = self._create_compact_chart_for_risk(available_charts[3][0], available_charts[3][1])
+                    row2_charts.append(chart4_content)
+                    
+                    # Create table for row 2
+                    row2_table = Table([row2_charts], colWidths=[3.75*inch, 3.75*inch])
+                    row2_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                        ('TOPPADDING', (0, 0), (-1, -1), 5),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ]))
+                    
+                    self.story.append(row2_table)
+                    self.story.append(Spacer(1, 0.2 * inch))
+                elif len(available_charts) == 3:
+                    # Handle case where only 3 charts available - put third chart centered
+                    chart3_content = self._create_compact_chart_for_risk(available_charts[2][0], available_charts[2][1])
+                    row2_table = Table([[chart3_content]], colWidths=[7.5*inch])
+                    row2_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ]))
+                    self.story.append(row2_table)
+                    self.story.append(Spacer(1, 0.2 * inch))
+                
+                print(f"Successfully added {len(available_charts)} risk charts in 2x2 layout")
+                
+            except Exception as e:
+                print(f"Error adding risk charts in 2x2 layout: {e}")
+                import traceback
+                traceback.print_exc()
+        
+    def _create_compact_chart_for_risk(self, chart_id, title):
+            """Create a compact chart for risk analysis layout"""
+            try:
+                if chart_id not in self.chart_registry:
+                    print(f"Chart ID '{chart_id}' not found in registry")
+                    return ""
+                    
+                chart_info = self.chart_registry[chart_id]
+                img_bytes = chart_info['image']
+                
+                if img_bytes is None:
+                    print(f"No image data for chart '{chart_id}'")
+                    return ""
+                
+                # Create title
+                title_style = ParagraphStyle(
+                    name='RiskChartTitle',
+                    parent=self.styles['Normal'],
+                    fontSize=12,
+                    textColor=colors.HexColor("#1F3A4D"),
+                    alignment=TA_CENTER,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=5,
+                    spaceBefore=0
+                )
+                
+                chart_title = Paragraph(title, title_style)
+                
+                # Create drawing
+                drawing, error = self._create_safe_svg_drawing(img_bytes)
+                
+                if error or drawing is None:
+                    print(f"Failed to create drawing for '{chart_id}': {error}")
+                    return chart_title  # Return at least the title
+                
+                # Compact size for 2x2 layout
+                target_width = 3.5 * inch
+                target_height = 2.8 * inch
+                
+                # Calculate scale factors
+                original_width = getattr(drawing, 'width', 400)
+                original_height = getattr(drawing, 'height', 400)
+                
+                if original_width <= 0 or original_height <= 0:
+                    print(f"Invalid dimensions for '{chart_id}': {original_width}x{original_height}")
+                    return chart_title
+                    
+                scale_x = target_width / original_width
+                scale_y = target_height / original_height
+                
+                # Create properly scaled drawing
+                from reportlab.graphics.shapes import Drawing, Group
+                
+                scaled_drawing = Drawing(target_width, target_height)
+                content_group = Group()
+                content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
+                
+                # Add original contents safely
+                if hasattr(drawing, 'contents'):
+                    for item in drawing.contents:
+                        content_group.add(item)
+                
+                scaled_drawing.add(content_group)
+                scaled_drawing.hAlign = 'CENTER'
+                
+                # Create container with title and chart
+                container_data = [[chart_title], [scaled_drawing]]
+                container_table = Table(container_data, colWidths=[3.5*inch])
+                container_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('TOPPADDING', (0, 0), (-1, -1), 0),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ]))
+                
+                print(f"Successfully created compact chart for '{chart_id}'")
+                return container_table
+                
+            except Exception as e:
+                print(f"Error creating compact chart for '{chart_id}': {e}")
+                import traceback
+                traceback.print_exc()
+                return ""
+
    
  
            
@@ -2872,8 +3050,26 @@ class PDFReportGenerator:
                 spaceAfter=12,
                 spaceBefore=16
             )
+              # Risk Parameter Charts in 2x2 Layout
+            chart_header_style = ParagraphStyle(
+                name='RiskChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=12
+            )
             
-            self.story.append(Paragraph("📊 Risk Parameter Summary1", risk_table_header_style))
+            self.story.append(Paragraph("📊 Risk Parameter Analysis Charts", chart_header_style))
+            self.story.append(Spacer(1, 0.1 * inch))
+            
+            # Create 2x2 layout for risk charts
+            self._add_risk_charts_2x2_layout()
+            
+      
+            self.story.append(Paragraph("📊 Risk Parameter Summary", risk_table_header_style))
             
             if risk_summary_data:
                 # Build table from actual data
