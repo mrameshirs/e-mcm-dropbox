@@ -2873,7 +2873,7 @@ class PDFReportGenerator:
                 spaceBefore=16
             )
             
-            self.story.append(Paragraph("📊 Risk Parameter Summary", risk_table_header_style))
+            self.story.append(Paragraph("📊 Risk Parameter Summary1", risk_table_header_style))
             
             if risk_summary_data:
                 # Build table from actual data
