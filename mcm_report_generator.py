@@ -3304,135 +3304,319 @@ class PDFReportGenerator:
                 
         except Exception as e:
             print(f"Error adding top taxpayers analysis: {e}")
-
+            
+    # STEP 1: IMMEDIATE FIX - Replace add_top_taxpayers_summary_table method
     def add_top_taxpayers_summary_table(self):
-        """Add top taxpayers summary table"""
+        """FIXED VERSION - Add top taxpayers summary table with bulletproof error handling"""
         try:
+            print("=== STARTING TOP TAXPAYERS SUMMARY TABLE ===")
+            
+            # Get the data
             top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
             
-            if top_taxpayers_data:
-                table_header_style = ParagraphStyle(
-                    name='TopTaxpayersTableHeader',
-                    parent=self.styles['Heading3'],
-                    fontSize=14,
-                    textColor=colors.HexColor("#1134A6"),
-                    alignment=TA_LEFT,
-                    fontName='Helvetica-Bold',
-                    spaceAfter=12,
-                    spaceBefore=16
-                )
-                
-                # Top Detection Taxpayers Table
-                top_detection = top_taxpayers_data.get('top_detection', [])
-                if top_detection:
-                    self.story.append(Paragraph("🏆 Top 5 Taxpayers by Detection Amount", table_header_style))
-                    
-                    detection_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
-                    
-                    for taxpayer in top_detection[:5]:
-                        trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-                        # Truncate long trade names
-                        if len(trade_name) > 40:
-                            trade_name = trade_name[:37] + '...'
-                        
-                        category = taxpayer.get('category', 'Unknown')
-                        detection = float(taxpayer.get('total_detection', 0))
-                        recovery = float(taxpayer.get('total_recovery', 0))
-                        recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                        
-                        detection_data.append([
-                            trade_name,
-                            category,
-                            f'Rs.{detection:.2f} L',
-                            f'Rs.{recovery:.2f} L',
-                            f'{recovery_pct:.1f}%'
-                        ])
-                    
-                    detection_table = Table(detection_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-                    detection_table.setStyle(TableStyle([
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 0), (-1, 0), 8),
-                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 1), (-1, -1), 8),
-                        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-                        ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                        ('TOPPADDING', (0, 0), (-1, -1), 6),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                        # Alternating row colors
-                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-                    ]))
-                    
-                    self.story.append(detection_table)
-                    self.story.append(Spacer(1, 0.15 * inch))
-                
-                # Top Recovery Taxpayers Table
-                top_recovery = top_taxpayers_data.get('top_recovery', [])
-                if top_recovery:
-                    self.story.append(Paragraph("💎 Top 5 Taxpayers by Recovery Amount", table_header_style))
-                    
-                    recovery_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
-                    
-                    for taxpayer in top_recovery[:5]:
-                        trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-                        # Truncate long trade names
-                        if len(trade_name) > 40:
-                            trade_name = trade_name[:37] + '...'
-                        
-                        category = taxpayer.get('category', 'Unknown')
-                        detection = float(taxpayer.get('total_detection', 0))
-                        recovery = float(taxpayer.get('total_recovery', 0))
-                        recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                        
-                        recovery_data.append([
-                            trade_name,
-                            category,
-                            f'Rs.{detection:.2f} L',
-                            f'Rs.{recovery:.2f} L',
-                            f'{recovery_pct:.1f}%'
-                        ])
-                    
-                    recovery_table = Table(recovery_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-                    recovery_table.setStyle(TableStyle([
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2E8B57")),  # Sea green
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 0), (-1, 0), 8),
-                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 1), (-1, -1), 8),
-                        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-                        ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                        ('TOPPADDING', (0, 0), (-1, -1), 6),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                        # Alternating row colors
-                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0FFF0")),
-                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0FFF0")),
-                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0FFF0")),
-                    ]))
-                    
-                    self.story.append(recovery_table)
-                    self.story.append(Spacer(1, 0.2 * inch))
-            else:
-                # Fallback message if no data
-                info_style = ParagraphStyle(
-                    name='InfoStyle',
-                    parent=self.styles['Normal'],
-                    fontSize=10,
-                    textColor=colors.HexColor("#666666"),
-                    alignment=TA_CENTER
-                )
-                self.story.append(Paragraph("No top taxpayers data available for this period.", info_style))
-                    
+            if not top_taxpayers_data:
+                self._add_info_message("No top taxpayers data available for this period.")
+                return
+            
+            # Table header style
+            table_header_style = ParagraphStyle(
+                name='TopTaxpayersTableHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=16
+            )
+            
+            # Process Top Detection
+            self._process_top_taxpayers_table(
+                data_key='top_detection',
+                title="🏆 Top 5 Taxpayers by Detection Amount",
+                header_style=table_header_style,
+                table_color="#6F2E2E"
+            )
+            
+            # Process Top Recovery
+            self._process_top_taxpayers_table(
+                data_key='top_recovery', 
+                title="💎 Top 5 Taxpayers by Recovery Amount",
+                header_style=table_header_style,
+                table_color="#2E8B57"
+            )
+            
+            print("=== TOP TAXPAYERS SUMMARY TABLE COMPLETED ===")
+            
         except Exception as e:
-            print(f"Error adding top taxpayers summary table: {e}")
+            print(f"ERROR in add_top_taxpayers_summary_table: {e}")
+            self._add_error_message("Top Taxpayers Summary", str(e))
+    
+    def _process_top_taxpayers_table(self, data_key, title, header_style, table_color):
+        """Process a single top taxpayers table safely"""
+        try:
+            top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
+            raw_data = top_taxpayers_data.get(data_key, [])
+            
+            print(f"Processing {data_key}: type={type(raw_data)}, length={len(raw_data) if hasattr(raw_data, '__len__') else 'no length'}")
+            
+            # Convert DataFrame to list if necessary
+            if hasattr(raw_data, 'to_dict'):
+                print(f"Converting {data_key} DataFrame to list...")
+                data_list = raw_data.to_dict('records')
+            elif isinstance(raw_data, list):
+                data_list = raw_data
+            else:
+                print(f"WARNING: {data_key} is neither DataFrame nor list: {type(raw_data)}")
+                data_list = []
+            
+            if not data_list:
+                print(f"No data available for {data_key}")
+                return
+            
+            print(f"Processing {len(data_list)} records for {data_key}")
+            
+            # Add title
+            self.story.append(Paragraph(title, header_style))
+            
+            # Create table data
+            table_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
+            
+            # Process up to 5 records safely
+            for i in range(min(5, len(data_list))):
+                try:
+                    record = data_list[i]
+                    if not isinstance(record, dict):
+                        print(f"Skipping non-dict record {i}: {type(record)}")
+                        continue
+                    
+                    # Extract data with multiple fallback key names
+                    trade_name = self._safe_get_value(record, ['trade_name', 'Trade Name'], f'Taxpayer {i+1}')
+                    category = self._safe_get_value(record, ['category', 'Category'], 'Unknown')
+                    detection = self._safe_get_float(record, ['total_detection', 'Detection in Lakhs', 'detection'], 0)
+                    recovery = self._safe_get_float(record, ['total_recovery', 'Recovery in Lakhs', 'recovery'], 0)
+                    recovery_pct = self._safe_get_float(record, ['recovery_percentage', 'Recovery %'], 0)
+                    
+                    # Calculate recovery percentage if not present
+                    if recovery_pct == 0 and detection > 0:
+                        recovery_pct = (recovery / detection) * 100
+                    
+                    # Truncate long trade names
+                    if len(str(trade_name)) > 40:
+                        trade_name = str(trade_name)[:37] + '...'
+                    
+                    table_data.append([
+                        str(trade_name),
+                        str(category),
+                        f'Rs.{detection:.2f} L',
+                        f'Rs.{recovery:.2f} L',
+                        f'{recovery_pct:.1f}%'
+                    ])
+                    
+                except Exception as record_error:
+                    print(f"Error processing record {i}: {record_error}")
+                    table_data.append([f'Error in record {i+1}', 'N/A', 'Rs.0.00 L', 'Rs.0.00 L', '0.0%'])
+            
+            # Create and style table
+            if len(table_data) > 1:  # More than just header
+                table = Table(table_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(table_color)),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 8),
+                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    # Alternating row colors
+                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+                ]))
+                
+                self.story.append(table)
+                self.story.append(Spacer(1, 0.15 * inch))
+                print(f"✓ Successfully added {data_key} table")
+            
+        except Exception as e:
+            print(f"Error processing {data_key} table: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _safe_get_value(self, record, keys, default):
+        """Safely get value from record with multiple possible keys"""
+        for key in keys:
+            if key in record and record[key] is not None:
+                return record[key]
+        return default
+    
+    def _safe_get_float(self, record, keys, default):
+        """Safely get float value from record"""
+        for key in keys:
+            if key in record and record[key] is not None:
+                try:
+                    return float(record[key])
+                except (ValueError, TypeError):
+                    continue
+        return default
+    
+    def _add_info_message(self, message):
+        """Add an info message to the PDF"""
+        info_style = ParagraphStyle(
+            name='InfoStyle',
+            parent=self.styles['Normal'],
+            fontSize=10,
+            textColor=colors.HexColor("#666666"),
+            alignment=TA_CENTER
+        )
+        self.story.append(Paragraph(message, info_style))
+        self.story.append(Spacer(1, 0.2 * inch))
+    
+    def _add_error_message(self, section_name, error_message):
+        """Add an error message to the PDF"""
+        error_style = ParagraphStyle(
+            name='ErrorStyle',
+            parent=self.styles['Normal'],
+            fontSize=10,
+            textColor=colors.red,
+            alignment=TA_CENTER
+        )
+        self.story.append(Paragraph(f"Error in {section_name}: {error_message}", error_style))
+        self.story.append(Spacer(1, 0.2 * inch))
+    # def add_top_taxpayers_summary_table(self):
+    #     """Add top taxpayers summary table"""
+    #     try:
+    #         top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
+            
+    #         if top_taxpayers_data:
+    #             table_header_style = ParagraphStyle(
+    #                 name='TopTaxpayersTableHeader',
+    #                 parent=self.styles['Heading3'],
+    #                 fontSize=14,
+    #                 textColor=colors.HexColor("#1134A6"),
+    #                 alignment=TA_LEFT,
+    #                 fontName='Helvetica-Bold',
+    #                 spaceAfter=12,
+    #                 spaceBefore=16
+    #             )
+                
+    #             # Top Detection Taxpayers Table
+    #             top_detection = top_taxpayers_data.get('top_detection', [])
+    #             if top_detection:
+    #                 self.story.append(Paragraph("🏆 Top 5 Taxpayers by Detection Amount", table_header_style))
+                    
+    #                 detection_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
+                    
+    #                 for taxpayer in top_detection[:5]:
+    #                     trade_name = str(taxpayer.get('trade_name', 'Unknown'))
+    #                     # Truncate long trade names
+    #                     if len(trade_name) > 40:
+    #                         trade_name = trade_name[:37] + '...'
+                        
+    #                     category = taxpayer.get('category', 'Unknown')
+    #                     detection = float(taxpayer.get('total_detection', 0))
+    #                     recovery = float(taxpayer.get('total_recovery', 0))
+    #                     recovery_pct = float(taxpayer.get('recovery_percentage', 0))
+                        
+    #                     detection_data.append([
+    #                         trade_name,
+    #                         category,
+    #                         f'Rs.{detection:.2f} L',
+    #                         f'Rs.{recovery:.2f} L',
+    #                         f'{recovery_pct:.1f}%'
+    #                     ])
+                    
+    #                 detection_table = Table(detection_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+    #                 detection_table.setStyle(TableStyle([
+    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
+    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
+    #                     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
+    #                     ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
+    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #                     # Alternating row colors
+    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+    #                     ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+    #                     ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+    #                 ]))
+                    
+    #                 self.story.append(detection_table)
+    #                 self.story.append(Spacer(1, 0.15 * inch))
+                
+    #             # Top Recovery Taxpayers Table
+    #             top_recovery = top_taxpayers_data.get('top_recovery', [])
+    #             if top_recovery:
+    #                 self.story.append(Paragraph("💎 Top 5 Taxpayers by Recovery Amount", table_header_style))
+                    
+    #                 recovery_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
+                    
+    #                 for taxpayer in top_recovery[:5]:
+    #                     trade_name = str(taxpayer.get('trade_name', 'Unknown'))
+    #                     # Truncate long trade names
+    #                     if len(trade_name) > 40:
+    #                         trade_name = trade_name[:37] + '...'
+                        
+    #                     category = taxpayer.get('category', 'Unknown')
+    #                     detection = float(taxpayer.get('total_detection', 0))
+    #                     recovery = float(taxpayer.get('total_recovery', 0))
+    #                     recovery_pct = float(taxpayer.get('recovery_percentage', 0))
+                        
+    #                     recovery_data.append([
+    #                         trade_name,
+    #                         category,
+    #                         f'Rs.{detection:.2f} L',
+    #                         f'Rs.{recovery:.2f} L',
+    #                         f'{recovery_pct:.1f}%'
+    #                     ])
+                    
+    #                 recovery_table = Table(recovery_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+    #                 recovery_table.setStyle(TableStyle([
+    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2E8B57")),  # Sea green
+    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
+    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
+    #                     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
+    #                     ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
+    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #                     # Alternating row colors
+    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0FFF0")),
+    #                     ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0FFF0")),
+    #                     ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0FFF0")),
+    #                 ]))
+                    
+    #                 self.story.append(recovery_table)
+    #                 self.story.append(Spacer(1, 0.2 * inch))
+    #         else:
+    #             # Fallback message if no data
+    #             info_style = ParagraphStyle(
+    #                 name='InfoStyle',
+    #                 parent=self.styles['Normal'],
+    #                 fontSize=10,
+    #                 textColor=colors.HexColor("#666666"),
+    #                 alignment=TA_CENTER
+    #             )
+    #             self.story.append(Paragraph("No top taxpayers data available for this period.", info_style))
+                    
+    #     except Exception as e:
+    #         print(f"Error adding top taxpayers summary table: {e}")
     
     
