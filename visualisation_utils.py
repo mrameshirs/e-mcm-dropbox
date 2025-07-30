@@ -801,7 +801,7 @@ def get_visualization_data(dbx, selected_period):
                         x='risk_flag', 
                         y='Para_Count', 
                         text_auto=True,
-                        title="Top 15 Risk Flags by Number of Audit Paras",
+                        # title="Top 15 Risk Flags by Number of Audit Paras",
                         color_discrete_sequence=px.colors.qualitative.Bold
                     )
                     fig15.update_layout(xaxis_tickfont=dict(size=14, family='Helvetica', color='black'))
@@ -821,7 +821,7 @@ def get_visualization_data(dbx, selected_period):
                             x='risk_flag', 
                             y='Total_Detection', 
                             text_auto='.2f',
-                            title="Top 10 Detection Amount by Risk Flag",
+                            # title="Top 10 Detection Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Prism
                         )
                         
@@ -839,7 +839,7 @@ def get_visualization_data(dbx, selected_period):
                             x='risk_flag', 
                             y='Total_Recovery', 
                             text_auto='.2f',
-                            title="Top 10 Recovery Amount by Risk Flag",
+                            # title="Top 10 Recovery Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Safe
                         )
                      
@@ -858,7 +858,7 @@ def get_visualization_data(dbx, selected_period):
                             risk_agg_sorted_perc, 
                             x='risk_flag', 
                             y='Percentage_Recovery',
-                            title="Top 10 Percentage Recovery by Risk Flag",
+                            # title="Top 10 Percentage Recovery by Risk Flag",
                             color='Percentage_Recovery', 
                             color_continuous_scale=px.colors.sequential.Greens
                         )
