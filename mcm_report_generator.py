@@ -2892,19 +2892,19 @@ class PDFReportGenerator:
                     print(f"No image data for chart '{chart_id}'")
                     return ""
                 
-                # Create title
-                title_style = ParagraphStyle(
-                    name='RiskChartTitle',
-                    parent=self.styles['Normal'],
-                    fontSize=12,
-                    textColor=colors.HexColor("#1F3A4D"),
-                    alignment=TA_CENTER,
-                    fontName='Helvetica-Bold',
-                    spaceAfter=5,
-                    spaceBefore=0
-                )
+                # # Create title
+                # title_style = ParagraphStyle(
+                #     name='RiskChartTitle',
+                #     parent=self.styles['Normal'],
+                #     fontSize=12,
+                #     textColor=colors.HexColor("#1F3A4D"),
+                #     alignment=TA_CENTER,
+                #     fontName='Helvetica-Bold',
+                #     spaceAfter=5,
+                #     spaceBefore=0
+                # )
                 
-                chart_title = Paragraph(title, title_style)
+                # chart_title = Paragraph(title, title_style)
                 
                 # Create drawing
                 drawing, error = self._create_safe_svg_drawing(img_bytes)
@@ -2944,7 +2944,8 @@ class PDFReportGenerator:
                 scaled_drawing.hAlign = 'CENTER'
                 
                 # Create container with title and chart
-                container_data = [[chart_title], [scaled_drawing]]
+                #container_data = [[chart_title], [scaled_drawing]]
+                container_data = [[scaled_drawing]]
                 container_table = Table(container_data, colWidths=[3.5*inch])
                 container_table.setStyle(TableStyle([
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
