@@ -645,7 +645,7 @@ class PDFReportGenerator:
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
             self.add_top_taxpayers_analysis()
     
-            self.create_structured_chart_sections()
+            #self.create_structured_chart_sections()
             # 4. Build the document
             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
             
