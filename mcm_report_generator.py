@@ -644,7 +644,7 @@ class PDFReportGenerator:
             self.add_top_performance_analysis()
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
-            self.add_top_taxpayers_analysis()
+            #self.add_top_taxpayers_analysis()
     
             # 9. Clean and validate story before building
             print(f"Story has {len(self.story)} elements before cleaning")
