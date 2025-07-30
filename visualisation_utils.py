@@ -651,6 +651,9 @@ def get_visualization_data(dbx, selected_period):
                     values='Detection in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
+                # --- Add this line to change the path bar font color ---
+                fig13.update_traces(pathbar=dict(textfont=dict(color='white')))
+
                 # Apply styling for treemap
                 fig13.update_layout(
                     #title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
@@ -675,6 +678,9 @@ def get_visualization_data(dbx, selected_period):
                     values='Recovery in Lakhs', color='category', color_discrete_map=color_map,
                     custom_data=['audit_group_number_str', 'trade_name']
                 )
+                # --- Add this line to change the path bar font color ---
+                fig14.update_traces(pathbar=dict(textfont=dict(color='white')))
+
                 # Apply styling for treemap
                 fig14.update_layout(
                     #title=dict(text="<b>Recovery by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
