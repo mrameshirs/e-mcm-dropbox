@@ -640,7 +640,7 @@ class PDFReportGenerator:
             if self.vital_stats.get('risk_analysis_available', False):
                 self.add_risk_parameter_analysis()
              # 7. Add Section V - Top Audit Group and Circle Performance
-            #self.add_top_performance_analysis()
+            self.add_top_performance_analysis()
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
             #self.add_top_taxpayers_analysis()
@@ -2899,12 +2899,9 @@ class PDFReportGenerator:
                 # Fallback data based on the image you shared
                 risk_data = [
                     ['RISK FLAG', 'RISK DESCRIPTION', 'NO. OF PARAS', 'TOTAL DETECTION (₹ L)', 'TOTAL RECOVERY (₹ L)', 'RECOVERY %'],
-                    ['P07', 'High ratio of tax paid through ITC to total tax payable', '17', '₹4.14 L', '₹0.56 L', '13.5%'],
-                    ['P10', 'High ratio of non-GST supplies to total turnover', '4', '₹1.28 L', '₹0.00 L', '0.0%'],
-                    ['P02', 'IGST paid on import is more than the ITC availed in GSTR-3B', '3', '₹0.04 L', '₹0.00 L', '0.0%'],
-                    ['P09', 'Decline in average monthly taxable turnover in GSTR-3B', '2', '₹1.07 L', '₹0.00 L', '0.0%'],
-                    ['P03', 'High ratio of nil-rated/exempt supplies to total turnover', '1', '₹0.15 L', '₹0.15 L', '100.0%'],
-                    ['P08', 'Low ratio of tax payment in cash to total tax liability', '1', '₹0.13 L', '₹0.13 L', '100.0%']
+                    ['P07', 'High ratio of tax paid through ITC to total tax payable', 'NA', 'NA', 'NA', 'NA'],
+                    ['P10', 'High ratio of non-GST supplies to total turnover', 'NA', 'NA', 'NA', 'NA']
+                  
                 ]
             
             # Create the risk table with dynamic column widths
