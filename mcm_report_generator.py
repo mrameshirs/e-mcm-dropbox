@@ -1106,7 +1106,7 @@ class PDFReportGenerator:
             
             self.story.append(Paragraph("MONITORING COMMITTEE MEETING1", title_style))
             #self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
-            self.story.append(Paragraph(" िनगरानी समिति की बैठक, hindi_style))
+            self.story.append(Paragraph(" िनगरानी समिति की बैठक", hindi_style))
            
             self.story.append(Paragraph(f"{self.selected_period.upper()}", title2_style))
             self.story.append(Spacer(1, 0.5 * inch))
