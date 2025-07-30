@@ -653,10 +653,10 @@ def get_visualization_data(dbx, selected_period):
                 )
                 # Apply styling for treemap
                 fig13.update_layout(
-                    title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    #title=dict(text="<b>Detection by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
                     font=dict(family="serif", color='#5A4A4A', size=12),
-                    margin=dict(l=60, r=40, t=70, b=60)
+                    margin=dict(l=5, r=5, t=5, b=5)
                 )
                 fig13.update_traces(
                     marker_line_width=2, marker_line_color='white',
@@ -677,10 +677,10 @@ def get_visualization_data(dbx, selected_period):
                 )
                 # Apply styling for treemap
                 fig14.update_layout(
-                    title=dict(text="<b>Recovery by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
+                    #title=dict(text="<b>Recovery by Trade Name</b>", x=0.5, font=dict(size=14, color='#5A4A4A')),
                     paper_bgcolor='#FDFBF5',
                     font=dict(family="serif", color='#5A4A4A', size=12),
-                    margin=dict(l=60, r=40, t=70, b=60)
+                    margin=dict(l=5, r=5, t=5, b=5)
                 )
                 fig14.update_traces(
                     marker_line_width=2, marker_line_color='white',
