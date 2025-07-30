@@ -1104,7 +1104,7 @@ class PDFReportGenerator:
                 hindi_font = 'Helvetica-Bold'
             hindi_style = ParagraphStyle(name='HindiTitle', parent=title_style, fontName=hindi_font, fontSize=24)
             
-            self.story.append(Paragraph("MONITORING COMMITTEE MEETING", title_style))
+            self.story.append(Paragraph("MONITORING COMMITTEE MEETING1", title_style))
             #self.story.append(Paragraph("निगरानी समिति की बैठक", hindi_style))
             self.story.append(Paragraph(" िनगरानी समिति की बैठक, hindi_style))
            
