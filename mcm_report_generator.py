@@ -538,7 +538,7 @@ class PDFReportGenerator:
             elif is_treemap:
                 # Larger format for treemaps
                 target_width = 7.0 * inch
-                target_height = 5.0 * inch
+                target_height = 3.0 * inch
             elif is_detailed:
                 # Compact format for detailed breakdown charts
                 target_width = 5.0 * inch
