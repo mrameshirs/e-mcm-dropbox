@@ -795,19 +795,19 @@ def get_visualization_data(dbx, selected_period):
                     ).reset_index()
                     
                     # Risk Paras Chart
-                    risk_agg_sorted_count = risk_agg.sort_values('Para_Count', ascending=False).head(15)
+                    risk_agg_sorted_count = risk_agg.sort_values('Para_Count', ascending=False).head(5)
                     fig15 = px.bar(
                         risk_agg_sorted_count, 
                         x='risk_flag', 
                         y='Para_Count', 
                         text_auto=True,
-                        # title="Top 15 Risk Flags by Number of Audit Paras",
+                        # title="Top 5 Risk Flags by Number of Audit Paras",
                         color_discrete_sequence=px.colors.qualitative.Bold
                     )
                     fig15.update_layout(xaxis_tickfont=dict(size=14, family='Helvetica', color='black'))
 
                     # fig15.update_traces(textposition="outside", cliponaxis=False)
-                    fig15 = style_chart(fig15, "Top 15 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag", wrap_x_labels=True)
+                    fig15 = style_chart(fig15, "Top 5 Risk Flags by Number of Audit Paras", "Number of Paras", "Risk Flag", wrap_x_labels=True)
                     fig15.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
 
 
@@ -826,25 +826,25 @@ def get_visualization_data(dbx, selected_period):
                         )
                         
                         # fig16.update_traces(textposition="outside", cliponaxis=False)
-                        fig16 = style_chart(fig16, "Top 10 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
+                        fig16 = style_chart(fig16, "Top 5 Detection Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
                         fig16.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
 
                         charts.append(fig16)
                     
                     # Risk Recovery Chart
-                    risk_agg_sorted_rec = risk_agg.sort_values('Total_Recovery', ascending=False).head(10)
+                    risk_agg_sorted_rec = risk_agg.sort_values('Total_Recovery', ascending=False).head(5)
                     if not risk_agg_sorted_rec.empty and risk_agg_sorted_rec['Total_Recovery'].sum() > 0:
                         fig17 = px.bar(
                             risk_agg_sorted_rec, 
                             x='risk_flag', 
                             y='Total_Recovery', 
                             text_auto='.2f',
-                            # title="Top 10 Recovery Amount by Risk Flag",
+                            # title="Top 5 Recovery Amount by Risk Flag",
                             color_discrete_sequence=px.colors.qualitative.Safe
                         )
                      
                         # fig17.update_traces(textposition="outside", cliponaxis=False)
-                        fig17 = style_chart(fig17, "Top 10 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
+                        fig17 = style_chart(fig17, "Top 5 Recovery Amount by Risk Flag", "Amount (₹ Lakhs)", "Risk Flag", wrap_x_labels=True)
                         fig17.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
 
                         charts.append(fig17)
@@ -853,16 +853,16 @@ def get_visualization_data(dbx, selected_period):
                     risk_agg['Percentage_Recovery'] = (risk_agg['Total_Recovery'] / risk_agg['Total_Detection'].replace(0, np.nan)).fillna(0) * 100
                     risk_with_recovery = risk_agg[risk_agg['Total_Detection'] > 0]
                     if not risk_with_recovery.empty:
-                        risk_agg_sorted_perc = risk_with_recovery.sort_values('Percentage_Recovery', ascending=False).head(10)
+                        risk_agg_sorted_perc = risk_with_recovery.sort_values('Percentage_Recovery', ascending=False).head(5)
                         fig18 = px.bar(
                             risk_agg_sorted_perc, 
                             x='risk_flag', 
                             y='Percentage_Recovery',
-                            # title="Top 10 Percentage Recovery by Risk Flag",
+                            # title="Top 5 Percentage Recovery by Risk Flag",
                             color='Percentage_Recovery', 
                             color_continuous_scale=px.colors.sequential.Greens
                         )
-                        fig18 = style_chart(fig18, "Top 10 Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag", wrap_x_labels=True)
+                        fig18 = style_chart(fig18, "Top 5 Percentage Recovery by Risk Flag", "Recovery (%)", "Risk Flag", wrap_x_labels=True)
     
                         fig18.update_traces(texttemplate='%{y:.1f}%', textposition='outside', cliponaxis=False)
                         fig18.update_layout(coloraxis_showscale=False)
