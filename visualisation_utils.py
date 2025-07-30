@@ -258,7 +258,12 @@ def get_visualization_data(dbx, selected_period):
                 ],
                 
                 xaxis_type='category',
-                yaxis=dict(gridcolor='#D3D3D3', range=[0, y_range_top]),
+                #yaxis=dict(gridcolor='#D3D3D3', range=[0, y_range_top]),
+                yaxis=dict(
+                    gridcolor='#D3D3D3', 
+                    range=[0, y_range_top],
+                    domain=[0, 0.85]  # ← CRITICAL FIX: Limit y-axis to 85% of plot area to avoid overlapping of grid lines on top heading rectangle
+                ),
                 xaxis=dict(showgrid=False),
                 legend=dict(x=0.05, y=0.85, bgcolor='rgba(0,0,0,0)')
             )
