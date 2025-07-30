@@ -648,8 +648,20 @@ class PDFReportGenerator:
     
             #self.create_structured_chart_sections()
             # 4. Build the document
-            self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-            
+            #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
+            # 9. Build the document
+            try:
+                print("Building final PDF document...")
+                self.doc.build(self.story)  # Remove the page callbacks temporarily
+                print("✓ PDF document built successfully")
+            except Exception as e:
+                print(f"ERROR building PDF document: {e}")
+                # Try without page elements
+                try:
+                    self.doc.build(self.story)
+                except Exception as e2:
+                    print(f"FATAL: Even basic build failed: {e2}")
+                    raise e2
             self.buffer.seek(0)
             return self.buffer
             
