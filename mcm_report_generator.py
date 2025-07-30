@@ -3285,7 +3285,7 @@ class PDFReportGenerator:
             # Detection Treemap
             self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
             self.insert_chart_by_id("detection_treemap", 
-                                   size="large", 
+                                   size="medium", 
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
@@ -3293,7 +3293,7 @@ class PDFReportGenerator:
             #Recovery Treemap
             self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
             self.insert_chart_by_id("recovery_treemap", 
-                                   size="large", 
+                                   size="medium", 
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
