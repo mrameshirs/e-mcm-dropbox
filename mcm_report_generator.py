@@ -2983,8 +2983,8 @@ class PDFReportGenerator:
                 spaceAfter=12,
                 spaceBefore=20
             )
-            
-            self.story.append(Paragraph("Risk Parameter Analysis", risk_header_style))
+            self.add_section_highlight_bar("V. Risk Parameter Analysis", text_color="#0E4C92")
+            #self.story.append(Paragraph("Risk Parameter Analysis", risk_header_style))
             
             # Add description
             desc_style = ParagraphStyle(
@@ -3168,7 +3168,7 @@ class PDFReportGenerator:
         """Add Section V - Top Audit Group and Circle Performance"""
         try:
             # Section header
-            self.add_section_highlight_bar("V. Top Audit Group and Circle Performance", text_color="#0E4C92")
+            self.add_section_highlight_bar("VI. Top Audit Group and Circle Performance", text_color="#0E4C92")
             
             # Description
             desc_style = ParagraphStyle(
