@@ -617,9 +617,75 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Fallback font registration failed: {e}")
 
+    # def run(self, detailed=False):
+    #     """Generate the full report with comprehensive error handling"""
+    #     try:
+    #         # 1. Create cover page
+    #         self.create_cover_page_story()
+    #         self.story.append(PageBreak())
+            
+    #         # 2. Create summary header
+    #         self.create_summary_header()
+            
+          
+    #         # 3. Add comprehensive monthly performance summary with charts Section II and II
+    #         self.add_monthly_performance_summary()
+
+    #         # 4. Add Section III Sectoral analysis (Two sectoral graphs Pie charts)
+    #         self.add_sectoral_analysis()
+        
+    #         # 5. Add Section IV Nature of Non Compliance Analysis
+    #         self.add_nature_of_non_compliance_analysis()
+
+    #         # 6. Add Risk Parameter Analysis if available
+    #         if self.vital_stats.get('risk_analysis_available', False):
+    #             self.add_risk_parameter_analysis()
+    #          # 7. Add Section V - Top Audit Group and Circle Performance
+    #         self.add_top_performance_analysis()
+            
+    #         # 8. Add Section VI - Top Taxpayers of Detection and Recovery
+    #         self.add_top_taxpayers_analysis()
+    
+    #         # 9. Clean and validate story before building
+    #         print(f"Story has {len(self.story)} elements before cleaning")
+            
+    #         # 9. Debug the actual build error
+    #         print(f"Story has {len(self.story)} elements")
+            
+    #         # Don't remove valid elements - just try to build and catch the specific error
+    #         try:
+    #             print("Building final PDF document...")
+    #             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
+    #             print("✓ PDF document built successfully")
+    #         except IndexError as e:
+    #             print(f"IndexError during build: {e}")
+    #             import traceback
+    #             traceback.print_exc()
+                
+    #         # Try without page callbacks
+    #         print("Retrying without page callbacks...")
+    #         try:
+    #             self.doc.build(self.story)
+    #             print("✓ PDF built successfully without page callbacks")
+    #         except Exception as e2:
+    #             print(f"Build failed completely: {e2}")
+    #             raise e2
+                    
+      
+    #         # 4. Build the document
+    #         #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
+           
+    #         self.buffer.seek(0)
+    #         return self.buffer
+            
+    #     except Exception as e:
+    #         print(f"Error generating PDF: {e}")
+    #         return self._generate_error_pdf(str(e))
     def run(self, detailed=False):
         """Generate the full report with comprehensive error handling"""
         try:
+            print("=== STARTING PDF GENERATION ===")
+            
             # 1. Create cover page
             self.create_cover_page_story()
             self.story.append(PageBreak())
@@ -627,61 +693,76 @@ class PDFReportGenerator:
             # 2. Create summary header
             self.create_summary_header()
             
-          
-            # 3. Add comprehensive monthly performance summary with charts Section II and II
+            # 3. Add comprehensive monthly performance summary with charts Section I and II
             self.add_monthly_performance_summary()
-
+            
             # 4. Add Section III Sectoral analysis (Two sectoral graphs Pie charts)
             self.add_sectoral_analysis()
         
             # 5. Add Section IV Nature of Non Compliance Analysis
             self.add_nature_of_non_compliance_analysis()
-
+            
             # 6. Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
                 self.add_risk_parameter_analysis()
-             # 7. Add Section V - Top Audit Group and Circle Performance
+                
+            # 7. Add Section V - Top Audit Group and Circle Performance
             self.add_top_performance_analysis()
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
             self.add_top_taxpayers_analysis()
     
-            # 9. Clean and validate story before building
-            print(f"Story has {len(self.story)} elements before cleaning")
-            
-            # 9. Debug the actual build error
+            # 9. Build the document
             print(f"Story has {len(self.story)} elements")
             
-            # Don't remove valid elements - just try to build and catch the specific error
             try:
-                print("Building final PDF document...")
+                print("Building final PDF document with page elements...")
                 self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-                print("✓ PDF document built successfully")
-            except IndexError as e:
-                print(f"IndexError during build: {e}")
-                import traceback
-                traceback.print_exc()
+                print("✓ PDF document built successfully with page elements")
                 
-            # Try without page callbacks
-            print("Retrying without page callbacks...")
-            try:
-                self.doc.build(self.story)
-                print("✓ PDF built successfully without page callbacks")
-            except Exception as e2:
-                print(f"Build failed completely: {e2}")
-                raise e2
+            except IndexError as e:
+                print(f"IndexError during build (likely table styling issue): {e}")
+                print("Retrying without page callbacks...")
+                try:
+                    self.doc.build(self.story)
+                    print("✓ PDF built successfully without page callbacks")
+                except Exception as e2:
+                    print(f"Build failed completely: {e2}")
+                    raise e2
                     
-      
-            # 4. Build the document
-            #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-           
+            except Exception as e:
+                print(f"Other error during build: {e}")
+                print("Retrying without page callbacks...")
+                try:
+                    self.doc.build(self.story)
+                    print("✓ PDF built successfully without page callbacks")
+                except Exception as e2:
+                    print(f"Build failed completely: {e2}")
+                    raise e2
+    
+            # 10. Finalize and validate buffer
             self.buffer.seek(0)
-            return self.buffer
+            pdf_content = self.buffer.read()
+            pdf_size = len(pdf_content)
+            print(f"Generated PDF size: {pdf_size} bytes")
+            
+            if pdf_size < 1000:
+                print("WARNING: PDF is suspiciously small - likely corrupted")
+                return self._generate_error_pdf("Generated PDF too small")
+            
+            # Create final buffer
+            final_buffer = BytesIO()
+            final_buffer.write(pdf_content)
+            final_buffer.seek(0)
+            
+            print("=== PDF GENERATION COMPLETED SUCCESSFULLY ===")
+            return final_buffer
             
         except Exception as e:
-            print(f"Error generating PDF: {e}")
+            print(f"FATAL ERROR generating PDF: {e}")
+            import traceback
+            traceback.print_exc()
             return self._generate_error_pdf(str(e))
-
     def create_summary_header(self):
         """Create the summary page header"""
         try:
