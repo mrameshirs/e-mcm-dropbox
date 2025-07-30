@@ -3074,7 +3074,7 @@ class PDFReportGenerator:
             
             if risk_summary_data:
                 # Build table from actual data
-                risk_data = [['RISK FLAG', 'RISK DESCRIPTION', 'NO. OF PARAS', 'TOTAL DETECTION (₹ L)', 'TOTAL RECOVERY (₹ L)', 'RECOVERY %']]
+                risk_data = [['RISK FLAG', 'RISK DESCRIPTION', 'NO.OF PARAS', 'TOTAL DETECTION ', 'TOTAL RECOVERY', 'RECOVERY %']]
                 
                 for risk_item in risk_summary_data:
                     risk_flag = risk_item.get('risk_flag', 'Unknown')
@@ -3102,7 +3102,7 @@ class PDFReportGenerator:
                 ]
             
             # Create the risk table with dynamic column widths
-            risk_col_widths = [0.8*inch, 2.8*inch, 0.8*inch, 1.2*inch, 1.2*inch, 0.8*inch]
+            risk_col_widths = [0.8*inch, 3.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 0.9*inch]
             risk_table = Table(risk_data, colWidths=risk_col_widths)
             
             # Apply colorful styling matching the image
