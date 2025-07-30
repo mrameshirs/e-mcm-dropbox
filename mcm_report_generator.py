@@ -646,22 +646,43 @@ class PDFReportGenerator:
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
             self.add_top_taxpayers_analysis()
     
-            #self.create_structured_chart_sections()
-            # 4. Build the document
-            #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
-            # 9. Build the document
+            # 9. Clean and validate story before building
+            print(f"Story has {len(self.story)} elements before cleaning")
+            
+            # Filter out None and empty elements
+            clean_story = []
+            for i, element in enumerate(self.story):
+                if element is None:
+                    print(f"Removing None element at index {i}")
+                elif hasattr(element, '__class__') and element.__class__.__name__ in ['Spacer', 'Paragraph', 'Table', 'PageBreak']:
+                    clean_story.append(element)
+                else:
+                    print(f"Removing problematic element at index {i}: {type(element)}")
+            
+            self.story = clean_story
+            print(f"Story has {len(self.story)} elements after cleaning")
+            
+            # Add fallback content if story is too short
+            if len(self.story) < 5:
+                from reportlab.lib.styles import getSampleStyleSheet
+                styles = getSampleStyleSheet()
+                self.story = [
+                    Paragraph("MCM Report", styles['Title']),
+                    Paragraph("Report generation encountered technical issues.", styles['Normal']),
+                    Paragraph("Please check the data and try again.", styles['Normal'])
+                ]
+            
+            # 10. Build the document
             try:
                 print("Building final PDF document...")
-                self.doc.build(self.story)  # Remove the page callbacks temporarily
+                self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
                 print("✓ PDF document built successfully")
             except Exception as e:
                 print(f"ERROR building PDF document: {e}")
-                # Try without page elements
-                try:
-                    self.doc.build(self.story)
-                except Exception as e2:
-                    print(f"FATAL: Even basic build failed: {e2}")
-                    raise e2
+                raise e
+            # 4. Build the document
+            #self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
+           
             self.buffer.seek(0)
             return self.buffer
             
