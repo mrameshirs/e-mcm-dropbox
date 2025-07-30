@@ -644,7 +644,7 @@ class PDFReportGenerator:
             self.add_top_performance_analysis()
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
-            #self.add_top_taxpayers_analysis()
+            self.add_top_taxpayers_analysis()
     
             #self.create_structured_chart_sections()
             # 4. Build the document
@@ -3291,12 +3291,12 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.2 * inch))
             
             # Recovery Treemap
-            self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
-            self.insert_chart_by_id("recovery_treemap", 
-                                   size="large", 
-                                   add_title=False, 
-                                   add_description=False)
-            self.story.append(Spacer(1, 0.2 * inch))
+            # self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
+            # self.insert_chart_by_id("recovery_treemap", 
+            #                        size="large", 
+            #                        add_title=False, 
+            #                        add_description=False)
+            # self.story.append(Spacer(1, 0.2 * inch))
             
             # Add top taxpayers summary table if data is available
             if self.vital_stats.get('top_taxpayers_data'):
