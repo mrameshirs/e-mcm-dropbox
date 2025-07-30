@@ -3445,6 +3445,7 @@ class PDFReportGenerator:
             # Create and style table
             if len(table_data) > 1:  # More than just header
                 table = Table(table_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+                # Replace the table styling section with:
                 table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(table_color)),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -3459,11 +3460,15 @@ class PDFReportGenerator:
                     ('TOPPADDING', (0, 0), (-1, -1), 6),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    # Alternating row colors
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
                 ]))
+                
+                # Add alternating row colors ONLY for rows that exist
+                num_data_rows = len(table_data) - 1  # Subtract header row
+                for row_idx in range(1, num_data_rows + 1, 2):  # Every other row starting from 1
+                    if row_idx < len(table_data):  # Safety check
+                        table.setStyle(TableStyle([
+                            ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")),
+                        ]))
                 
                 self.story.append(table)
                 self.story.append(Spacer(1, 0.15 * inch))
