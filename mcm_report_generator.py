@@ -2970,271 +2970,271 @@ class PDFReportGenerator:
         #     )
         #     self.story.append(Paragraph("Error loading performance summary table", error_style))
 
-def add_top_performance_analysis(self):
-    """Add Section V - Top Audit Group and Circle Performance"""
-    try:
-        # Section header
-        self.add_section_highlight_bar("V. Top Audit Group and Circle Performance", text_color="#0E4C92")
-        
-        # Description
-        desc_style = ParagraphStyle(
-            name='PerformanceDesc',
-            parent=self.styles['Normal'],
-            fontSize=11,
-            textColor=colors.HexColor("#2C2C2C"),
-            alignment=TA_JUSTIFY,
-            fontName='Helvetica',
-            leftIndent=0.25*inch,
-            rightIndent=0.25*inch,
-            leading=14,
-            spaceAfter=16
-        )
-        
-        description_text = """
-        This section highlights the top-performing audit groups and circles based on detection and recovery amounts. 
-        """
-        
-        self.story.append(Paragraph(description_text, desc_style))
-        
-        # Chart heading style
-        chart_header_style = ParagraphStyle(
-            name='PerformanceChartHeader',
-            parent=self.styles['Heading3'],
-            fontSize=14,
-            textColor=colors.HexColor("#1134A6"),
-            alignment=TA_LEFT,
-            fontName='Helvetica-Bold',
-            spaceAfter=8,
-            spaceBefore=12
-        )
-        
-        # Group Performance Charts
-        self.story.append(Paragraph("🏆 Top 10 Audit Groups by Detection Amount", chart_header_style))
-        self.insert_chart_by_id("group_detection_performance", 
-                               size="medium", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.15 * inch))
-        
-        self.story.append(Paragraph("🏆 Top 10 Audit Groups by Recovery Amount", chart_header_style))
-        self.insert_chart_by_id("group_recovery_performance", 
-                               size="medium", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.15 * inch))
-        
-        # Circle Performance Charts
-        self.story.append(Paragraph("🎯 Circle-wise Detection Performance", chart_header_style))
-        self.insert_chart_by_id("circle_detection_performance", 
-                               size="medium", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.15 * inch))
-        
-        self.story.append(Paragraph("🎯 Circle-wise Recovery Performance", chart_header_style))
-        self.insert_chart_by_id("recovery_trends", 
-                               size="medium", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.2 * inch))
-        
-                   
-    except Exception as e:
-        print(f"Error adding top performance analysis: {e}")
-
-
-
-def add_top_taxpayers_analysis(self):
-    """Add Section VI - Top Taxpayers of Detection and Recovery"""
-    try:
-        # Section header
-        self.add_section_highlight_bar("VI. Top Taxpayers of Detection and Recovery", text_color="#0E4C92")
-        
-        # Description
-        desc_style = ParagraphStyle(
-            name='TaxpayerDesc',
-            parent=self.styles['Normal'],
-            fontSize=11,
-            textColor=colors.HexColor("#2C2C2C"),
-            alignment=TA_JUSTIFY,
-            fontName='Helvetica',
-            leftIndent=0.25*inch,
-            rightIndent=0.25*inch,
-            leading=14,
-            spaceAfter=16
-        )
-        
-        description_text = """
-        This section provides hierarchical analysis of taxpayers with highest detection and recovery amounts. 
-        The treemap visualizations show proportional representation of taxpayer categories and individual entities, 
-        helping identify key contributors to audit performance and recovery potential.
-        """
-        
-        self.story.append(Paragraph(description_text, desc_style))
-        
-        # Chart heading style
-        chart_header_style = ParagraphStyle(
-            name='TaxpayerChartHeader',
-            parent=self.styles['Heading3'],
-            fontSize=14,
-            textColor=colors.HexColor("#1134A6"),
-            alignment=TA_LEFT,
-            fontName='Helvetica-Bold',
-            spaceAfter=8,
-            spaceBefore=12
-        )
-        
-        # Detection Treemap
-        self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
-        self.insert_chart_by_id("detection_treemap", 
-                               size="large", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.2 * inch))
-        
-        # Recovery Treemap
-        self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
-        self.insert_chart_by_id("recovery_treemap", 
-                               size="large", 
-                               add_title=False, 
-                               add_description=False)
-        self.story.append(Spacer(1, 0.2 * inch))
-        
-        # Add top taxpayers summary table if data is available
-        if self.vital_stats.get('top_taxpayers_data'):
-            self.add_top_taxpayers_summary_table()
+    def add_top_performance_analysis(self):
+        """Add Section V - Top Audit Group and Circle Performance"""
+        try:
+            # Section header
+            self.add_section_highlight_bar("V. Top Audit Group and Circle Performance", text_color="#0E4C92")
             
-    except Exception as e:
-        print(f"Error adding top taxpayers analysis: {e}")
-
-def add_top_taxpayers_summary_table(self):
-    """Add top taxpayers summary table"""
-    try:
-        top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
-        
-        if top_taxpayers_data:
-            table_header_style = ParagraphStyle(
-                name='TopTaxpayersTableHeader',
+            # Description
+            desc_style = ParagraphStyle(
+                name='PerformanceDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section highlights the top-performing audit groups and circles based on detection and recovery amounts. 
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Chart heading style
+            chart_header_style = ParagraphStyle(
+                name='PerformanceChartHeader',
                 parent=self.styles['Heading3'],
                 fontSize=14,
                 textColor=colors.HexColor("#1134A6"),
                 alignment=TA_LEFT,
                 fontName='Helvetica-Bold',
-                spaceAfter=12,
-                spaceBefore=16
+                spaceAfter=8,
+                spaceBefore=12
             )
             
-            # Top Detection Taxpayers Table
-            top_detection = top_taxpayers_data.get('top_detection', [])
-            if top_detection:
-                self.story.append(Paragraph("🏆 Top 5 Taxpayers by Detection Amount", table_header_style))
-                
-                detection_data = [['Trade Name', 'Category', 'Detection (₹ L)', 'Recovery (₹ L)', 'Recovery %']]
-                
-                for taxpayer in top_detection[:5]:
-                    trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-                    # Truncate long trade names
-                    if len(trade_name) > 40:
-                        trade_name = trade_name[:37] + '...'
-                    
-                    category = taxpayer.get('category', 'Unknown')
-                    detection = float(taxpayer.get('total_detection', 0))
-                    recovery = float(taxpayer.get('total_recovery', 0))
-                    recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                    
-                    detection_data.append([
-                        trade_name,
-                        category,
-                        f'₹{detection:.2f} L',
-                        f'₹{recovery:.2f} L',
-                        f'{recovery_pct:.1f}%'
-                    ])
-                
-                detection_table = Table(detection_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-                detection_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 8),
-                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 8),
-                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    # Alternating row colors
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-                ]))
-                
-                self.story.append(detection_table)
-                self.story.append(Spacer(1, 0.15 * inch))
+            # Group Performance Charts
+            self.story.append(Paragraph("🏆 Top 10 Audit Groups by Detection Amount", chart_header_style))
+            self.insert_chart_by_id("group_detection_performance", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.15 * inch))
             
-            # Top Recovery Taxpayers Table
-            top_recovery = top_taxpayers_data.get('top_recovery', [])
-            if top_recovery:
-                self.story.append(Paragraph("💎 Top 5 Taxpayers by Recovery Amount", table_header_style))
-                
-                recovery_data = [['Trade Name', 'Category', 'Detection (₹ L)', 'Recovery (₹ L)', 'Recovery %']]
-                
-                for taxpayer in top_recovery[:5]:
-                    trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-                    # Truncate long trade names
-                    if len(trade_name) > 40:
-                        trade_name = trade_name[:37] + '...'
-                    
-                    category = taxpayer.get('category', 'Unknown')
-                    detection = float(taxpayer.get('total_detection', 0))
-                    recovery = float(taxpayer.get('total_recovery', 0))
-                    recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                    
-                    recovery_data.append([
-                        trade_name,
-                        category,
-                        f'₹{detection:.2f} L',
-                        f'₹{recovery:.2f} L',
-                        f'{recovery_pct:.1f}%'
-                    ])
-                
-                recovery_table = Table(recovery_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-                recovery_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2E8B57")),  # Sea green
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0, 0), (-1, 0), 8),
-                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                    ('FONTSIZE', (0, 1), (-1, -1), 8),
-                    ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-                    ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    # Alternating row colors
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0FFF0")),
-                    ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0FFF0")),
-                    ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0FFF0")),
-                ]))
-                
-                self.story.append(recovery_table)
-                self.story.append(Spacer(1, 0.2 * inch))
-        else:
-            # Fallback message if no data
-            info_style = ParagraphStyle(
-                name='InfoStyle',
+            self.story.append(Paragraph("🏆 Top 10 Audit Groups by Recovery Amount", chart_header_style))
+            self.insert_chart_by_id("group_recovery_performance", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.15 * inch))
+            
+            # Circle Performance Charts
+            self.story.append(Paragraph("🎯 Circle-wise Detection Performance", chart_header_style))
+            self.insert_chart_by_id("circle_detection_performance", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.15 * inch))
+            
+            self.story.append(Paragraph("🎯 Circle-wise Recovery Performance", chart_header_style))
+            self.insert_chart_by_id("recovery_trends", 
+                                   size="medium", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+                       
+        except Exception as e:
+            print(f"Error adding top performance analysis: {e}")
+    
+    
+    
+    def add_top_taxpayers_analysis(self):
+        """Add Section VI - Top Taxpayers of Detection and Recovery"""
+        try:
+            # Section header
+            self.add_section_highlight_bar("VI. Top Taxpayers of Detection and Recovery", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='TaxpayerDesc',
                 parent=self.styles['Normal'],
-                fontSize=10,
-                textColor=colors.HexColor("#666666"),
-                alignment=TA_CENTER
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
             )
-            self.story.append(Paragraph("No top taxpayers data available for this period.", info_style))
+            
+            description_text = """
+            This section provides hierarchical analysis of taxpayers with highest detection and recovery amounts. 
+            The treemap visualizations show proportional representation of taxpayer categories and individual entities, 
+            helping identify key contributors to audit performance and recovery potential.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Chart heading style
+            chart_header_style = ParagraphStyle(
+                name='TaxpayerChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=12
+            )
+            
+            # Detection Treemap
+            self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
+            self.insert_chart_by_id("detection_treemap", 
+                                   size="large", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Recovery Treemap
+            self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
+            self.insert_chart_by_id("recovery_treemap", 
+                                   size="large", 
+                                   add_title=False, 
+                                   add_description=False)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Add top taxpayers summary table if data is available
+            if self.vital_stats.get('top_taxpayers_data'):
+                self.add_top_taxpayers_summary_table()
                 
-    except Exception as e:
-        print(f"Error adding top taxpayers summary table: {e}")
+        except Exception as e:
+            print(f"Error adding top taxpayers analysis: {e}")
 
-
+    def add_top_taxpayers_summary_table(self):
+        """Add top taxpayers summary table"""
+        try:
+            top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
+            
+            if top_taxpayers_data:
+                table_header_style = ParagraphStyle(
+                    name='TopTaxpayersTableHeader',
+                    parent=self.styles['Heading3'],
+                    fontSize=14,
+                    textColor=colors.HexColor("#1134A6"),
+                    alignment=TA_LEFT,
+                    fontName='Helvetica-Bold',
+                    spaceAfter=12,
+                    spaceBefore=16
+                )
+                
+                # Top Detection Taxpayers Table
+                top_detection = top_taxpayers_data.get('top_detection', [])
+                if top_detection:
+                    self.story.append(Paragraph("🏆 Top 5 Taxpayers by Detection Amount", table_header_style))
+                    
+                    detection_data = [['Trade Name', 'Category', 'Detection (₹ L)', 'Recovery (₹ L)', 'Recovery %']]
+                    
+                    for taxpayer in top_detection[:5]:
+                        trade_name = str(taxpayer.get('trade_name', 'Unknown'))
+                        # Truncate long trade names
+                        if len(trade_name) > 40:
+                            trade_name = trade_name[:37] + '...'
+                        
+                        category = taxpayer.get('category', 'Unknown')
+                        detection = float(taxpayer.get('total_detection', 0))
+                        recovery = float(taxpayer.get('total_recovery', 0))
+                        recovery_pct = float(taxpayer.get('recovery_percentage', 0))
+                        
+                        detection_data.append([
+                            trade_name,
+                            category,
+                            f'₹{detection:.2f} L',
+                            f'₹{recovery:.2f} L',
+                            f'{recovery_pct:.1f}%'
+                        ])
+                    
+                    detection_table = Table(detection_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+                    detection_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, 0), 8),
+                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                        ('FONTSIZE', (0, 1), (-1, -1), 8),
+                        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
+                        ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
+                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                        ('TOPPADDING', (0, 0), (-1, -1), 6),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        # Alternating row colors
+                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+                    ]))
+                    
+                    self.story.append(detection_table)
+                    self.story.append(Spacer(1, 0.15 * inch))
+                
+                # Top Recovery Taxpayers Table
+                top_recovery = top_taxpayers_data.get('top_recovery', [])
+                if top_recovery:
+                    self.story.append(Paragraph("💎 Top 5 Taxpayers by Recovery Amount", table_header_style))
+                    
+                    recovery_data = [['Trade Name', 'Category', 'Detection (₹ L)', 'Recovery (₹ L)', 'Recovery %']]
+                    
+                    for taxpayer in top_recovery[:5]:
+                        trade_name = str(taxpayer.get('trade_name', 'Unknown'))
+                        # Truncate long trade names
+                        if len(trade_name) > 40:
+                            trade_name = trade_name[:37] + '...'
+                        
+                        category = taxpayer.get('category', 'Unknown')
+                        detection = float(taxpayer.get('total_detection', 0))
+                        recovery = float(taxpayer.get('total_recovery', 0))
+                        recovery_pct = float(taxpayer.get('recovery_percentage', 0))
+                        
+                        recovery_data.append([
+                            trade_name,
+                            category,
+                            f'₹{detection:.2f} L',
+                            f'₹{recovery:.2f} L',
+                            f'{recovery_pct:.1f}%'
+                        ])
+                    
+                    recovery_table = Table(recovery_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
+                    recovery_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2E8B57")),  # Sea green
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, 0), 8),
+                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                        ('FONTSIZE', (0, 1), (-1, -1), 8),
+                        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
+                        ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
+                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                        ('TOPPADDING', (0, 0), (-1, -1), 6),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        # Alternating row colors
+                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0FFF0")),
+                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0FFF0")),
+                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0FFF0")),
+                    ]))
+                    
+                    self.story.append(recovery_table)
+                    self.story.append(Spacer(1, 0.2 * inch))
+            else:
+                # Fallback message if no data
+                info_style = ParagraphStyle(
+                    name='InfoStyle',
+                    parent=self.styles['Normal'],
+                    fontSize=10,
+                    textColor=colors.HexColor("#666666"),
+                    alignment=TA_CENTER
+                )
+                self.story.append(Paragraph("No top taxpayers data available for this period.", info_style))
+                    
+        except Exception as e:
+            print(f"Error adding top taxpayers summary table: {e}")
+    
+    
