@@ -689,7 +689,15 @@ def mcm_agenda_tab(dbx):
                 if not vital_stats or not charts:
                     st.error("Could not fetch visualization data to generate the report.")
                     return
-    
+                ############  Debug the data structure Added may be reomoved 
+                ttd = vital_stats.get('top_taxpayers_data', {})
+                print(f"Top taxpayers data type: {type(ttd)}")
+                for key in ['top_detection', 'top_recovery']:
+                    data = ttd.get(key, [])
+                    print(f"{key}: type={type(data)}, length={len(data) if hasattr(data, '__len__') else 'no length'}")
+                    if hasattr(data, 'to_dict'):
+                        print(f"  WARNING: {key} is still a DataFrame!")
+                ####################
                 # 2. Convert Plotly charts to images in memory
                 # AFTER
                 #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
