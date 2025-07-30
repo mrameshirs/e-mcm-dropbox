@@ -3313,19 +3313,7 @@ class PDFReportGenerator:
             
             self.story.append(Paragraph(description_text, desc_style))
             
-            # Chart heading style
-            chart_header_style = ParagraphStyle(
-                name='TaxpayerChartHeader',
-                parent=self.styles['Heading3'],
-                fontSize=14,
-                textColor=colors.HexColor("#1134A6"),
-                alignment=TA_LEFT,
-                fontName='Helvetica-Bold',
-                spaceAfter=8,
-                spaceBefore=12
-            )
             
-          
             
             # Add top taxpayers summary table if data is available
             if self.vital_stats.get('top_taxpayers_data'):
@@ -3346,7 +3334,19 @@ class PDFReportGenerator:
             if not top_taxpayers_data:
                 self._add_info_message("No top taxpayers data available for this period.")
                 return
+            # Chart heading style
+            chart_header_style = ParagraphStyle(
+                name='TaxpayerChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=12
+            )
             
+          
             # Table header style
             table_header_style = ParagraphStyle(
                 name='TopTaxpayersTableHeader',
@@ -3359,16 +3359,6 @@ class PDFReportGenerator:
                 spaceBefore=16
             )
            
-            
-            
-            # Process Top Detection
-            self._process_top_taxpayers_table(
-                data_key='top_detection',
-                title="🏆 Top 5 Taxpayers by Detection Amount",
-                header_style=table_header_style,
-                table_color="#6F2E2E"
-            )
-            
             # Detection Treemap
             self.story.append(Paragraph("🌳 Top Taxpayers by Detection Amount (Hierarchical View)", chart_header_style))
             self.insert_chart_by_id("detection_treemap", 
@@ -3377,12 +3367,12 @@ class PDFReportGenerator:
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
             
-            # Process Top Recovery
+            # Process Top Detection
             self._process_top_taxpayers_table(
-                data_key='top_recovery', 
-                title="💎 Top 5 Taxpayers by Recovery Amount",
+                data_key='top_detection',
+                title="🏆 Top 5 Taxpayers by Detection Amount",
                 header_style=table_header_style,
-                table_color="#2E8B57"
+                table_color="#6F2E2E"
             )
             #Recovery Treemap
             self.story.append(Paragraph("🌳 Top Taxpayers by Recovery Amount (Hierarchical View)", chart_header_style))
@@ -3391,6 +3381,16 @@ class PDFReportGenerator:
                                    add_title=False, 
                                    add_description=False)
             self.story.append(Spacer(1, 0.2 * inch))
+            
+            
+            # Process Top Recovery
+            self._process_top_taxpayers_table(
+                data_key='top_recovery', 
+                title="💎 Top 5 Taxpayers by Recovery Amount",
+                header_style=table_header_style,
+                table_color="#2E8B57"
+            )
+            
             print("=== TOP TAXPAYERS SUMMARY TABLE COMPLETED ===")
             
         except Exception as e:
