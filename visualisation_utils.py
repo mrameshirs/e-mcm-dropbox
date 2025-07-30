@@ -389,7 +389,7 @@ def get_visualization_data(dbx, selected_period):
         if not group_recovery.empty:
             fig6 = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Set2)
             fig6 = style_chart(fig6, "Top 10 Groups by Recovery", "Amount (₹ Lakhs)", "Audit Group")
-            fig6..update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+            fig6.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
             charts.append(fig6)
         
         # Circle Recovery Performance
