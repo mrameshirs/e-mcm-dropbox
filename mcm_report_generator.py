@@ -639,7 +639,12 @@ class PDFReportGenerator:
             # 6. Add Risk Parameter Analysis if available
             if self.vital_stats.get('risk_analysis_available', False):
                 self.add_risk_parameter_analysis()
-        
+             # 7. Add Section V - Top Audit Group and Circle Performance
+            self.add_top_performance_analysis()
+            
+            # 8. Add Section VI - Top Taxpayers of Detection and Recovery
+            self.add_top_taxpayers_analysis()
+    
             self.create_structured_chart_sections()
             # 4. Build the document
             self.doc.build(self.story, onFirstPage=self.add_page_elements, onLaterPages=self.add_page_elements)
