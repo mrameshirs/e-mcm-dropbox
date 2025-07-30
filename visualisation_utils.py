@@ -875,7 +875,8 @@ def get_visualization_data(dbx, selected_period):
                         charts.append(fig18)
          
                     risk_agg = df_risk_analysis.groupby('risk_flag').agg(
-                        Para_Count=('risk_flag', 'count'),
+                        #Para_Count=('risk_flag', 'count'),#to correct the aggregate no of DARs
+                        Para_Count=('risk_flag', 'nunique'),
                         Total_Detection=('Para Detection in Lakhs', 'sum'),
                         Total_Recovery=('Para Recovery in Lakhs', 'sum')
                     ).reset_index()
