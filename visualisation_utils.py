@@ -369,7 +369,8 @@ def get_visualization_data(dbx, selected_period):
         if not group_detection.empty:
             fig4 = px.bar(group_detection, x='audit_group_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Vivid)
             fig4 = style_chart(fig4, "Top 10 Groups by Detection", "Amount (₹ Lakhs)", "Audit Group")
-            fig4.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+            fig4.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black'), tickangle=0))
+
             charts.append(fig4)
         
         # Circle Detection Performance
@@ -380,6 +381,8 @@ def get_visualization_data(dbx, selected_period):
         if not circle_detection.empty:
             fig5 = px.bar(circle_detection, x='circle_number_str', y='Detection in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Pastel1)
             fig5 = style_chart(fig5, "Circle-wise Detection", "Amount (₹ Lakhs)", "Audit Circle")
+            fig5.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black'), tickangle=0))
+
             charts.append(fig5)
         
         # Group Recovery Performance
@@ -389,7 +392,7 @@ def get_visualization_data(dbx, selected_period):
         if not group_recovery.empty:
             fig6 = px.bar(group_recovery, x='audit_group_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.Set2)
             fig6 = style_chart(fig6, "Top 10 Groups by Recovery", "Amount (₹ Lakhs)", "Audit Group")
-            fig6.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+            fig6.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black'), tickangle=0))
             charts.append(fig6)
         
         # Circle Recovery Performance
@@ -400,7 +403,7 @@ def get_visualization_data(dbx, selected_period):
         if not circle_recovery.empty:
             fig7 = px.bar(circle_recovery, x='circle_number_str', y='Recovery in Lakhs', text_auto='.2f', color_discrete_sequence=px.colors.qualitative.G10)
             fig7 = style_chart(fig7, "Circle-wise Recovery", "Amount (₹ Lakhs)", "Audit Circle")
-            fig7.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black')))
+            fig7.update_layout(xaxis=dict(tickfont=dict(size=14, family='Helvetica-Bold', color='black'), tickangle=0))
             charts.append(fig7)
         # CHARTS 8-10: Taxpayer Classification Analysis (ULTRA COMPACT - NO TITLE)
       
