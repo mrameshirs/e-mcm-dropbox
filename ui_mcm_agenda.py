@@ -427,19 +427,44 @@ def mcm_agenda_tab(dbx):
                             st.markdown(f"<h5 style='font-size:13pt; margin-top:20px; color:#154360;'>Gist of Audit Paras & MCM Decisions for: {html.escape(trade_name_item)}</h5>", unsafe_allow_html=True)
                             
                              
-                            # --- CSS FOR ALL STYLING ---
+                            # # --- CSS FOR ALL STYLING ---
+                            # st.markdown("""
+                            #     <style>
+                            #         .grid-header { font-weight: bold; background-color: #343a40; color: white; padding: 10px 5px; border-radius: 5px; text-align: center; }
+                            #         .cell-style { padding: 8px 5px; margin: 1px; border-radius: 5px; text-align: center; }
+                            #         .title-cell { background-color: #f0f2f6; text-align: left; padding-left: 10px;}
+                            #         .revenue-cell { background-color: #e8f5e9; font-weight: bold; }
+                            #         .status-cell { background-color: #e3f2fd; font-weight: bold; color: #800000; } /* Maroon text on light blue */
+                            #         .total-row { font-weight: bold; padding-top: 10px; }
+                            #     </style>
+                            # """, unsafe_allow_html=True)
                             st.markdown("""
                                 <style>
                                     .grid-header { font-weight: bold; background-color: #343a40; color: white; padding: 10px 5px; border-radius: 5px; text-align: center; }
                                     .cell-style { padding: 8px 5px; margin: 1px; border-radius: 5px; text-align: center; }
-                                    .title-cell { background-color: #f0f2f6; text-align: left; padding-left: 10px;}
+                                    .title-cell { 
+                                        background-color: #f0f2f6; 
+                                        text-align: left; 
+                                        padding: 8px 10px;
+                                        word-wrap: break-word;
+                                        overflow-wrap: break-word;
+                                        white-space: normal;
+                                        max-width: 100%;
+                                        line-height: 1.4;
+                                        font-size: 11px;
+                                        height: auto;
+                                        min-height: 60px;
+                                        display: flex;
+                                        align-items: flex-start;
+                                    }
                                     .revenue-cell { background-color: #e8f5e9; font-weight: bold; }
-                                    .status-cell { background-color: #e3f2fd; font-weight: bold; color: #800000; } /* Maroon text on light blue */
+                                    .status-cell { background-color: #e3f2fd; font-weight: bold; color: #800000; }
                                     .total-row { font-weight: bold; padding-top: 10px; }
                                 </style>
                             """, unsafe_allow_html=True)
 
-                            col_proportions = (0.9, 5, 1.5, 1.5, 1.8, 2.5)
+                            #col_proportions = (0.9, 5, 1.5, 1.5, 1.8, 2.5)
+                            col_proportions = (0.7, 3.5, 1.3, 1.3, 1.4, 2.0)
                             header_cols = st.columns(col_proportions)
                             headers = ['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']
                             for col, header in zip(header_cols, headers):
@@ -451,20 +476,94 @@ def mcm_agenda_tab(dbx):
                             for index, row in df_trade_paras_item.iterrows():
                                 with st.container(border=True):
                                     para_num_str = str(int(row["audit_para_number"])) if pd.notna(row["audit_para_number"]) and row["audit_para_number"] != 0 else "N/A"
-                                    det_rs = (row.get('revenue_involved_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_involved_lakhs_rs')) else 0
-                                    rec_rs = (row.get('revenue_recovered_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_recovered_lakhs_rs')) else 0
+                                    # det_rs = (row.get('revenue_involved_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_involved_lakhs_rs')) else 0
+                                    # rec_rs = (row.get('revenue_recovered_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_recovered_lakhs_rs')) else 0
+
+                                    # Get the lakhs values safely
+                                    det_lakhs = row.get('revenue_involved_lakhs_rs', 0)
+                                    rec_lakhs = row.get('revenue_recovered_lakhs_rs', 0)
+                                    
+                                    # Clean and convert to numeric (handles string values with commas, etc.)
+                                    det_lakhs = pd.to_numeric(str(det_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    rec_lakhs = pd.to_numeric(str(rec_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    
+                                    # Handle NaN values
+                                    det_lakhs = det_lakhs if pd.notna(det_lakhs) else 0
+                                    rec_lakhs = rec_lakhs if pd.notna(rec_lakhs) else 0
+                                    
+                                    # Convert lakhs to rupees (multiply by 1,00,000)
+                                    det_rs = int(det_lakhs * 100000) if det_lakhs > 0 else 0
+                                    rec_rs = int(rec_lakhs * 100000) if rec_lakhs > 0 else 0
+
                                     total_para_det_rs += det_rs
                                     total_para_rec_rs += rec_rs
                                     status_text = html.escape(str(row.get("status_of_para", "N/A")))
-                                    para_title_text = f"<b>{html.escape(str(row.get('audit_para_heading', 'N/A')))}</b>"
+                                    #para_title_text = f"<b>{html.escape(str(row.get('audit_para_heading', 'N/A')))}</b>"
+                                    # AFTER (multi-line with proper wrapping):
+                                    def wrap_para_title_for_display(title, max_length=100):
+                                        """Wrap para title for better display in table"""
+                                        try:
+                                            if pd.isna(title) or title == '' or title == 'N/A':
+                                                return 'N/A'
+                                            
+                                            title_str = str(title).strip()
+                                            
+                                            # If title is short enough, return as is
+                                            if len(title_str) <= max_length:
+                                                return title_str
+                                            
+                                            # Split into words for intelligent wrapping
+                                            words = title_str.split()
+                                            lines = []
+                                            current_line = []
+                                            current_length = 0
+                                            
+                                            for word in words:
+                                                # Check if adding this word would exceed line length
+                                                if current_length + len(word) + 1 <= 50:  # ~50 chars per line
+                                                    current_line.append(word)
+                                                    current_length += len(word) + 1
+                                                else:
+                                                    # Start new line
+                                                    if current_line:
+                                                        lines.append(' '.join(current_line))
+                                                    current_line = [word]
+                                                    current_length = len(word)
+                                                    
+                                                    # Limit to 2 lines max
+                                                    if len(lines) >= 2:
+                                                        break
+                                            
+                                            # Add remaining words to last line
+                                            if current_line:
+                                                lines.append(' '.join(current_line))
+                                            
+                                            # Join lines with <br> for HTML display
+                                            wrapped_title = '<br>'.join(lines)
+                                            
+                                            # Add ellipsis if we had to truncate
+                                            if len(' '.join(title_str.split()[:len(' '.join(lines).split())])) < len(title_str):
+                                                wrapped_title += '...'
+                                            
+                                            return wrapped_title
+                                            
+                                        except Exception as e:
+                                            print(f"Error wrapping para title: {e}")
+                                            return str(title)[:80] + '...' if len(str(title)) > 80 else str(title)
                                     
+                                    # Use the wrapped title in display:
+                                    clean_title = wrap_para_title_for_display(row.get('audit_para_heading', 'N/A'))
+                                    para_title_text = f"<b>{clean_title}</b>"
                                     default_index = 0
                                     if 'mcm_decision' in df_trade_paras_item.columns and pd.notna(row['mcm_decision']) and row['mcm_decision'] in decision_options:
                                         default_index = decision_options.index(row['mcm_decision'])
                                     
                                     row_cols = st.columns(col_proportions)
                                     row_cols[0].write(para_num_str)
+                                    #row_cols[1].markdown(f"<div class='cell-style title-cell'>{para_title_text}</div>", unsafe_allow_html=True)
                                     row_cols[1].markdown(f"<div class='cell-style title-cell'>{para_title_text}</div>", unsafe_allow_html=True)
+                                    # row_cols[2].markdown(f"<div class='cell-style revenue-cell'>{format_inr(det_rs)}</div>", unsafe_allow_html=True)
+                                    # row_cols[3].markdown(f"<div class='cell-style revenue-cell'>{format_inr(rec_rs)}</div>", unsafe_allow_html=True)
                                     row_cols[2].markdown(f"<div class='cell-style revenue-cell'>{format_inr(det_rs)}</div>", unsafe_allow_html=True)
                                     row_cols[3].markdown(f"<div class='cell-style revenue-cell'>{format_inr(rec_rs)}</div>", unsafe_allow_html=True)
                                     row_cols[4].markdown(f"<div class='cell-style status-cell'>{status_text}</div>", unsafe_allow_html=True)
