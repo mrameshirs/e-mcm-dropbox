@@ -25,40 +25,91 @@ from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
 from mcm_report_generator import PDFReportGenerator
 from visualisation_utils import get_visualization_data # Import the helper function
 
-# --- HELPER FUNCTION FOR INDIAN NUMBERING ---
+# # --- HELPER FUNCTION FOR INDIAN NUMBERING ---
+# def format_inr(n):
+#     """
+#     Formats a number (including numpy types) into the Indian numbering system.
+#     """
+#     try:
+#         # First, try to convert the input to a standard integer. This handles numpy types.
+#         n = int(n)
+#     except (ValueError, TypeError):
+#         return "0" # If it can't be converted, return "0"
+    
+#     if n < 0:
+#         return '-' + format_inr(-n)
+#     if n == 0:
+#         return "0"
+    
+#     s = str(n)
+#     if len(s) <= 3:
+#         return s
+    
+#     s_last_three = s[-3:]
+#     s_remaining = s[:-3]
+    
+#     groups = []
+#     while len(s_remaining) > 2:
+#         groups.append(s_remaining[-2:])
+#         s_remaining = s_remaining[:-2]
+    
+#     if s_remaining:
+#         groups.append(s_remaining)
+    
+#     groups.reverse()
+#     result = ','.join(groups) + ',' + s_last_three
+#     return result
 def format_inr(n):
     """
-    Formats a number (including numpy types) into the Indian numbering system.
+    FIXED: Formats a number into the Indian numbering system with proper error handling.
     """
     try:
-        # First, try to convert the input to a standard integer. This handles numpy types.
+        # Handle None, NaN, and empty values
+        if n is None or n == '' or pd.isna(n):
+            return "0"
+        
+        # Convert to float first to handle any string numbers or scientific notation
+        n = float(n)
+        
+        # Convert to integer for formatting (remove decimals)
         n = int(n)
-    except (ValueError, TypeError):
-        return "0" # If it can't be converted, return "0"
-    
-    if n < 0:
-        return '-' + format_inr(-n)
-    if n == 0:
+        
+        # Handle negative numbers
+        if n < 0:
+            return '-' + format_inr(-n)
+        
+        if n == 0:
+            return "0"
+        
+        # Convert to string for processing
+        s = str(n)
+        
+        # Handle numbers with 3 digits or less
+        if len(s) <= 3:
+            return s
+        
+        # Split into last 3 digits and remaining
+        s_last_three = s[-3:]
+        s_remaining = s[:-3]
+        
+        # Process remaining digits in groups of 2
+        groups = []
+        while len(s_remaining) > 2:
+            groups.append(s_remaining[-2:])
+            s_remaining = s_remaining[:-2]
+        
+        # Add any remaining digits
+        if s_remaining:
+            groups.append(s_remaining)
+        
+        # Reverse and join
+        groups.reverse()
+        result = ','.join(groups) + ',' + s_last_three
+        return result
+        
+    except (ValueError, TypeError, AttributeError) as e:
+        print(f"Error formatting currency {n}: {e}")
         return "0"
-    
-    s = str(n)
-    if len(s) <= 3:
-        return s
-    
-    s_last_three = s[-3:]
-    s_remaining = s[:-3]
-    
-    groups = []
-    while len(s_remaining) > 2:
-        groups.append(s_remaining[-2:])
-        s_remaining = s_remaining[:-2]
-    
-    if s_remaining:
-        groups.append(s_remaining)
-    
-    groups.reverse()
-    result = ','.join(groups) + ',' + s_last_three
-    return result
 
 def create_page_number_stamp_pdf(buffer, page_num, total_pages):
     """
