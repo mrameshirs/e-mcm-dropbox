@@ -680,7 +680,6 @@ def mcm_agenda_tab(dbx):
     st.markdown("Generate a PDF summary of the minutes, enriched with infographics from the PCO dashboard.")
     
     col1, col2 = st.columns(2)
-    
     with col1:
         if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
             with st.spinner("Generating Short PDF Summary... Please wait."):
@@ -689,31 +688,75 @@ def mcm_agenda_tab(dbx):
                 if not vital_stats or not charts:
                     st.error("Could not fetch visualization data to generate the report.")
                     return
-                ############  Debug the data structure Added may be reomoved 
-                ttd = vital_stats.get('top_taxpayers_data', {})
-                print(f"Top taxpayers data type: {type(ttd)}")
-                for key in ['top_detection', 'top_recovery']:
-                    data = ttd.get(key, [])
-                    print(f"{key}: type={type(data)}, length={len(data) if hasattr(data, '__len__') else 'no length'}")
-                    if hasattr(data, 'to_dict'):
-                        print(f"  WARNING: {key} is still a DataFrame!")
-                ####################
-                # 2. Convert Plotly charts to images in memory
-                # AFTER
-                #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
-                #chart_images = [BytesIO(chart.to_image(format="svg", width=720, height=450)) for chart in charts]
+                
+                # 2. ENHANCE with MCM detailed data for new sections
+                df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+                if df_mcm_current is not None and not df_mcm_current.empty:
+                    df_mcm_filtered = df_mcm_current[df_mcm_current['mcm_period'] == selected_period].copy()
+                    
+                    # Prepare MCM detailed data for Section VIII
+                    mcm_columns = [
+                        'audit_group_number', 'gstin', 'trade_name', 'category', 
+                        'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
+                        'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+                    ]
+                    
+                    # Filter for actual paras only
+                    df_mcm_paras = df_mcm_filtered[
+                        df_mcm_filtered['audit_para_number'].notna() & 
+                        (~df_mcm_filtered['audit_para_heading'].astype(str).isin([
+                            "N/A - Header Info Only (Add Paras Manually)", 
+                            "Manual Entry Required", 
+                            "Manual Entry - PDF Error", 
+                            "Manual Entry - PDF Upload Failed"
+                        ]))
+                    ].copy()
+                    
+                    if not df_mcm_paras.empty:
+                        # Ensure all required columns exist and clean data
+                        for col in mcm_columns:
+                            if col not in df_mcm_paras.columns:
+                                df_mcm_paras[col] = ''
+                        
+                        # Clean and format data
+                        df_mcm_paras['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
+                        df_mcm_paras['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+                        df_mcm_paras['chair_remarks'] = df_mcm_paras['chair_remarks'].fillna('')
+                        df_mcm_paras['mcm_decision'] = df_mcm_paras['mcm_decision'].fillna('Decision pending')
+                        df_mcm_paras['status_of_para'] = df_mcm_paras['status_of_para'].fillna('Status not updated')
+                        
+                        # Update vital_stats with MCM data
+                        vital_stats['mcm_detailed_data'] = df_mcm_paras[mcm_columns].to_dict('records')
+                        
+                        # Get overall remarks from periods data
+                        df_periods_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+                        if df_periods_remarks is not None and 'overall_remarks' in df_periods_remarks.columns:
+                            try:
+                                month_name, year_str = selected_period.split(" ")
+                                year_val = int(year_str)
+                                period_row = df_periods_remarks[
+                                    (df_periods_remarks['month_name'] == month_name) & 
+                                    (df_periods_remarks['year'] == year_val)
+                                ]
+                                if not period_row.empty:
+                                    overall_remarks = period_row.iloc[0].get('overall_remarks', '')
+                                    if pd.notna(overall_remarks):
+                                        vital_stats['overall_remarks'] = overall_remarks
+                            except:
+                                pass
+                
+                # 3. Convert Plotly charts to images in memory
                 chart_images = [BytesIO(chart.to_image(format="svg", width=520, height=300)) for chart in charts]
-                #chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
     
-                # 3. Generate PDF
+                # 4. Generate PDF (THIS WILL NOW INCLUDE THE NEW SECTIONS AUTOMATICALLY)
                 report_generator = PDFReportGenerator(
                     selected_period=selected_period,
                     vital_stats=vital_stats,
                     chart_images=chart_images
                 )
-                pdf_bytes = report_generator.run(detailed=False)
+                pdf_bytes = report_generator.run(detailed=False)  # Short version
     
-                # 4. Provide Download Link
+                # 5. Provide Download Link
                 st.download_button(
                     label="⬇️ Download Short Summary PDF",
                     data=pdf_bytes,
@@ -721,29 +764,81 @@ def mcm_agenda_tab(dbx):
                     mime="application/pdf",
                     use_container_width=True
                 )
-                st.success("Short summary PDF is ready for download!")
+                st.success("Enhanced short summary PDF is ready for download!")
+    
+    # SIMILARLY UPDATE THE DETAILED BUTTON:
     
     with col2:
         if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
             with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
-                # 1. Fetch data and charts
+                # 1. Fetch data and charts  
                 vital_stats, charts = get_visualization_data(dbx, selected_period)
                 if not vital_stats or not charts:
                     st.error("Could not fetch visualization data to generate the report.")
                     return
     
-                # 2. Convert Plotly charts to images in memory
+                # 2. ENHANCE with MCM detailed data (same as above)
+                df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+                if df_mcm_current is not None and not df_mcm_current.empty:
+                    df_mcm_filtered = df_mcm_current[df_mcm_current['mcm_period'] == selected_period].copy()
+                    
+                    mcm_columns = [
+                        'audit_group_number', 'gstin', 'trade_name', 'category', 
+                        'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
+                        'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+                    ]
+                    
+                    df_mcm_paras = df_mcm_filtered[
+                        df_mcm_filtered['audit_para_number'].notna() & 
+                        (~df_mcm_filtered['audit_para_heading'].astype(str).isin([
+                            "N/A - Header Info Only (Add Paras Manually)", 
+                            "Manual Entry Required", 
+                            "Manual Entry - PDF Error", 
+                            "Manual Entry - PDF Upload Failed"
+                        ]))
+                    ].copy()
+                    
+                    if not df_mcm_paras.empty:
+                        for col in mcm_columns:
+                            if col not in df_mcm_paras.columns:
+                                df_mcm_paras[col] = ''
+                        
+                        df_mcm_paras['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
+                        df_mcm_paras['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+                        df_mcm_paras['chair_remarks'] = df_mcm_paras['chair_remarks'].fillna('')
+                        df_mcm_paras['mcm_decision'] = df_mcm_paras['mcm_decision'].fillna('Decision pending')
+                        df_mcm_paras['status_of_para'] = df_mcm_paras['status_of_para'].fillna('Status not updated')
+                        
+                        vital_stats['mcm_detailed_data'] = df_mcm_paras[mcm_columns].to_dict('records')
+                        
+                        df_periods_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+                        if df_periods_remarks is not None and 'overall_remarks' in df_periods_remarks.columns:
+                            try:
+                                month_name, year_str = selected_period.split(" ")
+                                year_val = int(year_str)
+                                period_row = df_periods_remarks[
+                                    (df_periods_remarks['month_name'] == month_name) & 
+                                    (df_periods_remarks['year'] == year_val)
+                                ]
+                                if not period_row.empty:
+                                    overall_remarks = period_row.iloc[0].get('overall_remarks', '')
+                                    if pd.notna(overall_remarks):
+                                        vital_stats['overall_remarks'] = overall_remarks
+                            except:
+                                pass
+    
+                # 3. Convert Plotly charts to images in memory
                 chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
     
-                # 3. Generate PDF
+                # 4. Generate PDF (THIS WILL NOW INCLUDE THE NEW SECTIONS AUTOMATICALLY)
                 report_generator = PDFReportGenerator(
                     selected_period=selected_period,
                     vital_stats=vital_stats,
                     chart_images=chart_images
                 )
-                pdf_bytes = report_generator.run(detailed=True)
+                pdf_bytes = report_generator.run(detailed=True)  # Detailed version
     
-                # 4. Provide Download Link
+                # 5. Provide Download Link
                 st.download_button(
                     label="⬇️ Download Detailed Summary PDF",
                     data=pdf_bytes,
@@ -751,7 +846,78 @@ def mcm_agenda_tab(dbx):
                     mime="application/pdf",
                     use_container_width=True
                 )
-                st.success("Detailed summary PDF is ready for download!")
+                st.success("Enhanced detailed summary PDF is ready for download!")
+    # with col1:
+    #     if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
+    #         with st.spinner("Generating Short PDF Summary... Please wait."):
+    #             # 1. Fetch data and charts
+    #             vital_stats, charts = get_visualization_data(dbx, selected_period)
+    #             if not vital_stats or not charts:
+    #                 st.error("Could not fetch visualization data to generate the report.")
+    #                 return
+    #             ############  Debug the data structure Added may be reomoved 
+    #             ttd = vital_stats.get('top_taxpayers_data', {})
+    #             print(f"Top taxpayers data type: {type(ttd)}")
+    #             for key in ['top_detection', 'top_recovery']:
+    #                 data = ttd.get(key, [])
+    #                 print(f"{key}: type={type(data)}, length={len(data) if hasattr(data, '__len__') else 'no length'}")
+    #                 if hasattr(data, 'to_dict'):
+    #                     print(f"  WARNING: {key} is still a DataFrame!")
+    #             ####################
+    #             # 2. Convert Plotly charts to images in memory
+    #             # AFTER
+    #             #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
+    #             #chart_images = [BytesIO(chart.to_image(format="svg", width=720, height=450)) for chart in charts]
+    #             chart_images = [BytesIO(chart.to_image(format="svg", width=520, height=300)) for chart in charts]
+    #             #chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
+    
+    #             # 3. Generate PDF
+    #             report_generator = PDFReportGenerator(
+    #                 selected_period=selected_period,
+    #                 vital_stats=vital_stats,
+    #                 chart_images=chart_images
+    #             )
+    #             pdf_bytes = report_generator.run(detailed=False)
+    
+    #             # 4. Provide Download Link
+    #             st.download_button(
+    #                 label="⬇️ Download Short Summary PDF",
+    #                 data=pdf_bytes,
+    #                 file_name=f"MCM_Executive_Summary_Short_{selected_period.replace(' ', '_')}.pdf",
+    #                 mime="application/pdf",
+    #                 use_container_width=True
+    #             )
+    #             st.success("Short summary PDF is ready for download!")
+    
+    # with col2:
+    #     if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
+    #         with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
+    #             # 1. Fetch data and charts
+    #             vital_stats, charts = get_visualization_data(dbx, selected_period)
+    #             if not vital_stats or not charts:
+    #                 st.error("Could not fetch visualization data to generate the report.")
+    #                 return
+    
+    #             # 2. Convert Plotly charts to images in memory
+    #             chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
+    
+    #             # 3. Generate PDF
+    #             report_generator = PDFReportGenerator(
+    #                 selected_period=selected_period,
+    #                 vital_stats=vital_stats,
+    #                 chart_images=chart_images
+    #             )
+    #             pdf_bytes = report_generator.run(detailed=True)
+    
+    #             # 4. Provide Download Link
+    #             st.download_button(
+    #                 label="⬇️ Download Detailed Summary PDF",
+    #                 data=pdf_bytes,
+    #                 file_name=f"MCM_Executive_Summary_Detailed_{selected_period.replace(' ', '_')}.pdf",
+    #                 mime="application/pdf",
+    #                 use_container_width=True
+    #             )
+    #             st.success("Detailed summary PDF is ready for download!")
 # # ui_mcm_agenda.py
 # import streamlit as st
 # import pandas as pd
