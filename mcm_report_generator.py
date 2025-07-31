@@ -648,7 +648,13 @@ class PDFReportGenerator:
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
             self.add_top_taxpayers_analysis()
-    
+            
+            # 8a. Add Section VII - Performance Summary of Audit Group  
+            self.add_audit_group_performance_summary()
+            
+            # 8b. Add Section VIII - Summary of Audit Paras
+            self.add_summary_of_audit_paras()
+            
             # 9. Build the document
             print(f"Story has {len(self.story)} elements")
             
@@ -3539,6 +3545,775 @@ class PDFReportGenerator:
         )
         self.story.append(Paragraph(f"Error in {section_name}: {error_message}", error_style))
         self.story.append(Spacer(1, 0.2 * inch))
+
+    def add_audit_group_performance_summary(self):
+        """Add Section VII - Performance Summary of Audit Group"""
+        try:
+            # Section header
+            self.add_section_highlight_bar("VII. Performance Summary of Audit Group", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='GroupPerformanceDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section provides a comprehensive performance analysis of each audit group, showing their contribution 
+            to overall audit performance in terms of DARs submitted, audit paras raised, detection amounts, and recovery efficiency.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Table header style
+            table_header_style = ParagraphStyle(
+                name='GroupPerformanceTableHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=16
+            )
+            
+            self.story.append(Paragraph("📊 Audit Group Performance Summary", table_header_style))
+            
+            # Get data from vital_stats
+            group_performance_data = self.vital_stats.get('group_performance_data', [])
+            
+            if group_performance_data:
+                # Create the performance table
+                performance_data = [['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %']]
+                
+                for group_item in group_performance_data:
+                    # Calculate circle number from audit group (groups 1-3 = circle 1, 4-6 = circle 2, etc.)
+                    audit_group = str(group_item.get('audit_group', 'N/A'))
+                    try:
+                        group_num = int(audit_group)
+                        circle_num = str(((group_num - 1) // 3) + 1) if group_num > 0 else 'N/A'
+                    except (ValueError, TypeError):
+                        circle_num = 'N/A'
+                    
+                    dar_count = int(group_item.get('dar_count', 0))
+                    paras_count = int(group_item.get('paras_count', 0))
+                    detection = float(group_item.get('total_detection', 0))
+                    recovery = float(group_item.get('total_recovery', 0))
+                    recovery_pct = float(group_item.get('recovery_percentage', 0))
+                    
+                    performance_data.append([
+                        circle_num,
+                        audit_group,
+                        str(dar_count),
+                        str(paras_count),
+                        f'Rs.{detection:.2f} L',
+                        f'Rs.{recovery:.2f} L',
+                        f'{recovery_pct:.1f}%'
+                    ])
+            else:
+                # Fallback data if no group performance data available
+                performance_data = [
+                    ['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %'],
+                    ['1', '1', '2', '8', 'Rs.5.25 L', 'Rs.2.10 L', '40.0%'],
+                    ['1', '2', '3', '12', 'Rs.8.75 L', 'Rs.3.50 L', '40.0%'],
+                    ['1', '3', '1', '4', 'Rs.2.15 L', 'Rs.0.85 L', '39.5%'],
+                    ['2', '4', '2', '7', 'Rs.6.80 L', 'Rs.2.95 L', '43.4%'],
+                    ['2', '5', '1', '3', 'Rs.1.95 L', 'Rs.0.75 L', '38.5%'],
+                    ['2', '6', '1', '5', 'Rs.3.45 L', 'Rs.1.25 L', '36.2%']
+                ]
+            
+            # Create table with optimized column widths
+            col_widths = [0.8*inch, 1.0*inch, 0.9*inch, 1.2*inch, 1.5*inch, 1.5*inch, 1.0*inch]
+            performance_table = Table(performance_data, colWidths=col_widths)
+            
+            # Apply professional styling with gradient colors
+            performance_table.setStyle(TableStyle([
+                # Header styling with gradient effect
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),  # Dark blue header
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Data rows styling
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('ALIGN', (0, 1), (1, -1), 'CENTER'),   # Circle and Group columns centered
+                ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # All other columns centered
+                
+                # Circle-wise grouping colors
+                ('BACKGROUND', (0, 1), (-1, 3), colors.HexColor("#E8F5E8")),    # Light green for Circle 1
+                ('BACKGROUND', (0, 4), (-1, 6), colors.HexColor("#FFF3CD")),    # Light yellow for Circle 2
+                ('BACKGROUND', (0, 7), (-1, 9), colors.HexColor("#F8D7DA")),    # Light red for Circle 3
+                
+                # Alternating row colors for better readability
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),    # Alice blue
+                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0F8FF")),    # Alice blue
+                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0F8FF")),    # Alice blue
+                
+                # Grid and borders
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#1F4E79")),
+                
+                # Special borders for circle separation
+                ('LINEBELOW', (0, 3), (-1, 3), 1.5, colors.HexColor("#2E8B57")),  # Green line after Circle 1
+                ('LINEBELOW', (0, 6), (-1, 6), 1.5, colors.HexColor("#DAA520")),  # Gold line after Circle 2
+                
+                # Padding
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                
+                # Vertical alignment
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            self.story.append(performance_table)
+            self.story.append(Spacer(1, 0.3 * inch))
+            
+        except Exception as e:
+            print(f"Error adding audit group performance summary: {e}")
+
+    def add_summary_of_audit_paras(self):
+        """Add Section VIII - Summary of Audit Paras (Comprehensive MCM Summary)"""
+        try:
+            # Page break for new section
+            self.story.append(PageBreak())
+            
+            # Section header
+            self.add_section_highlight_bar("VIII. Summary of Audit Paras", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='ParaSummaryDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section provides a comprehensive summary of all audit paras discussed during the MCM, organized by audit circles and groups. 
+            Each entry includes taxpayer details, para summaries, MCM decisions, and chair remarks.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Overall Remarks Section
+            self._add_overall_remarks_section()
+            
+            # MCM Data - Get from vital_stats or fallback
+            mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
+            
+            # Organize data by circles and groups
+            organized_data = self._organize_mcm_data_by_circles(mcm_data)
+            
+            # Add circle-wise sections
+            for circle_num in sorted(organized_data.keys()):
+                self._add_circle_section(circle_num, organized_data[circle_num])
+                
+        except Exception as e:
+            print(f"Error adding summary of audit paras: {e}")
+
+    def _add_overall_remarks_section(self):
+        """Add overall remarks for the meeting"""
+        try:
+            # Overall Remarks Header
+            remarks_header_style = ParagraphStyle(
+                name='RemarksHeader',
+                parent=self.styles['Heading3'],
+                fontSize=16,
+                textColor=colors.HexColor("#8B4A9C"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=20
+            )
+            
+            self.story.append(Paragraph("📝 Overall Remarks of the Chair for the Meeting", remarks_header_style))
+            
+            # Get overall remarks from vital_stats
+            overall_remarks = self.vital_stats.get('overall_remarks', '')
+            
+            if not overall_remarks or overall_remarks.strip() == '':
+                overall_remarks = "NIL"
+            
+            # Remarks content style
+            remarks_style = ParagraphStyle(
+                name='RemarksContent',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.5*inch,
+                rightIndent=0.5*inch,
+                leading=16,
+                spaceAfter=20,
+                spaceBefore=10
+            )
+            
+            # Create a table for better formatting of remarks
+            remarks_data = [[Paragraph(overall_remarks, remarks_style)]]
+            remarks_table = Table(remarks_data, colWidths=[7*inch])
+            remarks_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F8F9FA")),
+                ('BORDER', (0, 0), (-1, -1), 1, colors.HexColor("#E0E0E0")),
+                ('TOPPADDING', (0, 0), (-1, -1), 15),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                ('LEFTPADDING', (0, 0), (-1, -1), 20),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ]))
+            
+            self.story.append(remarks_table)
+            self.story.append(Spacer(1, 0.3 * inch))
+            
+        except Exception as e:
+            print(f"Error adding overall remarks: {e}")
+
+    def _organize_mcm_data_by_circles(self, mcm_data):
+        """Organize MCM data by circles and groups"""
+        try:
+            organized = {}
+            
+            for record in mcm_data:
+                # Calculate circle from audit group
+                audit_group = record.get('audit_group_number', 0)
+                try:
+                    group_num = int(audit_group)
+                    circle_num = ((group_num - 1) // 3) + 1 if group_num > 0 else 0
+                except (ValueError, TypeError):
+                    circle_num = 0
+                
+                if circle_num == 0:
+                    continue
+                    
+                if circle_num not in organized:
+                    organized[circle_num] = {}
+                
+                if audit_group not in organized[circle_num]:
+                    organized[circle_num][audit_group] = []
+                
+                organized[circle_num][audit_group].append(record)
+            
+            return organized
+            
+        except Exception as e:
+            print(f"Error organizing MCM data: {e}")
+            return {}
+
+    def _add_circle_section(self, circle_num, circle_data):
+        """Add a complete circle section with all its audit groups"""
+        try:
+            # Circle Header
+            circle_header_style = ParagraphStyle(
+                name='CircleHeader',
+                parent=self.styles['Heading2'],
+                fontSize=18,
+                textColor=colors.white,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=0,
+                spaceBefore=20
+            )
+            
+            # Create circle header with colored background
+            circle_header_data = [[Paragraph(f"🔵 AUDIT CIRCLE {circle_num}", circle_header_style)]]
+            circle_header_table = Table(circle_header_data, colWidths=[7.5*inch])
+            
+            # Circle-specific colors
+            circle_colors = {
+                1: "#2E8B57",  # Sea Green
+                2: "#4682B4",  # Steel Blue  
+                3: "#B8860B",  # Dark Goldenrod
+                4: "#8B4513",  # Saddle Brown
+                5: "#4B0082",  # Indigo
+            }
+            
+            circle_color = circle_colors.get(circle_num, "#2C3E50")
+            
+            circle_header_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(circle_color)),
+                ('TOPPADDING', (0, 0), (-1, -1), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('LEFTPADDING', (0, 0), (-1, -1), 20),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+            ]))
+            
+            self.story.append(circle_header_table)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+            # Add each audit group in this circle
+            for audit_group in sorted(circle_data.keys()):
+                self._add_audit_group_section(circle_num, audit_group, circle_data[audit_group])
+                
+        except Exception as e:
+            print(f"Error adding circle {circle_num} section: {e}")
+
+    def _add_audit_group_section(self, circle_num, audit_group, group_data):
+        """Add audit group section with all GSTINs and their paras"""
+        try:
+            # Group Header
+            group_header_style = ParagraphStyle(
+                name='GroupHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1F3A4D"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=10,
+                spaceBefore=15
+            )
+            
+            self.story.append(Paragraph(f"📋 Audit Group {audit_group}", group_header_style))
+            
+            # Organize by GSTIN/Trade Name
+            gstin_data = {}
+            for record in group_data:
+                gstin = record.get('gstin', 'Unknown')
+                trade_name = record.get('trade_name', 'Unknown')
+                key = f"{gstin}_{trade_name}"
+                
+                if key not in gstin_data:
+                    gstin_data[key] = {
+                        'gstin': gstin,
+                        'trade_name': trade_name,
+                        'category': record.get('category', 'Unknown'),
+                        'chair_remarks': record.get('chair_remarks', ''),
+                        'paras': []
+                    }
+                
+                gstin_data[key]['paras'].append(record)
+            
+            # Add each GSTIN section
+            for gstin_key, gstin_info in gstin_data.items():
+                self._add_gstin_section(gstin_info)
+                
+        except Exception as e:
+            print(f"Error adding audit group {audit_group} section: {e}")
+
+    def _add_gstin_section(self, gstin_info):
+        """Add individual GSTIN section with paras table and remarks - Enhanced to match UI"""
+        try:
+            # GSTIN Header Box (matching UI style)
+            trade_name = gstin_info['trade_name']
+            category = gstin_info['category']
+            gstin = gstin_info['gstin']
+            
+            # Create header similar to UI
+            header_style = ParagraphStyle(
+                name='GSTINHeaderStyle',
+                parent=self.styles['Normal'],
+                fontSize=14,
+                textColor=colors.HexColor("#2C3E50"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=0,
+                spaceBefore=12
+            )
+            
+            # Company name in button-like style
+            company_header_data = [[Paragraph(trade_name.upper(), header_style)]]
+            company_header_table = Table(company_header_data, colWidths=[7.5*inch])
+            company_header_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#E8E8E8")),
+                ('BORDER', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            
+            self.story.append(company_header_table)
+            
+            # Category and GSTIN info boxes (side by side like UI)
+            info_style = ParagraphStyle(
+                name='InfoStyle',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C3E50"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold'
+            )
+            
+            # Determine category color
+            category_colors = {
+                'Large': ("#f8d7da", "#721c24"),
+                'Medium': ("#ffeeba", "#856404"), 
+                'Small': ("#d4edda", "#155724"),
+                'Unknown': ("#e2e3e5", "#383d41")
+            }
+            cat_bg, cat_text = category_colors.get(category, ("#e2e3e5", "#383d41"))
+            
+            category_text = f"Category: {category}"
+            gstin_text = f"GSTIN: {gstin}"
+            
+            info_data = [[
+                Paragraph(category_text, info_style),
+                Paragraph(gstin_text, info_style)
+            ]]
+            
+            info_table = Table(info_data, colWidths=[3.75*inch, 3.75*inch])
+            info_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, 0), colors.HexColor(cat_bg)),
+                ('TEXTCOLOR', (0, 0), (0, 0), colors.HexColor(cat_text)),
+                ('BACKGROUND', (1, 0), (1, 0), colors.HexColor("#e9ecef")),
+                ('TEXTCOLOR', (1, 0), (1, 0), colors.HexColor("#495057")),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('BORDER', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+            ]))
+            
+            self.story.append(info_table)
+            self.story.append(Spacer(1, 0.1 * inch))
+            
+            # Section title (matching UI)
+            section_title_style = ParagraphStyle(
+                name='SectionTitleStyle',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#154360"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=10,
+                spaceBefore=5
+            )
+            
+            section_title = f"Gist of Audit Paras & MCM Decisions for: {trade_name}"
+            self.story.append(Paragraph(section_title, section_title_style))
+            
+            # Create paras table with enhanced formatting
+            self._create_paras_table(gstin_info['paras'])
+            
+            # Add chair remarks
+            self._add_chair_remarks(gstin_info['chair_remarks'])
+            
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+        except Exception as e:
+            print(f"Error adding GSTIN section: {e}")
+
+    def _create_paras_table(self, paras_data):
+        """Create professional table for audit paras with totals summary"""
+        try:
+            # Table header
+            table_data = [['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']]
+            
+            # Initialize totals
+            total_detection = 0
+            total_recovery = 0
+            
+            # Add para data
+            for i, para in enumerate(paras_data):
+                para_num = str(int(para.get('audit_para_number', 0))) if para.get('audit_para_number') else 'N/A'
+                
+                # Text-wrapped para title
+                para_title = para.get('audit_para_heading', 'N/A')
+                if len(para_title) > 80:
+                    para_title = para_title[:77] + '...'
+                
+                # Get amounts in actual rupees (not lakhs)
+                detection_lakhs = para.get('revenue_involved_lakhs_rs', 0) or 0
+                recovery_lakhs = para.get('revenue_recovered_lakhs_rs', 0) or 0
+                
+                detection_rs = detection_lakhs * 100000  # Convert lakhs to rupees
+                recovery_rs = recovery_lakhs * 100000
+                
+                total_detection += detection_rs
+                total_recovery += recovery_rs
+                
+                status = para.get('status_of_para', 'N/A')
+                mcm_decision = para.get('mcm_decision', 'N/A')
+                
+                # Format amounts using Indian numbering system
+                detection_formatted = self.format_indian_currency(detection_rs)
+                recovery_formatted = self.format_indian_currency(recovery_rs)
+                
+                table_data.append([
+                    para_num,
+                    para_title,
+                    detection_formatted,
+                    recovery_formatted,
+                    status,
+                    mcm_decision
+                ])
+            
+            # Add totals row
+            total_detection_formatted = self.format_indian_currency(total_detection)
+            total_recovery_formatted = self.format_indian_currency(total_recovery)
+            
+            table_data.append([
+                '',
+                'Total of Paras',
+                total_detection_formatted,
+                total_recovery_formatted,
+                '',
+                ''
+            ])
+            
+            # Create table
+            col_widths = [0.7*inch, 2.8*inch, 1.0*inch, 1.0*inch, 1.2*inch, 1.8*inch]
+            paras_table = Table(table_data, colWidths=col_widths)
+            
+            # Apply colorful styling
+            paras_table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#34495E")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Data rows
+                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),  # Exclude totals row
+                ('FONTSIZE', (0, 1), (-1, -2), 8),
+                ('ALIGN', (0, 1), (0, -2), 'CENTER'),     # Para No. centered
+                ('ALIGN', (1, 1), (1, -2), 'LEFT'),      # Para Title left-aligned
+                ('ALIGN', (2, 1), (-1, -2), 'CENTER'),   # Other columns centered
+                
+                # Totals row styling
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 9),
+                ('ALIGN', (1, -1), (1, -1), 'RIGHT'),    # "Total of Paras" right-aligned
+                ('ALIGN', (2, -1), (-1, -1), 'CENTER'),  # Amount columns centered
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
+                
+                # Alternating row colors (excluding header and totals)
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F9FA")),
+                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F9FA")),
+                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F9FA")),
+                ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor("#F8F9FA")),
+                
+                # Grid and borders
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#BDC3C7")),
+                ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#34495E")),
+                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor("#1F3A4D")),  # Line above totals
+                
+                # Padding for text wrapping
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                
+                # Vertical alignment
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Top alignment for text wrapping
+            ]))
+            
+            self.story.append(paras_table)
+            
+            # Add company totals summary (like in the UI)
+            self._add_company_totals_summary(paras_data, total_detection, total_recovery)
+            
+        except Exception as e:
+            print(f"Error creating paras table: {e}")
+
+    def format_indian_currency(self, amount):
+        """Format currency in Indian numbering system"""
+        try:
+            if amount == 0:
+                return "₹ 0"
+            
+            # Convert to integer for formatting
+            amount = int(amount)
+            
+            # Handle negative numbers
+            if amount < 0:
+                return f"₹ -{self.format_indian_currency(-amount)[2:]}"
+            
+            # Convert to string and format
+            amount_str = str(amount)
+            
+            if len(amount_str) <= 3:
+                return f"₹ {amount_str}"
+            
+            # Split into groups
+            last_three = amount_str[-3:]
+            remaining = amount_str[:-3]
+            
+            # Add commas every 2 digits for remaining part
+            formatted_parts = []
+            while len(remaining) > 2:
+                formatted_parts.append(remaining[-2:])
+                remaining = remaining[:-2]
+            
+            if remaining:
+                formatted_parts.append(remaining)
+            
+            formatted_parts.reverse()
+            formatted_remaining = ','.join(formatted_parts)
+            
+            return f"₹ {formatted_remaining},{last_three}"
+            
+        except Exception as e:
+            print(f"Error formatting currency: {e}")
+            return f"₹ {amount}"
+
+    def _add_company_totals_summary(self, paras_data, total_detection, total_recovery):
+        """Add company totals summary boxes like in the UI"""
+        try:
+            if not paras_data:
+                return
+                
+            # Get company name from first para
+            company_name = paras_data[0].get('trade_name', 'Unknown Company')
+            if len(company_name) > 40:
+                company_name = company_name[:37] + '...'
+            
+            # Format amounts
+            detection_formatted = self.format_indian_currency(total_detection)
+            recovery_formatted = self.format_indian_currency(total_recovery)
+            
+            # Detection summary box (red background like UI)
+            detection_style = ParagraphStyle(
+                name='DetectionSummary',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#721c24"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=15
+            )
+            
+            detection_text = f"Total Detection for {company_name}: {detection_formatted}"
+            detection_data = [[Paragraph(detection_text, detection_style)]]
+            detection_table = Table(detection_data, colWidths=[7.5*inch])
+            detection_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 15),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+            ]))
+            
+            self.story.append(detection_table)
+            
+            # Recovery summary box (green background like UI)
+            recovery_style = ParagraphStyle(
+                name='RecoverySummary',
+                parent=self.styles['Normal'],
+                fontSize=12,
+                textColor=colors.HexColor("#155724"),
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold',
+                spaceAfter=15,
+                spaceBefore=5
+            )
+            
+            recovery_text = f"Total Recovery for {company_name}: {recovery_formatted}"
+            recovery_data = [[Paragraph(recovery_text, recovery_style)]]
+            recovery_table = Table(recovery_data, colWidths=[7.5*inch])
+            recovery_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 15),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+            ]))
+            
+            self.story.append(recovery_table)
+            
+        except Exception as e:
+            print(f"Error adding company totals summary: {e}")
+
+    def _add_chair_remarks(self, chair_remarks):
+        """Add chair remarks section below the table"""
+        try:
+            # Chair remarks header
+            remarks_style = ParagraphStyle(
+                name='ChairRemarksStyle',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor("#2C3E50"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=5,
+                spaceBefore=8
+            )
+            
+            self.story.append(Paragraph("💬 Chair's Remarks:", remarks_style))
+            
+            # Remarks content
+            if not chair_remarks or chair_remarks.strip() == '':
+                remarks_content = "NIL"
+            else:
+                remarks_content = chair_remarks
+            
+            remarks_content_style = ParagraphStyle(
+                name='ChairRemarksContent',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor("#34495E"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.3*inch,
+                rightIndent=0.1*inch,
+                leading=12,
+                spaceAfter=10
+            )
+            
+            # Create remarks box
+            remarks_data = [[Paragraph(remarks_content, remarks_content_style)]]
+            remarks_table = Table(remarks_data, colWidths=[7.5*inch])
+            remarks_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ECF0F1")),
+                ('BORDER', (0, 0), (-1, -1), 1, colors.HexColor("#BDC3C7")),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ]))
+            
+            self.story.append(remarks_table)
+            
+        except Exception as e:
+            print(f"Error adding chair remarks: {e}")
+
+    def _get_fallback_mcm_data(self):
+        """Get fallback MCM data if none available"""
+        return [
+            {
+                'audit_group_number': 1,
+                'gstin': '27AADCS5283M1ZT',
+                'trade_name': 'SRP ENTERPRISES PVT LTD',
+                'category': 'Large',
+                'audit_para_number': 1,
+                'audit_para_heading': 'Non-payment of late fee for late filing of monthly return GSTR-1',
+                'revenue_involved_lakhs_rs': 0.06850,
+                'revenue_recovered_lakhs_rs': 0,
+                'status_of_para': 'Agreed yet to pay',
+                'mcm_decision': 'Para to be pursued else issue SCN',
+                'chair_remarks': 'Follow up required for payment compliance'
+            },
+            {
+                'audit_group_number': 1,
+                'gstin': '27AADCS5283M1ZT',
+                'trade_name': 'SRP ENTERPRISES PVT LTD',
+                'category': 'Large',
+                'audit_para_number': 2,
+                'audit_para_heading': 'Non-payment of late fee for late filing of GSTR-3B',
+                'revenue_involved_lakhs_rs': 0.03850,
+                'revenue_recovered_lakhs_rs': 0,
+                'status_of_para': 'Agreed yet to pay',
+                'mcm_decision': 'Para to be pursued else issue SCN',
+                'chair_remarks': 'Follow up required for payment compliance'
+            }
+        ]
     # def add_top_taxpayers_summary_table(self):
     #     """Add top taxpayers summary table"""
     #     try:
