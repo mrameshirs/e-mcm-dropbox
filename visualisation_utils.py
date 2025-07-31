@@ -1343,7 +1343,132 @@ def get_visualization_data(dbx, selected_period):
             
             # Sort by detection and get top performers
             group_performance_data = group_performance.sort_values('total_detection', ascending=False).to_dict('records')
+        
+        # ENHANCED GROUP PERFORMANCE DATA with Paras Count
+        group_performance_data_enhanced = []
+        if not df_unique_reports.empty:
+            # Get actual paras count from the main data
+            df_actual_paras = df_viz_data[
+                df_viz_data['audit_para_number'].notna() & 
+                (~df_viz_data['audit_para_heading'].astype(str).isin([
+                    "N/A - Header Info Only (Add Paras Manually)", 
+                    "Manual Entry Required", 
+                    "Manual Entry - PDF Error", 
+                    "Manual Entry - PDF Upload Failed"
+                ]))
+            ]
             
+            # Group performance with paras count
+            group_performance_enhanced = df_unique_reports.groupby('audit_group_number_str').agg(
+                dar_count=('dar_pdf_path', 'nunique'),
+                total_detection=('Detection in Lakhs', 'sum'),
+                total_recovery=('Recovery in Lakhs', 'sum')
+            ).reset_index()
+            
+            # Add paras count for each group
+            paras_by_group = df_actual_paras.groupby('audit_group_number_str').size().reset_index(name='paras_count')
+            group_performance_enhanced = group_performance_enhanced.merge(
+                paras_by_group, 
+                on='audit_group_number_str', 
+                how='left'
+            )
+            group_performance_enhanced['paras_count'] = group_performance_enhanced['paras_count'].fillna(0).astype(int)
+            
+            # Add recovery percentage
+            group_performance_enhanced['recovery_percentage'] = (
+                group_performance_enhanced['total_recovery'] / 
+                group_performance_enhanced['total_detection'].replace(0, np.nan)
+            ).fillna(0) * 100
+            
+            # Rename for consistency
+            group_performance_enhanced.columns = [
+                'audit_group', 'dar_count', 'total_detection', 'total_recovery', 'paras_count', 'recovery_percentage'
+            ]
+            
+            # Sort by detection and get all groups
+            group_performance_data_enhanced = group_performance_enhanced.sort_values('total_detection', ascending=False).to_dict('records')
+        
+        # MCM DETAILED DATA for Summary of Audit Paras
+        mcm_detailed_data = []
+        if not df_viz_data.empty:
+            # Get detailed MCM data with all required fields
+            mcm_columns = [
+                'audit_group_number', 'gstin', 'trade_name', 'category', 
+                'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
+                'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+            ]
+            
+            # Filter for records with actual para data
+            df_mcm_data = df_viz_data[
+                df_viz_data['audit_para_number'].notna() & 
+                (~df_viz_data['audit_para_heading'].astype(str).isin([
+                    "N/A - Header Info Only (Add Paras Manually)", 
+                    "Manual Entry Required", 
+                    "Manual Entry - PDF Error", 
+                    "Manual Entry - PDF Upload Failed"
+                ]))
+            ].copy()
+            
+            # Ensure all required columns exist
+            for col in mcm_columns:
+                if col not in df_mcm_data.columns:
+                    df_mcm_data[col] = ''
+            
+            # Fill missing values appropriately
+            df_mcm_data['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
+            df_mcm_data['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+            df_mcm_data['chair_remarks'] = df_mcm_data['chair_remarks'].fillna('')
+            df_mcm_data['mcm_decision'] = df_mcm_data['mcm_decision'].fillna('Decision pending')
+            df_mcm_data['status_of_para'] = df_mcm_data['status_of_para'].fillna('Status not updated')
+            
+            # Convert to list of dictionaries
+            mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
+            
+            print(f"MCM detailed data prepared: {len(mcm_detailed_data)} records")
+        
+        # OVERALL REMARKS - Get from periods info
+        def get_overall_remarks_for_period(dbx, selected_period):
+            """Helper function to get overall remarks for the selected MCM period"""
+            try:
+                from config import MCM_PERIODS_INFO_PATH
+                
+                # Load MCM periods data
+                df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+                if df_periods is None or df_periods.empty:
+                    return ""
+                
+                # Ensure overall_remarks column exists
+                if 'overall_remarks' not in df_periods.columns:
+                    return ""
+                
+                # Parse the selected period to get month and year
+                try:
+                    month_name, year_str = selected_period.split(" ")
+                    year_val = int(year_str)
+                except (ValueError, AttributeError):
+                    return ""
+                
+                # Find the matching period
+                period_row = df_periods[
+                    (df_periods['month_name'] == month_name) & 
+                    (df_periods['year'] == year_val)
+                ]
+                
+                if not period_row.empty:
+                    remarks = period_row.iloc[0].get('overall_remarks', '')
+                    if pd.isna(remarks):
+                        remarks = ""
+                    return remarks
+                
+                return ""
+                
+            except Exception as e:
+                print(f"Error loading overall remarks: {e}")
+                return ""
+        
+        # Get overall remarks
+        overall_remarks = get_overall_remarks_for_period(dbx, selected_period)
+
         # Add additional summary data for detailed analysis
         vital_stats.update({
             'status_summary': status_summary,
@@ -1362,7 +1487,10 @@ def get_visualization_data(dbx, selected_period):
             'compliance_analysis_available': len(classification_summary) > 0,  # NEW
             'classification_page_data': classification_page_data,  
             'top_taxpayers_data': top_taxpayers_data,  
-            'group_performance_data': group_performance_data 
+             #'group_performance_data': group_performance_data,
+            'group_performance_data': group_performance_data_enhanced,  # Updated with paras count
+            'mcm_detailed_data': mcm_detailed_data,                    # New - detailed MCM data
+            'overall_remarks': overall_remarks, 
         })
         
         return vital_stats, charts
