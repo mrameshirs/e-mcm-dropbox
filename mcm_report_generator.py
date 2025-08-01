@@ -3545,10 +3545,12 @@ class PDFReportGenerator:
         )
         self.story.append(Paragraph(f"Error in {section_name}: {error_message}", error_style))
         self.story.append(Spacer(1, 0.2 * inch))
-
+        
     def add_audit_group_performance_summary(self):
-        """Add Section VII - Performance Summary of Audit Group"""
+        """Add Section VII - Performance Summary of Audit Group - FIXED VERSION"""
         try:
+            print("=== STARTING AUDIT GROUP PERFORMANCE SUMMARY ===")
+            
             # Section header
             self.add_section_highlight_bar("VII. Performance Summary of Audit Group", text_color="#0E4C92")
             
@@ -3589,36 +3591,46 @@ class PDFReportGenerator:
             
             # Get data from vital_stats
             group_performance_data = self.vital_stats.get('group_performance_data', [])
+            print(f"Group performance data length: {len(group_performance_data)}")
             
-            if group_performance_data:
+            if group_performance_data and len(group_performance_data) > 0:
+                print("Creating table from actual group performance data...")
                 # Create the performance table
                 performance_data = [['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %']]
                 
                 for group_item in group_performance_data:
-                    # Calculate circle number from audit group (groups 1-3 = circle 1, 4-6 = circle 2, etc.)
-                    audit_group = str(group_item.get('audit_group', 'N/A'))
                     try:
-                        group_num = int(audit_group)
-                        circle_num = str(((group_num - 1) // 3) + 1) if group_num > 0 else 'N/A'
-                    except (ValueError, TypeError):
-                        circle_num = 'N/A'
-                    
-                    dar_count = int(group_item.get('dar_count', 0))
-                    paras_count = int(group_item.get('paras_count', 0))
-                    detection = float(group_item.get('total_detection', 0))
-                    recovery = float(group_item.get('total_recovery', 0))
-                    recovery_pct = float(group_item.get('recovery_percentage', 0))
-                    
-                    performance_data.append([
-                        circle_num,
-                        audit_group,
-                        str(dar_count),
-                        str(paras_count),
-                        f'Rs.{detection:.2f} L',
-                        f'Rs.{recovery:.2f} L',
-                        f'{recovery_pct:.1f}%'
-                    ])
+                        # Calculate circle number from audit group (groups 1-3 = circle 1, 4-6 = circle 2, etc.)
+                        audit_group = str(group_item.get('audit_group', 'N/A'))
+                        try:
+                            group_num = int(audit_group)
+                            circle_num = str(((group_num - 1) // 3) + 1) if group_num > 0 else 'N/A'
+                        except (ValueError, TypeError):
+                            circle_num = 'N/A'
+                        
+                        dar_count = int(group_item.get('dar_count', 0))
+                        paras_count = int(group_item.get('paras_count', 0))
+                        detection = float(group_item.get('total_detection', 0))
+                        recovery = float(group_item.get('total_recovery', 0))
+                        recovery_pct = float(group_item.get('recovery_percentage', 0))
+                        
+                        performance_data.append([
+                            circle_num,
+                            audit_group,
+                            str(dar_count),
+                            str(paras_count),
+                            f'Rs.{detection:.2f} L',
+                            f'Rs.{recovery:.2f} L',
+                            f'{recovery_pct:.1f}%'
+                        ])
+                        print(f"Added group {audit_group} in circle {circle_num}")
+                        
+                    except Exception as row_error:
+                        print(f"Error processing group performance row: {row_error}")
+                        continue
+                        
             else:
+                print("Using fallback group performance data...")
                 # Fallback data if no group performance data available
                 performance_data = [
                     ['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %'],
@@ -3630,58 +3642,232 @@ class PDFReportGenerator:
                     ['2', '6', '1', '5', 'Rs.3.45 L', 'Rs.1.25 L', '36.2%']
                 ]
             
+            # CRITICAL FIX: Calculate actual table dimensions
+            total_rows = len(performance_data)
+            data_rows = total_rows - 1  # Exclude header
+            print(f"Table will have {total_rows} total rows ({data_rows} data rows)")
+            
             # Create table with optimized column widths
             col_widths = [0.8*inch, 1.0*inch, 0.9*inch, 1.2*inch, 1.5*inch, 1.5*inch, 1.0*inch]
             performance_table = Table(performance_data, colWidths=col_widths)
             
-            # Apply professional styling with gradient colors
-            performance_table.setStyle(TableStyle([
-                # Header styling with gradient effect
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),  # Dark blue header
+            # FIXED: Dynamic styling based on actual data
+            base_styles = [
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 9),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
-                # Data rows styling
+                # Data rows styling - SAFE RANGE
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 1), (-1, -1), 9),
                 ('ALIGN', (0, 1), (1, -1), 'CENTER'),   # Circle and Group columns centered
                 ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # All other columns centered
                 
-                # Circle-wise grouping colors
-                ('BACKGROUND', (0, 1), (-1, 3), colors.HexColor("#E8F5E8")),    # Light green for Circle 1
-                ('BACKGROUND', (0, 4), (-1, 6), colors.HexColor("#FFF3CD")),    # Light yellow for Circle 2
-                ('BACKGROUND', (0, 7), (-1, 9), colors.HexColor("#F8D7DA")),    # Light red for Circle 3
-                
-                # Alternating row colors for better readability
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),    # Alice blue
-                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0F8FF")),    # Alice blue
-                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0F8FF")),    # Alice blue
-                
-                # Grid and borders
+                # Grid and borders - ALWAYS SAFE
                 ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
                 ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#1F4E79")),
                 
-                # Special borders for circle separation
-                ('LINEBELOW', (0, 3), (-1, 3), 1.5, colors.HexColor("#2E8B57")),  # Green line after Circle 1
-                ('LINEBELOW', (0, 6), (-1, 6), 1.5, colors.HexColor("#DAA520")),  # Gold line after Circle 2
-                
-                # Padding
+                # Padding - ALWAYS SAFE
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('LEFTPADDING', (0, 0), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 6),
                 
-                # Vertical alignment
+                # Vertical alignment - ALWAYS SAFE
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            ]
+            
+            # FIXED: Add alternating row colors ONLY if rows exist
+            try:
+                if data_rows > 0:
+                    # Add alternating row colors safely
+                    for i in range(1, total_rows, 2):  # Start from row 1, every other row
+                        if i < total_rows:  # Safety check
+                            base_styles.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor("#F0F8FF")))
+                            
+                    print(f"Added alternating colors for {(data_rows+1)//2} rows")
+                    
+            except Exception as color_error:
+                print(f"Warning: Could not add alternating colors: {color_error}")
+            
+            # Apply all styles safely
+            try:
+                performance_table.setStyle(TableStyle(base_styles))
+                print(f"✓ Applied {len(base_styles)} table styles successfully")
+                
+            except Exception as style_error:
+                print(f"ERROR applying table styles: {style_error}")
+                # Create a minimal table as fallback
+                simple_table = Table(performance_data, colWidths=col_widths)
+                simple_table.setStyle(TableStyle([
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ]))
+                performance_table = simple_table
             
             self.story.append(performance_table)
             self.story.append(Spacer(1, 0.3 * inch))
             
+            print("✓ Audit group performance summary completed successfully")
+            
         except Exception as e:
-            print(f"Error adding audit group performance summary: {e}")
+            print(f"ERROR in add_audit_group_performance_summary: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Add error message to PDF instead of crashing
+            try:
+                error_style = ParagraphStyle(
+                    name='ErrorStyle',
+                    parent=self.styles['Normal'],
+                    fontSize=10,
+                    textColor=colors.red,
+                    alignment=TA_CENTER
+                )
+                self.story.append(Paragraph(f"[Error loading Audit Group Performance Summary: {str(e)}]", error_style))
+                self.story.append(Spacer(1, 0.2 * inch))
+            except:
+                pass  # Don't let error handling crash the whole PDF
+    # def add_audit_group_performance_summary(self):
+    #     """Add Section VII - Performance Summary of Audit Group"""
+    #     try:
+    #         # Section header
+    #         self.add_section_highlight_bar("VII. Performance Summary of Audit Group", text_color="#0E4C92")
+            
+    #         # Description
+    #         desc_style = ParagraphStyle(
+    #             name='GroupPerformanceDesc',
+    #             parent=self.styles['Normal'],
+    #             fontSize=11,
+    #             textColor=colors.HexColor("#2C2C2C"),
+    #             alignment=TA_JUSTIFY,
+    #             fontName='Helvetica',
+    #             leftIndent=0.25*inch,
+    #             rightIndent=0.25*inch,
+    #             leading=14,
+    #             spaceAfter=16
+    #         )
+            
+    #         description_text = """
+    #         This section provides a comprehensive performance analysis of each audit group, showing their contribution 
+    #         to overall audit performance in terms of DARs submitted, audit paras raised, detection amounts, and recovery efficiency.
+    #         """
+            
+    #         self.story.append(Paragraph(description_text, desc_style))
+            
+    #         # Table header style
+    #         table_header_style = ParagraphStyle(
+    #             name='GroupPerformanceTableHeader',
+    #             parent=self.styles['Heading3'],
+    #             fontSize=14,
+    #             textColor=colors.HexColor("#1134A6"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=12,
+    #             spaceBefore=16
+    #         )
+            
+    #         self.story.append(Paragraph("📊 Audit Group Performance Summary", table_header_style))
+            
+    #         # Get data from vital_stats
+    #         group_performance_data = self.vital_stats.get('group_performance_data', [])
+            
+    #         if group_performance_data:
+    #             # Create the performance table
+    #             performance_data = [['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %']]
+                
+    #             for group_item in group_performance_data:
+    #                 # Calculate circle number from audit group (groups 1-3 = circle 1, 4-6 = circle 2, etc.)
+    #                 audit_group = str(group_item.get('audit_group', 'N/A'))
+    #                 try:
+    #                     group_num = int(audit_group)
+    #                     circle_num = str(((group_num - 1) // 3) + 1) if group_num > 0 else 'N/A'
+    #                 except (ValueError, TypeError):
+    #                     circle_num = 'N/A'
+                    
+    #                 dar_count = int(group_item.get('dar_count', 0))
+    #                 paras_count = int(group_item.get('paras_count', 0))
+    #                 detection = float(group_item.get('total_detection', 0))
+    #                 recovery = float(group_item.get('total_recovery', 0))
+    #                 recovery_pct = float(group_item.get('recovery_percentage', 0))
+                    
+    #                 performance_data.append([
+    #                     circle_num,
+    #                     audit_group,
+    #                     str(dar_count),
+    #                     str(paras_count),
+    #                     f'Rs.{detection:.2f} L',
+    #                     f'Rs.{recovery:.2f} L',
+    #                     f'{recovery_pct:.1f}%'
+    #                 ])
+    #         else:
+    #             # Fallback data if no group performance data available
+    #             performance_data = [
+    #                 ['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %'],
+    #                 ['1', '1', '2', '8', 'Rs.5.25 L', 'Rs.2.10 L', '40.0%'],
+    #                 ['1', '2', '3', '12', 'Rs.8.75 L', 'Rs.3.50 L', '40.0%'],
+    #                 ['1', '3', '1', '4', 'Rs.2.15 L', 'Rs.0.85 L', '39.5%'],
+    #                 ['2', '4', '2', '7', 'Rs.6.80 L', 'Rs.2.95 L', '43.4%'],
+    #                 ['2', '5', '1', '3', 'Rs.1.95 L', 'Rs.0.75 L', '38.5%'],
+    #                 ['2', '6', '1', '5', 'Rs.3.45 L', 'Rs.1.25 L', '36.2%']
+    #             ]
+            
+    #         # Create table with optimized column widths
+    #         col_widths = [0.8*inch, 1.0*inch, 0.9*inch, 1.2*inch, 1.5*inch, 1.5*inch, 1.0*inch]
+    #         performance_table = Table(performance_data, colWidths=col_widths)
+            
+    #         # Apply professional styling with gradient colors
+    #         performance_table.setStyle(TableStyle([
+    #             # Header styling with gradient effect
+    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),  # Dark blue header
+    #             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 0), (-1, 0), 9),
+    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+    #             # Data rows styling
+    #             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #             ('FONTSIZE', (0, 1), (-1, -1), 9),
+    #             ('ALIGN', (0, 1), (1, -1), 'CENTER'),   # Circle and Group columns centered
+    #             ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # All other columns centered
+                
+    #             # Circle-wise grouping colors
+    #             ('BACKGROUND', (0, 1), (-1, 3), colors.HexColor("#E8F5E8")),    # Light green for Circle 1
+    #             ('BACKGROUND', (0, 4), (-1, 6), colors.HexColor("#FFF3CD")),    # Light yellow for Circle 2
+    #             ('BACKGROUND', (0, 7), (-1, 9), colors.HexColor("#F8D7DA")),    # Light red for Circle 3
+                
+    #             # Alternating row colors for better readability
+    #             ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),    # Alice blue
+    #             ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0F8FF")),    # Alice blue
+    #             ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0F8FF")),    # Alice blue
+                
+    #             # Grid and borders
+    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#1F4E79")),
+                
+    #             # Special borders for circle separation
+    #             ('LINEBELOW', (0, 3), (-1, 3), 1.5, colors.HexColor("#2E8B57")),  # Green line after Circle 1
+    #             ('LINEBELOW', (0, 6), (-1, 6), 1.5, colors.HexColor("#DAA520")),  # Gold line after Circle 2
+                
+    #             # Padding
+    #             ('TOPPADDING', (0, 0), (-1, -1), 8),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                
+    #             # Vertical alignment
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #         ]))
+            
+    #         self.story.append(performance_table)
+    #         self.story.append(Spacer(1, 0.3 * inch))
+            
+    #     except Exception as e:
+    #         print(f"Error adding audit group performance summary: {e}")
 
     def add_summary_of_audit_paras(self):
         """Add Section VIII - Summary of Audit Paras (Comprehensive MCM Summary)"""
