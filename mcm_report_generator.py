@@ -651,10 +651,13 @@ class PDFReportGenerator:
             
             # 8a. Add Section VII - Performance Summary of Audit Group  
             self.add_audit_group_performance_summary()
+
+             # 8b. Add Section VIII - Analysis of MCM Decisions (NEW!)
+            self.add_mcm_decision_analysis()
             
-            # 8b. Add Section VIII - Summary of Audit Paras
+            # 8c. Add Section IX - Summary of Audit Paras (renamed from VIII)
             self.add_summary_of_audit_paras()
-            
+                   
             # 9. Build the document
             print(f"Story has {len(self.story)} elements")
             
@@ -4562,6 +4565,365 @@ class PDFReportGenerator:
                 'chair_remarks': 'Follow up required for payment compliance'
             }
         ]
+    def add_mcm_decision_analysis(self):
+        """Add Section VIII - Analysis of MCM Decisions with bar chart and summary table"""
+        try:
+            print("=== STARTING MCM DECISION ANALYSIS ===")
+            
+            # Section header
+            self.add_section_highlight_bar("VIII. Analysis of MCM Decisions", text_color="#0E4C92")
+            
+            # Description
+            desc_style = ParagraphStyle(
+                name='MCMDecisionDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
+            
+            description_text = """
+            This section provides an analysis of MCM decisions taken for all audit paras during the meeting. 
+            It shows the distribution of paras across different decision categories and helps track the action items 
+            and follow-up requirements for the audit teams.
+            """
+            
+            self.story.append(Paragraph(description_text, desc_style))
+            
+            # Get MCM detailed data
+            mcm_detailed_data = self.vital_stats.get('mcm_detailed_data', [])
+            
+            if not mcm_detailed_data:
+                self.story.append(Paragraph("No MCM decision data available for analysis.", desc_style))
+                return
+            
+            # Analyze MCM decisions
+            decision_analysis = self._analyze_mcm_decisions(mcm_detailed_data)
+            
+            if not decision_analysis:
+                self.story.append(Paragraph("No valid MCM decisions found for analysis.", desc_style))
+                return
+            
+            # Add summary table
+            self._add_mcm_decision_summary_table(decision_analysis)
+            
+            # Add bar chart
+            self._add_mcm_decision_chart(decision_analysis)
+            
+            # Add insights
+            self._add_mcm_decision_insights(decision_analysis)
+            
+            print("✓ MCM Decision Analysis completed successfully")
+            
+        except Exception as e:
+            print(f"ERROR in add_mcm_decision_analysis: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Add error message instead of crashing
+            try:
+                error_style = ParagraphStyle(name='ErrorStyle', parent=self.styles['Normal'], 
+                                            fontSize=10, textColor=colors.red, alignment=TA_CENTER)
+                self.story.append(Paragraph(f"[Error loading MCM Decision Analysis: {str(e)}]", error_style))
+                self.story.append(Spacer(1, 0.2 * inch))
+            except:
+                pass
+    
+    def _analyze_mcm_decisions(self, mcm_data):
+        """Analyze MCM decisions and return summary statistics"""
+        try:
+            decision_counts = {}
+            decision_detection = {}
+            decision_recovery = {}
+            
+            # Standard MCM decision categories
+            standard_decisions = [
+                'Para closed since recovered',
+                'Para deferred', 
+                'Para to be pursued else issue SCN',
+                'Decision pending'
+            ]
+            
+            # Initialize counters
+            for decision in standard_decisions:
+                decision_counts[decision] = 0
+                decision_detection[decision] = 0.0
+                decision_recovery[decision] = 0.0
+            
+            # Count other decisions
+            other_decisions = {}
+            
+            for record in mcm_data:
+                try:
+                    decision = record.get('mcm_decision', 'Decision pending')
+                    if not decision or decision.strip() == '':
+                        decision = 'Decision pending'
+                    
+                    # Get financial amounts (convert from lakhs to lakhs for consistency)
+                    detection_lakhs = float(record.get('revenue_involved_lakhs_rs', 0))
+                    recovery_lakhs = float(record.get('revenue_recovered_lakhs_rs', 0))
+                    
+                    if decision in standard_decisions:
+                        decision_counts[decision] += 1
+                        decision_detection[decision] += detection_lakhs
+                        decision_recovery[decision] += recovery_lakhs
+                    else:
+                        # Handle other/custom decisions
+                        if decision not in other_decisions:
+                            other_decisions[decision] = {'count': 0, 'detection': 0.0, 'recovery': 0.0}
+                        other_decisions[decision]['count'] += 1
+                        other_decisions[decision]['detection'] += detection_lakhs
+                        other_decisions[decision]['recovery'] += recovery_lakhs
+                    
+                except Exception as record_error:
+                    print(f"Error processing MCM record: {record_error}")
+                    continue
+            
+            # Combine results
+            analysis_results = []
+            
+            # Add standard decisions
+            for decision in standard_decisions:
+                if decision_counts[decision] > 0:  # Only include decisions that have paras
+                    analysis_results.append({
+                        'decision': decision,
+                        'para_count': decision_counts[decision],
+                        'total_detection': decision_detection[decision],
+                        'total_recovery': decision_recovery[decision],
+                        'recovery_percentage': (decision_recovery[decision] / decision_detection[decision] * 100) 
+                                             if decision_detection[decision] > 0 else 0
+                    })
+            
+            # Add other decisions
+            for decision, data in other_decisions.items():
+                analysis_results.append({
+                    'decision': decision,
+                    'para_count': data['count'],
+                    'total_detection': data['detection'],
+                    'total_recovery': data['recovery'],
+                    'recovery_percentage': (data['recovery'] / data['detection'] * 100) 
+                                         if data['detection'] > 0 else 0
+                })
+            
+            # Sort by para count (descending)
+            analysis_results.sort(key=lambda x: x['para_count'], reverse=True)
+            
+            print(f"Analyzed {len(analysis_results)} different MCM decisions")
+            return analysis_results
+            
+        except Exception as e:
+            print(f"Error analyzing MCM decisions: {e}")
+            return []
+    
+    def _add_mcm_decision_summary_table(self, decision_analysis):
+        """Add MCM decision summary table"""
+        try:
+            # Table header style
+            table_header_style = ParagraphStyle(
+                name='MCMDecisionTableHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=12,
+                spaceBefore=16
+            )
+            
+            self.story.append(Paragraph("📊 MCM Decision Summary", table_header_style))
+            
+            # Create table data
+            table_data = [['MCM Decision', 'No. of Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %']]
+            
+            total_paras = 0
+            total_detection = 0.0
+            total_recovery = 0.0
+            
+            for item in decision_analysis:
+                para_count = item['para_count']
+                detection = item['total_detection']
+                recovery = item['total_recovery']
+                recovery_pct = item['recovery_percentage']
+                
+                total_paras += para_count
+                total_detection += detection
+                total_recovery += recovery
+                
+                # Truncate long decision names for better table formatting
+                decision_text = item['decision']
+                if len(decision_text) > 35:
+                    decision_text = decision_text[:32] + '...'
+                
+                table_data.append([
+                    decision_text,
+                    str(para_count),
+                    f'Rs.{detection:.2f} L',
+                    f'Rs.{recovery:.2f} L',
+                    f'{recovery_pct:.1f}%'
+                ])
+            
+            # Add totals row
+            total_recovery_pct = (total_recovery / total_detection * 100) if total_detection > 0 else 0
+            table_data.append([
+                '📊 Total (All Decisions)',
+                str(total_paras),
+                f'Rs.{total_detection:.2f} L',
+                f'Rs.{total_recovery:.2f} L',
+                f'{total_recovery_pct:.1f}%'
+            ])
+            
+            # Create and style table
+            col_widths = [2.8*inch, 1.0*inch, 1.4*inch, 1.4*inch, 1.0*inch]
+            decision_table = Table(table_data, colWidths=col_widths)
+            
+            decision_table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Data rows
+                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -2), 9),
+                ('ALIGN', (1, 1), (-1, -1), 'CENTER'),  # Numbers centered
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),     # Decision text left-aligned
+                
+                # Totals row styling
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 9),
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
+                
+                # Grid and borders
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#8B4A9C")),
+                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor("#1F3A4D")),
+                
+                # Padding
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            
+            self.story.append(decision_table)
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+        except Exception as e:
+            print(f"Error adding MCM decision summary table: {e}")
+    
+    def _add_mcm_decision_chart(self, decision_analysis):
+        """Add MCM decision distribution bar chart"""
+        try:
+            chart_header_style = ParagraphStyle(
+                name='MCMDecisionChartHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=12
+            )
+            
+            self.story.append(Paragraph("📊 Distribution of Audit Paras by MCM Decision", chart_header_style))
+            
+            # Create simple text-based chart for now (can be enhanced with actual chart generation later)
+            chart_style = ParagraphStyle(
+                name='ChartText',
+                parent=self.styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_LEFT,
+                fontName='Helvetica',
+                leftIndent=0.5*inch,
+                leading=14,
+                spaceAfter=8
+            )
+            
+            # Create a simple text representation of the chart
+            max_count = max([item['para_count'] for item in decision_analysis]) if decision_analysis else 1
+            
+            for item in decision_analysis:
+                decision = item['decision']
+                count = item['para_count']
+                
+                # Create a simple bar using characters
+                bar_length = int((count / max_count) * 30)  # Scale to max 30 characters
+                bar = '█' * bar_length
+                
+                chart_text = f"{decision[:25]:<25} │{bar:<30}│ {count} paras"
+                self.story.append(Paragraph(chart_text, chart_style))
+            
+            self.story.append(Spacer(1, 0.2 * inch))
+            
+        except Exception as e:
+            print(f"Error adding MCM decision chart: {e}")
+    
+    def _add_mcm_decision_insights(self, decision_analysis):
+        """Add insights and key findings from MCM decision analysis"""
+        try:
+            insights_header_style = ParagraphStyle(
+                name='InsightsHeader',
+                parent=self.styles['Heading3'],
+                fontSize=14,
+                textColor=colors.HexColor("#1134A6"),
+                alignment=TA_LEFT,
+                fontName='Helvetica-Bold',
+                spaceAfter=8,
+                spaceBefore=12
+            )
+            
+            insights_style = ParagraphStyle(
+                name='InsightsText',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=8
+            )
+            
+            self.story.append(Paragraph("💡 Key Insights from MCM Decisions", insights_header_style))
+            
+            if decision_analysis:
+                # Calculate insights
+                total_paras = sum([item['para_count'] for item in decision_analysis])
+                most_common_decision = decision_analysis[0]  # Already sorted by count
+                
+                # Find decisions needing action
+                action_needed = []
+                for item in decision_analysis:
+                    if 'pursue' in item['decision'].lower() or 'deferred' in item['decision'].lower():
+                        action_needed.append(item)
+                
+                total_action_paras = sum([item['para_count'] for item in action_needed])
+                
+                insights_text = f"""
+                <b>Summary of MCM Decisions:</b><br/>
+                • Total audit paras reviewed: <b>{total_paras}</b><br/>
+                • Most common decision: <b>"{most_common_decision['decision']}"</b> ({most_common_decision['para_count']} paras)<br/>
+                • Paras requiring follow-up action: <b>{total_action_paras}</b> ({(total_action_paras/total_paras*100):.1f}% of total)<br/>
+                • Decisions have been recorded for all paras to ensure proper tracking and compliance monitoring.
+                """
+                
+                self.story.append(Paragraph(insights_text, insights_style))
+            
+            self.story.append(Spacer(1, 0.3 * inch))
+            
+        except Exception as e:
+            print(f"Error adding MCM decision insights: {e}")    
     # def add_top_taxpayers_summary_table(self):
     #     """Add top taxpayers summary table"""
     #     try:
