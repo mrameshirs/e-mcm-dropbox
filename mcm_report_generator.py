@@ -3786,15 +3786,23 @@ class PDFReportGenerator:
                 fontName='Helvetica',
                 leading=10
             )
-            
+            header_style = ParagraphStyle(
+            name='HeaderStyle',
+            parent=self.styles['Normal'],
+            fontSize=9,
+            textColor=colors.white,  # WHITE TEXT for header
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            leading=11
+            )
             # Table header - using Paragraph objects for proper formatting
             table_data = [[
-                Paragraph('Para No.', cell_style),
-                Paragraph('Para Title', cell_style), 
-                Paragraph('Detection (₹)', cell_style),
-                Paragraph('Recovery (₹)', cell_style),
-                Paragraph('Status', cell_style),
-                Paragraph('MCM Decision', cell_style)
+                Paragraph('Para No.', header_style),
+                Paragraph('Para Title', header_style), 
+                Paragraph('Detection (₹)', header_style),
+                Paragraph('Recovery (₹)', header_style),
+                Paragraph('Status', header_style),
+                Paragraph('MCM Decision', header_style)
             ]]
             
             # Initialize totals
