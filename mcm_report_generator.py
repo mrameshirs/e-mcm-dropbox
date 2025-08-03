@@ -1057,7 +1057,10 @@ class PDFReportGenerator:
             title2_style = ParagraphStyle(name='Title2', parent=title_style, fontSize=34)
             title3_style = ParagraphStyle(name='Title3', parent=title_style, fontSize=26, textColor=colors.HexColor("#FCC200"),fontName='Helvetica')
             title4_style = ParagraphStyle(name='Title4', parent=title_style, fontSize=20,textColor=colors.HexColor("#FC200") ,fontName='Helvetica-Oblique')
-            
+            # NEW: MCM Date Style
+            mcm_date_style = ParagraphStyle(name='MCMDate', parent=title_style, fontSize=18, 
+                                           textColor=colors.HexColor("#FFE5B4"), fontName='Helvetica-Bold')
+        
             try:
                 pdfmetrics.getFont('HindiFont')
                 hindi_font = 'HindiFont'
@@ -1070,6 +1073,13 @@ class PDFReportGenerator:
             self.story.append(Paragraph(" िनगरानी सिमित की बैठक", hindi_style))
            
             self.story.append(Paragraph(f"{self.selected_period.upper()}", title2_style))
+            #self.story.append(Spacer(1, 0.5 * inch))
+            # NEW: Add MCM Date if available
+            mcm_date = self.vital_stats.get('mcm_date')
+            if mcm_date:
+                self.story.append(Spacer(1, 0.2 * inch))
+                self.story.append(Paragraph(f"Meeting Date: {mcm_date}", mcm_date_style))
+            
             self.story.append(Spacer(1, 0.5 * inch))
             self.story.append(Paragraph("EXECUTIVE SUMMARY REPORT", title3_style))
             #self.story.append(Paragraph(" कार्यकारी सारांश प्रतिवेदन", hindi_style))
