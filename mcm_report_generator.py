@@ -538,19 +538,33 @@ class PDFReportGenerator:
             # 2. Create summary header
             self.create_summary_header()
             
+         
             # 3. Add comprehensive monthly performance summary with charts Section I and II
-            self.add_monthly_performance_summary()
+            try:
+                self.add_monthly_performance_summary()
+            except Exception as e:
+                print(f"Error in monthly performance summary: {e}")
             
-            # 4. Add Section III Sectoral analysis (Two sectoral graphs Pie charts)
-            self.add_sectoral_analysis()
-        
+            # 4. Add Section III Sectoral analysis
+            try:
+                self.add_sectoral_analysis()
+            except Exception as e:
+                print(f"Error in sectoral analysis: {e}")
+            
             # 5. Add Section IV Nature of Non Compliance Analysis
-            self.add_nature_of_non_compliance_analysis()
+            try:
+                self.add_nature_of_non_compliance_analysis()
+            except Exception as e:
+                print(f"Error in nature of non compliance analysis: {e}")
             
             # 6. Add Risk Parameter Analysis if available
-            if self.vital_stats.get('risk_analysis_available', False):
-                self.add_risk_parameter_analysis()
-                
+            try:
+                if self.vital_stats.get('risk_analysis_available', False):
+                    self.add_risk_parameter_analysis()
+            except Exception as e:
+                print(f"Error in risk parameter analysis: {e}")
+          
+                         
             # 7. Add Section V - Top Audit Group and Circle Performance
             self.add_top_performance_analysis()
             
