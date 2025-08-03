@@ -182,10 +182,19 @@ def upload_dar_tab(dbx, active_periods, api_key):
             st.error(f"❌ Failed: {preprocessed_text}")
             st.stop()
         
-        progress_bar.progress(66, text="▶️ Stage 2/3: Extracting with AI...")
+        #progress_bar.progress(66, text="▶️ Stage 2/3: Extracting with AI...")
+        progress_bar.progress(66)
+        st.markdown(
+            "<div style='padding: 10px; background-color: #e3f2fd; border-left: 4px solid #2196f3; margin: 10px 0;'>"
+            "<strong style='color: #1976d2; font-size: 16px;'>▶️ Stage 2/3: Extracting with AI</strong><br>"
+            "<span style='color: #424242;'>(It may take 2 minutes..Pls wait)</span>"
+            "</div>", 
+            unsafe_allow_html=True
+        )
         parsed_data = get_structured_data_from_llm(preprocessed_text)
         if parsed_data.parsing_errors:
             st.warning(f"AI Parsing Issues: {parsed_data.parsing_errors}")
+       
         
         progress_bar.progress(90, text="▶️ Stage 3/3: Formatting data for review...")
         header_dict = parsed_data.header.model_dump() if parsed_data.header else {}
@@ -1851,3 +1860,4 @@ def delete_entries_tab(dbx):
 #                                 st.error("Failed to update the data file on Dropbox.")
 #                     else:
 #                         st.error("Incorrect password.")# # ui_audit_group.py
+
