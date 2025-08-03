@@ -101,7 +101,8 @@ def audit_group_dashboard(dbx):
         'ag_current_uploaded_file_name': None, 'ag_editor_data': pd.DataFrame(columns=DISPLAY_COLUMN_ORDER_EDITOR),
         'ag_pdf_bytes': None, 'ag_validation_errors': [],
         'ag_uploader_key_suffix': 0, 'ag_deletable_map': {},
-        'ag_risk_flags_data': [], 'ag_raw_taxpayer_classification': None
+        'ag_risk_flags_data': [], 'ag_raw_taxpayer_classification': None,
+        'ag_submission_in_progress': False  # ADD THIS LINE
     }
     for key, value in default_ag_states.items():
         if key not in st.session_state:
@@ -283,14 +284,36 @@ def upload_dar_tab(dbx, active_periods, api_key):
                             st.rerun()
                         elif not new_risk_flag: st.warning("Please select a flag.")
                         else: st.warning(f"Flag '{new_risk_flag}' already added.")
+        
+        # Modify the submit button section (around line where you have the submit button):
 
         st.markdown("<hr>", unsafe_allow_html=True)
-        if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
+
+        # Check if submission is in progress
+        is_submitting = st.session_state.get('ag_submission_in_progress', False)
+        
+        # Create the submit button with conditional disabling
+        submit_clicked = st.button(
+            "Submit to MCM Sheet" if not is_submitting else "Processing... Please Wait",
+            use_container_width=True, 
+            type="primary",
+            disabled=is_submitting  # Disable button during processing
+        )
+        
+        if submit_clicked and not is_submitting:
+            # Set submission in progress
+            st.session_state.ag_submission_in_progress = True
+            st.rerun()  # Refresh to show disabled state
+
+        st.markdown("<hr>", unsafe_allow_html=True)
+        #if st.button("Submit to MCM Sheet", use_container_width=True, type="primary"):
+        if st.session_state.get('ag_submission_in_progress', False):
             status_area = st.empty()
             status_area.info("▶️ Step 1/7: Validating data...")
             df_to_submit = pd.DataFrame(edited_df).dropna(how='all').reset_index(drop=True)
             if df_to_submit.empty:
                 status_area.error("❌ Validation Failed: No data to submit.")
+                st.session_state.ag_submission_in_progress = False  # Reset on error
                 return
             df_to_submit['audit_group_number'] = st.session_state.audit_group_no
             df_to_submit['audit_circle_number'] = calculate_audit_circle(st.session_state.audit_group_no)
@@ -299,6 +322,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             if errors:
                 status_area.empty()
                 st.error("Validation Failed! Please correct the following errors:")
+                st.session_state.ag_submission_in_progress = False  # Reset on error
                 for err in errors: st.warning(f"- {err}")
                 return
 
@@ -309,6 +333,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 is_duplicate = not master_df[(master_df['gstin'] == current_gstin) & (master_df['mcm_period'] == selected_period_str)].empty
                 if is_duplicate:
                     status_area.error(f"❌ Submission Failed: A DAR for GSTIN {current_gstin} has already been submitted for {selected_period_str}.First Delete the entries if u want to re-upload!")
+                    st.session_state.ag_submission_in_progress = False  # Reset on error
                     return
 
             status_area.info("✅ Step 2/7: No duplicates found. \n\n▶️ Step 3/7: Uploading PDF...")
@@ -316,6 +341,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             pdf_path = f"{DAR_PDFS_PATH}/{dar_filename}"
             if not upload_file(dbx, st.session_state.ag_pdf_bytes, pdf_path):
                 status_area.error("❌ Submission Failed: Could not upload PDF.")
+                st.session_state.ag_submission_in_progress = False  # Reset on error
                 return
             
             status_area.info("✅ Step 3/7: PDF uploaded. \n\n▶️ Step 4/7: Classifying paras with AI...")
@@ -324,7 +350,9 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 classifications, class_error = get_para_classifications_from_llm(headings)
                 if class_error:
                     st.error(f"AI Classification Failed: {class_error}")
-                    if not classifications: st.stop()
+                    if not classifications: 
+                        st.session_state.ag_submission_in_progress = False  # Reset on error
+                        st.stop()
                     st.warning("Proceeding with partial classification.")
                 para_rows = df_to_submit['audit_para_number'].notna()
                 df_to_submit.loc[para_rows, 'para_classification_code'] = classifications[:len(df_to_submit[para_rows])]
@@ -350,9 +378,12 @@ def upload_dar_tab(dbx, active_periods, api_key):
                 time.sleep(2)
                 reset_ag_states(clear_file=True)
                 st.session_state.ag_uploader_key_suffix += 1
+                st.session_state.ag_submission_in_progress = False  # Reset on error
                 st.rerun()
             else:
                 status_area.error("❌ Step 7/7 Failed: Could not save data.")
+                st.session_state.ag_submission_in_progress = False  # Reset on error
+            
 # def upload_dar_tab(dbx, active_periods, api_key):
 #     st.markdown("<h3>Upload DAR PDF for MCM Period</h3>", unsafe_allow_html=True)
 #     if not active_periods:
@@ -1860,4 +1891,5 @@ def delete_entries_tab(dbx):
 #                                 st.error("Failed to update the data file on Dropbox.")
 #                     else:
 #                         st.error("Incorrect password.")# # ui_audit_group.py
+
 
