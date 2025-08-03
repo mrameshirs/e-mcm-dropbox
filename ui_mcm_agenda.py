@@ -823,8 +823,70 @@ def mcm_agenda_tab(dbx):
                 time_module.sleep(0.5)  # Brief pause to ensure user sees final status
                 status_message_area.empty()
                 progress_bar.empty()
+                
+    # --- MCM Date Selection Section ---
+    st.markdown("---")
+    st.markdown("### MCM Meeting Date Selection")
+    st.markdown("📅 **Please select the date when the MCM meeting was conducted for this period.**")
+    
+    # Create date picker with reasonable date range
+    import datetime
+    current_date = datetime.datetime.now()
+    min_date = current_date - datetime.timedelta(days=365)  # 1 year ago
+    max_date = current_date + datetime.timedelta(days=30)   # 1 month ahead
+    
+    # Initialize session state for MCM date if not exists
+    mcm_date_key = f"mcm_date_{selected_period.replace(' ', '_')}"
+    if mcm_date_key not in st.session_state:
+        st.session_state[mcm_date_key] = None
+    
+    # Date picker with validation
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        selected_mcm_date = st.date_input(
+            "Select MCM Meeting Date:",
+            value=st.session_state[mcm_date_key],
+            min_value=min_date.date(),
+            max_value=max_date.date(),
+            key=f"mcm_date_picker_{selected_period.replace(' ', '_')}",
+            help="Choose the actual date when the MCM meeting was conducted"
+        )
+        
+        # Update session state
+        if selected_mcm_date:
+            st.session_state[mcm_date_key] = selected_mcm_date
+    
+    with col2:
+        # Show formatted date
+        if selected_mcm_date:
+            formatted_date = selected_mcm_date.strftime("%d %B, %Y")
+            st.markdown(f"""
+            <div style="background-color: #d4edda; color: #155724; padding: 10px; 
+                        border-radius: 5px; margin-top: 25px; text-align: center; 
+                        font-weight: bold;">
+                📅 {formatted_date}
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background-color: #f8d7da; color: #721c24; padding: 10px; 
+                        border-radius: 5px; margin-top: 25px; text-align: center; 
+                        font-weight: bold;">
+                ⚠️ Date Required
+            </div>
+            """, unsafe_allow_html=True)
+    # Function to validate MCM date
+    def validate_mcm_date_selection():
+        """Validate if MCM date is selected before PDF generation"""
+        mcm_date = st.session_state.get(mcm_date_key)
+        if not mcm_date:
+            st.error("⚠️ **MCM Date Required**: Please select the MCM meeting date before generating the executive summary.")
+            st.info("💡 The MCM date will be displayed on the cover page of the PDF report.")
+            return False
+        return True
 
-     # --- NEW: Executive Summary PDF Generation Section ---
+
+    # --- NEW: Executive Summary PDF Generation Section ---
     st.markdown("---")
     st.markdown("### Generate Executive Summary PDF")
     st.markdown("Generate a PDF summary of the minutes, enriched with infographics from the PCO dashboard.")
@@ -832,13 +894,20 @@ def mcm_agenda_tab(dbx):
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
+             # Validate MCM date first
+            if not validate_mcm_date_selection():
+                st.stop()
+                
+            mcm_date = st.session_state.get(mcm_date_key)
             with st.spinner("Generating Short PDF Summary... Please wait."):
                 # 1. Fetch data and charts
                 vital_stats, charts = get_visualization_data(dbx, selected_period)
                 if not vital_stats or not charts:
                     st.error("Could not fetch visualization data to generate the report.")
                     return
-                
+                # 2. ADD MCM DATE TO VITAL STATS
+                vital_stats['mcm_date'] = mcm_date.strftime("%d %B, %Y") if mcm_date else None
+            
                 # 2. ENHANCE with MCM detailed data for new sections
                 df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
                 if df_mcm_current is not None and not df_mcm_current.empty:
@@ -920,13 +989,20 @@ def mcm_agenda_tab(dbx):
     
     with col2:
         if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
+             # Validate MCM date first
+            if not validate_mcm_date_selection():
+                st.stop()
+                
+            mcm_date = st.session_state.get(mcm_date_key)
             with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
                 # 1. Fetch data and charts  
                 vital_stats, charts = get_visualization_data(dbx, selected_period)
                 if not vital_stats or not charts:
                     st.error("Could not fetch visualization data to generate the report.")
                     return
-    
+                 # 2. ADD MCM DATE TO VITAL STATS
+                vital_stats['mcm_date'] = mcm_date.strftime("%d %B, %Y") if mcm_date else None
+            
                 # 2. ENHANCE with MCM detailed data (same as above)
                 df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
                 if df_mcm_current is not None and not df_mcm_current.empty:
