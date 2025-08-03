@@ -1086,7 +1086,7 @@ class PDFReportGenerator:
                 Paragraph("Audit-I Commissionerate, Mumbai", org_style),
                 Spacer(1, 0.2 * inch),
                 Paragraph("Ph: 022-22617504 | Email: audit1mum@gov.in", contact_style),
-                Spacer(1, 0.4 * inch),
+                Spacer(1, 0.3 * inch),
                 Paragraph("Note:For more details on MCM decisions ,refer to Detailed Minutes of the Meeting document", disclaimer_style)
             ]
 
@@ -3799,8 +3799,8 @@ class PDFReportGenerator:
             table_data = [[
                 Paragraph('Para No.', header_style),
                 Paragraph('Para Title', header_style), 
-                Paragraph('Detection (₹)', header_style),
-                Paragraph('Recovery (₹)', header_style),
+                Paragraph('Detection(Rs)', header_style),
+                Paragraph('Recovery(Rs)', header_style),
                 Paragraph('Status', header_style),
                 Paragraph('MCM Decision', header_style)
             ]]
@@ -3930,20 +3930,20 @@ class PDFReportGenerator:
         """Format currency in Indian numbering system"""
         try:
             if amount == 0:
-                return "₹ 0"
+                return "Rs. 0"
             
             # Convert to integer for formatting
             amount = int(amount)
             
             # Handle negative numbers
             if amount < 0:
-                return f"₹ -{self.format_indian_currency(-amount)[2:]}"
+                return f"Rs.-{self.format_indian_currency(-amount)[2:]}"
             
             # Convert to string and format
             amount_str = str(amount)
             
             if len(amount_str) <= 3:
-                return f"₹ {amount_str}"
+                return f"Rs,{amount_str}"
             
             # Split into groups
             last_three = amount_str[-3:]
