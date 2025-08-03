@@ -1392,9 +1392,12 @@ class PDFReportGenerator:
             #status_col_widths = [2.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 1.0*inch]
             status_col_widths = [1.8*inch, 1*inch, 1.8*inch, 1.8*inch, 1.8*inch]
             status_table = Table(status_data, colWidths=status_col_widths)
+            # SAFE TABLE STYLING - check table size first
+            total_rows = len(status_data)
+            print(f"Status table has {total_rows} rows")
             
-            # Apply colorful styling similar to the image
-            status_table.setStyle(TableStyle([
+            # Base styles that are always safe
+            base_styles = [
                 # Header styling with gradient effect
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple header
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -1408,12 +1411,6 @@ class PDFReportGenerator:
                 ('ALIGN', (1, 1), (-1, -1), 'CENTER'),  # Numbers centered
                 ('ALIGN', (0, 1), (0, -1), 'LEFT'),     # Status left-aligned
                 
-                # Row background colors - matching the colorful theme from the image
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#E8F5E8")),    # Light green
-                ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor("#FFF3CD")),    # Light yellow
-                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8D7DA")),    # Light red
-                ('BACKGROUND', (0, 4), (-1, 4), colors.HexColor("#E2E3E5")),    # Light gray
-                
                 # Grid and borders
                 ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
                 ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#8B4A9C")),
@@ -1426,7 +1423,19 @@ class PDFReportGenerator:
                 
                 # Vertical alignment
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            ]
+            
+            # SAFE row coloring - only for rows that actually exist
+            row_colors = ["#E8F5E8", "#FFF3CD", "#F8D7DA", "#E2E3E5"]
+            
+            for i in range(1, total_rows):  # Start from row 1 (skip header at row 0)
+                if i <= len(row_colors):  # Don't exceed available colors
+                    color_index = (i - 1) % len(row_colors)  # Cycle through colors
+                    base_styles.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor(row_colors[color_index])))
+            
+            # Apply all styles safely
+            status_table.setStyle(TableStyle(base_styles))
+            
             
             self.story.append(status_table)
             self.story.append(Spacer(1, 0.05 * inch))
@@ -3028,14 +3037,21 @@ class PDFReportGenerator:
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ]))
                 
-                # Add alternating row colors ONLY for rows that exist
-                num_data_rows = len(table_data) - 1  # Subtract header row
-                for row_idx in range(1, num_data_rows + 1, 2):  # Every other row starting from 1
-                    if row_idx < len(table_data):  # Safety check
-                        table.setStyle(TableStyle([
-                            ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")),
-                        ]))
+                # # Add alternating row colors ONLY for rows that exist
+                # num_data_rows = len(table_data) - 1  # Subtract header row
+                # for row_idx in range(1, num_data_rows + 1, 2):  # Every other row starting from 1
+                #     if row_idx < len(table_data):  # Safety check
+                #         table.setStyle(TableStyle([
+                #             ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")),
+                #         ]))
+                # SAFE alternating row colors - only add for rows that exist
+                total_rows = len(table_data)
+                for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
+                    if row_idx < total_rows:  # Safety check
+                        base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                 
+                # Apply all styles at once
+                table.setStyle(TableStyle(base_styles))
                 self.story.append(table)
                 self.story.append(Spacer(1, 0.15 * inch))
                 print(f"✓ Successfully added {data_key} table")
@@ -3259,41 +3275,45 @@ class PDFReportGenerator:
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ]
             
-            # CIRCLE-SPECIFIC STYLING with different colors
-            circle_colors = {
-                1: "#E8F5E8",  # Light green
-                2: "#FFF3CD",  # Light yellow
-                3: "#F8D7DA",  # Light red/pink
-                4: "#E2E3E5",  # Light gray
-                5: "#D4EDDA",  # Another green shade
-                6: "#CCE5FF",  # Light blue
-                7: "#FFE6CC",  # Light orange
-                8: "#F0E6FF",  # Light purple
-                9: "#FFE6F0",  # Light pink
-                10: "#E6F7FF"  # Light cyan
-            }
+            # # CIRCLE-SPECIFIC STYLING with different colors
+            # circle_colors = {
+            #     1: "#E8F5E8",  # Light green
+            #     2: "#FFF3CD",  # Light yellow
+            #     3: "#F8D7DA",  # Light red/pink
+            #     4: "#E2E3E5",  # Light gray
+            #     5: "#D4EDDA",  # Another green shade
+            #     6: "#CCE5FF",  # Light blue
+            #     7: "#FFE6CC",  # Light orange
+            #     8: "#F0E6FF",  # Light purple
+            #     9: "#FFE6F0",  # Light pink
+            #     10: "#E6F7FF"  # Light cyan
+            # }
             
-            # Apply spans and colors for each circle
-            try:
-                for circle_num, (start_row, end_row) in circle_spans.items():
-                    if end_row > start_row:  # Multiple rows - need to span
-                        # SPAN the circle column
-                        base_styles.append(('SPAN', (0, start_row), (0, end_row)))
-                        print(f"Added SPAN for circle {circle_num}: (0, {start_row}) to (0, {end_row})")
+            # # Apply spans and colors for each circle
+            # try:
+            #     for circle_num, (start_row, end_row) in circle_spans.items():
+            #         if end_row > start_row:  # Multiple rows - need to span
+            #             # SPAN the circle column
+            #             base_styles.append(('SPAN', (0, start_row), (0, end_row)))
+            #             print(f"Added SPAN for circle {circle_num}: (0, {start_row}) to (0, {end_row})")
                     
-                    # Apply circle-specific background color to the entire circle section
-                    circle_color = circle_colors.get(circle_num, "#F8F9FA")  # Default light color
-                    base_styles.append(('BACKGROUND', (0, start_row), (-1, end_row), colors.HexColor(circle_color)))
+            #         # Apply circle-specific background color to the entire circle section
+            #         circle_color = circle_colors.get(circle_num, "#F8F9FA")  # Default light color
+            #         base_styles.append(('BACKGROUND', (0, start_row), (-1, end_row), colors.HexColor(circle_color)))
                     
-                    # Make circle numbers bold and centered
-                    base_styles.append(('FONTNAME', (0, start_row), (0, end_row), 'Helvetica-Bold'))
-                    base_styles.append(('FONTSIZE', (0, start_row), (0, end_row), 11))
-                    base_styles.append(('VALIGN', (0, start_row), (0, end_row), 'MIDDLE'))
+            #         # Make circle numbers bold and centered
+            #         base_styles.append(('FONTNAME', (0, start_row), (0, end_row), 'Helvetica-Bold'))
+            #         base_styles.append(('FONTSIZE', (0, start_row), (0, end_row), 11))
+            #         base_styles.append(('VALIGN', (0, start_row), (0, end_row), 'MIDDLE'))
                     
-                    print(f"Applied color {circle_color} to circle {circle_num}")
-            
-            except Exception as span_error:
-                print(f"Warning: Could not apply circle spans: {span_error}")
+            #         print(f"Applied color {circle_color} to circle {circle_num}")
+                
+            # except Exception as span_error:
+            #     print(f"Warning: Could not apply circle spans: {span_error}")
+            # SAFE alternating row colors - only for rows that exist
+            for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
+                if row_idx < total_rows:
+                    base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F9FA")))
             
             # Apply all styles safely
             try:
