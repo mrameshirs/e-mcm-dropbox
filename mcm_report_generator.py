@@ -3021,7 +3021,32 @@ class PDFReportGenerator:
             if len(table_data) > 1:  # More than just header
                 table = Table(table_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
                 # Replace the table styling section with:
-                table.setStyle(TableStyle([
+                # table.setStyle(TableStyle([
+                #     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(table_color)),
+                #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                #     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                #     ('FONTSIZE', (0, 0), (-1, 0), 8),
+                #     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                #     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                #     ('FONTSIZE', (0, 1), (-1, -1), 8),
+                #     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+                #     ('ALIGN', (0, 1), (1, -1), 'LEFT'),
+                #     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+                #     ('TOPPADDING', (0, 0), (-1, -1), 6),
+                #     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                # ]))
+                
+                # # Add alternating row colors ONLY for rows that exist
+                # num_data_rows = len(table_data) - 1  # Subtract header row
+                # for row_idx in range(1, num_data_rows + 1, 2):  # Every other row starting from 1
+                #     if row_idx < len(table_data):  # Safety check
+                #         table.setStyle(TableStyle([
+                #             ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")),
+                #         ]))
+                # SAFE alternating row colors - only add for rows that exist
+                # Create base styles first
+                base_styles = [
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(table_color)),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -3035,16 +3060,7 @@ class PDFReportGenerator:
                     ('TOPPADDING', (0, 0), (-1, -1), 6),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ]))
-                
-                # # Add alternating row colors ONLY for rows that exist
-                # num_data_rows = len(table_data) - 1  # Subtract header row
-                # for row_idx in range(1, num_data_rows + 1, 2):  # Every other row starting from 1
-                #     if row_idx < len(table_data):  # Safety check
-                #         table.setStyle(TableStyle([
-                #             ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")),
-                #         ]))
-                # SAFE alternating row colors - only add for rows that exist
+                ]
                 total_rows = len(table_data)
                 for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
                     if row_idx < total_rows:  # Safety check
