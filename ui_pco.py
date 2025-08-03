@@ -139,7 +139,73 @@ def pco_dashboard(dbx):
                         st.error("Failed to save the new MCM period to Dropbox.")
    
 
-    # ========================== MANAGE MCM PERIODS TAB ==========================
+    # # ========================== MANAGE MCM PERIODS TAB ==========================
+    # elif selected_tab == "Manage MCM Periods":
+    #     st.markdown("<h3>Manage Existing MCM Periods</h3>", unsafe_allow_html=True)
+    #     st.markdown("<h4 style='color: red;'>Please Note: Deleting records will delete all the DAR and Spreadsheet data uploaded for that month.</h4>", unsafe_allow_html=True)
+    #     st.markdown("<h5 style='color: green;'>Only the months marked as 'Active' by Planning officer will be available in Audit group screen for uploading DARs.</h5>", unsafe_allow_html=True)
+    #     st.info("You can activate/deactivate periods or delete them using the editor. Changes are saved automatically.", icon="ℹ️")
+        
+    #     df_periods_manage = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+        
+    #     if df_periods_manage is None or df_periods_manage.empty:
+    #         st.info("No MCM periods have been created yet.")
+    #     else:
+    #         edited_df = st.data_editor(
+    #             df_periods_manage,
+    #             column_config={
+    #                 "month_name": st.column_config.TextColumn("Month", disabled=True),
+    #                 "year": st.column_config.NumberColumn("Year", disabled=True),
+    #                 "active": st.column_config.CheckboxColumn("Active?", default=False),
+    #                 "key": None  # Hide the key column
+    #             },
+    #             use_container_width=True,
+    #             hide_index=True,
+    #             num_rows="dynamic",
+    #             key="manage_periods_editor"
+    #         )
+            
+    #         if not df_periods_manage.equals(edited_df):
+    #             if update_spreadsheet_from_df(dbx, edited_df, MCM_PERIODS_INFO_PATH):
+    #                 st.toast("Changes saved successfully!")
+    #                 time.sleep(1)
+    #                 st.rerun()
+    #             else:
+    #                 st.error("Failed to save changes to Dropbox.")
+
+    #     # Handle deletion with confirmation (similar to original Google version)
+    #     if st.session_state.get('show_delete_confirm') and st.session_state.get('period_to_delete'):
+    #         period_key_to_delete = st.session_state.period_to_delete
+    #         with st.form(key=f"delete_confirm_form_{period_key_to_delete}"):
+    #             st.warning(f"Are you sure you want to delete the MCM period: **{period_key_to_delete}**?")
+    #             st.error("**Warning:** This will remove the period from tracking. Use cautiously.")
+                
+    #             pco_password_confirm = st.text_input("Enter your PCO password:", type="password")
+    #             form_c1, form_c2 = st.columns(2)
+                
+    #             with form_c1:
+    #                 submitted_delete = st.form_submit_button("Yes, Delete Record", use_container_width=True)
+    #             with form_c2:
+    #                 if st.form_submit_button("Cancel", type="secondary", use_container_width=True):
+    #                     st.session_state.show_delete_confirm = False
+    #                     st.session_state.period_to_delete = None
+    #                     st.rerun()
+                
+    #             if submitted_delete:
+    #                 # Here you would validate the password against your user credentials
+    #                 # For now, we'll skip password validation as it depends on your config
+    #                 if pco_password_confirm:  # Replace with actual password validation
+    #                     # Remove the period from the dataframe
+    #                     df_updated = df_periods_manage[df_periods_manage['key'] != period_key_to_delete]
+    #                     if update_spreadsheet_from_df(dbx, df_updated, MCM_PERIODS_INFO_PATH):
+    #                         st.success(f"MCM period {period_key_to_delete} deleted successfully.")
+    #                     else:
+    #                         st.error("Failed to delete the period.")
+    #                     st.session_state.show_delete_confirm = False
+    #                     st.session_state.period_to_delete = None
+    #                     st.rerun()
+    #                 else:
+    #                     st.error("Please enter your password to confirm deletion.")
     elif selected_tab == "Manage MCM Periods":
         st.markdown("<h3>Manage Existing MCM Periods</h3>", unsafe_allow_html=True)
         st.markdown("<h4 style='color: red;'>Please Note: Deleting records will delete all the DAR and Spreadsheet data uploaded for that month.</h4>", unsafe_allow_html=True)
@@ -172,40 +238,209 @@ def pco_dashboard(dbx):
                     st.rerun()
                 else:
                     st.error("Failed to save changes to Dropbox.")
-
-        # Handle deletion with confirmation (similar to original Google version)
-        if st.session_state.get('show_delete_confirm') and st.session_state.get('period_to_delete'):
-            period_key_to_delete = st.session_state.period_to_delete
-            with st.form(key=f"delete_confirm_form_{period_key_to_delete}"):
-                st.warning(f"Are you sure you want to delete the MCM period: **{period_key_to_delete}**?")
-                st.error("**Warning:** This will remove the period from tracking. Use cautiously.")
+    
+            # ========================== DELETE MCM PERIODS SECTION ==========================
+            st.markdown("---")
+            st.markdown("<h3>Delete MCM Periods</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #d32f2f; font-weight: bold;'>⚠️ Warning: Deleting a period will permanently remove all associated data including DARs and audit reports.</p>", unsafe_allow_html=True)
+            
+            # Custom CSS for the delete section
+            st.markdown("""
+            <style>
+            .delete-period-card {
+                background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+                border: 1px solid #e9ecef;
+                border-radius: 12px;
+                padding: 20px;
+                margin: 10px 0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            }
+            .delete-period-card:hover {
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+            }
+            .period-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            .period-title {
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 0;
+            }
+            .period-status {
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.85em;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .status-active {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .status-inactive {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .period-details {
+                color: #6c757d;
+                font-size: 0.9em;
+                margin-bottom: 15px;
+            }
+            .delete-btn-container {
+                text-align: right;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Display all periods with delete buttons
+            for index, row in df_periods_manage.iterrows():
+                period_key = row['key']
+                month_name = row['month_name']
+                year = row['year']
+                is_active = row.get('active', False)
                 
-                pco_password_confirm = st.text_input("Enter your PCO password:", type="password")
-                form_c1, form_c2 = st.columns(2)
+                # Create the period card
+                status_class = "status-active" if is_active else "status-inactive"
+                status_text = "Active" if is_active else "Inactive"
                 
-                with form_c1:
-                    submitted_delete = st.form_submit_button("Yes, Delete Record", use_container_width=True)
-                with form_c2:
-                    if st.form_submit_button("Cancel", type="secondary", use_container_width=True):
+                st.markdown(f"""
+                <div class="delete-period-card">
+                    <div class="period-info">
+                        <h4 class="period-title">📅 {month_name} {year}</h4>
+                        <span class="period-status {status_class}">{status_text}</span>
+                    </div>
+                    <div class="period-details">
+                        <strong>Period Key:</strong> {period_key}<br>
+                        <strong>Status:</strong> {"Available for DAR uploads" if is_active else "Not available for uploads"}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Add delete button for each period
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col3:
+                    if st.button(f"🗑️ Delete {month_name} {year}", 
+                                key=f"delete_period_{period_key}",
+                                type="secondary",
+                                use_container_width=True):
+                        st.session_state.period_to_delete = period_key
+                        st.session_state.show_delete_confirm = True
+                        st.rerun()
+    
+            # Handle deletion confirmation
+            if st.session_state.get('show_delete_confirm') and st.session_state.get('period_to_delete'):
+                period_key_to_delete = st.session_state.period_to_delete
+                
+                # Find the period details for display
+                period_row = df_periods_manage[df_periods_manage['key'] == period_key_to_delete]
+                if not period_row.empty:
+                    period_display = f"{period_row.iloc[0]['month_name']} {period_row.iloc[0]['year']}"
+                else:
+                    period_display = period_key_to_delete
+                
+                # Confirmation dialog styling
+                st.markdown("""
+                <style>
+                .delete-confirmation {
+                    background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+                    border: 2px solid #ff4444;
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin: 20px 0;
+                    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+                }
+                .confirmation-title {
+                    color: #d32f2f;
+                    font-size: 1.3em;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                    text-align: center;
+                }
+                .confirmation-warning {
+                    background-color: #fff;
+                    border-left: 4px solid #ff4444;
+                    padding: 15px;
+                    margin: 15px 0;
+                    border-radius: 5px;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                st.markdown('<div class="delete-confirmation">', unsafe_allow_html=True)
+                st.markdown(f'<div class="confirmation-title">🚨 Confirm Deletion</div>', unsafe_allow_html=True)
+                
+                with st.form(key=f"delete_confirm_form_{period_key_to_delete}"):
+                    st.markdown(f"""
+                    <div class="confirmation-warning">
+                        <strong>⚠️ You are about to delete the MCM period: "{period_display}"</strong><br><br>
+                        This action will permanently remove:
+                        <ul>
+                            <li>✗ All DAR PDF files uploaded for this period</li>
+                            <li>✗ All audit para data and spreadsheet entries</li>
+                            <li>✗ All associated reports and analytics</li>
+                            <li>✗ The period tracking record</li>
+                        </ul>
+                        <strong style="color: #d32f2f;">This action cannot be undone!</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    pco_password_confirm = st.text_input(
+                        "🔐 Enter your PCO password to confirm deletion:", 
+                        type="password",
+                        help="This is required for security verification"
+                    )
+                    
+                    form_c1, form_c2 = st.columns(2)
+                    
+                    with form_c1:
+                        submitted_delete = st.form_submit_button(
+                            "🗑️ Yes, Delete Permanently", 
+                            type="primary",
+                            use_container_width=True
+                        )
+                    with form_c2:
+                        cancel_delete = st.form_submit_button(
+                            "❌ Cancel", 
+                            type="secondary", 
+                            use_container_width=True
+                        )
+                    
+                    if cancel_delete:
                         st.session_state.show_delete_confirm = False
                         st.session_state.period_to_delete = None
                         st.rerun()
-                
-                if submitted_delete:
-                    # Here you would validate the password against your user credentials
-                    # For now, we'll skip password validation as it depends on your config
-                    if pco_password_confirm:  # Replace with actual password validation
-                        # Remove the period from the dataframe
-                        df_updated = df_periods_manage[df_periods_manage['key'] != period_key_to_delete]
-                        if update_spreadsheet_from_df(dbx, df_updated, MCM_PERIODS_INFO_PATH):
-                            st.success(f"MCM period {period_key_to_delete} deleted successfully.")
+                    
+                    if submitted_delete:
+                        # Validate password (replace with actual password validation)
+                        if pco_password_confirm == USER_CREDENTIALS.get("planning_officer", ""):
+                            # Remove the period from the dataframe
+                            df_updated = df_periods_manage[df_periods_manage['key'] != period_key_to_delete]
+                            
+                            if update_spreadsheet_from_df(dbx, df_updated, MCM_PERIODS_INFO_PATH):
+                                st.success(f"✅ MCM period '{period_display}' deleted successfully!")
+                                st.balloons()
+                                
+                                # Clear session state
+                                st.session_state.show_delete_confirm = False
+                                st.session_state.period_to_delete = None
+                                
+                                # Wait and reload
+                                time.sleep(2)
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to delete the period from Dropbox.")
                         else:
-                            st.error("Failed to delete the period.")
-                        st.session_state.show_delete_confirm = False
-                        st.session_state.period_to_delete = None
-                        st.rerun()
-                    else:
-                        st.error("Please enter your password to confirm deletion.")
+                            st.error("🔒 Incorrect password. Please try again.")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
     # ========================== VIEW UPLOADED REPORTS TAB ==========================
     elif selected_tab == "View Uploaded Reports":
@@ -1299,3 +1534,4 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
