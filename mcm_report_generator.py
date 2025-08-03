@@ -382,99 +382,7 @@ class PDFReportGenerator:
         print(f"Final registry keys: {list(registry.keys())}")
         return registry
     
-    # def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
-    #     """Insert chart with proper scaling - FIXED for pie charts"""
-    #     try:
-    #         print('Processing Chart inside insert ',chart_id)
-    #         if chart_id not in self.chart_registry:
-    #             return False
-    
-    #         chart_info = self.chart_registry[chart_id]
-    #         chart_data = chart_info['metadata']
-    #         img_bytes = chart_info['image']
-    
-    #         if img_bytes is None:
-    #             return False
-    
-    #         # Add title and description
-    #         if add_title:
-    #             self.story.append(Paragraph(chart_data.get('title', ''), self.chart_title_style))
-    #         if add_description:
-    #             self.story.append(Paragraph(chart_data.get('description', ''), self.chart_description_style))
-    
-    #         # Create drawing
-    #         drawing, error = self._create_safe_svg_drawing(img_bytes)
-            
-    #         if error or drawing is None:
-    #             return False
-    
-    #         # SPECIAL HANDLING FOR PIE CHARTS (square dimensions)
-    #         # SPECIAL HANDLING FOR PIE CHARTS (maintain circular proportions)
-    #         is_pie_row = 'combined' in chart_id or 'three_pie' in chart_id or 'taxpayer_classification_distribution' in chart_id
-       
-    #         #is_pie_chart = any(pie_id in chart_id for pie_id in [ 'classification_detection', 'classification_recovery'])
-    #         if is_pie_row:
-    #             # Wide format for three pies in row
-    #             target_width = 8.5 * inch
-    #             target_height = 4.5 * inch
-    #         # elif is_pie_chart:
-    #         #     # SQUARE dimensions for pie charts - CRITICAL for circular shape
-    #         #     target_size = 3.0 * inch  # Same width and height
-    #         #     target_width = target_size
-    #         #     target_height = target_size
-               
-    #         #     # Force square aspect ratio
-    #         #     original_width = getattr(drawing, 'width', 500)
-    #         #     original_height = getattr(drawing, 'height', 500)
-    #         #     print('Piechart found',original_width,original_height)
-    #         #     # Use the same scale for both dimensions to maintain circular shape
-    #         #     scale_factor = target_size / max(original_width, original_height)
-    #         #     scale_x = scale_factor
-    #         #     scale_y = scale_factor
-    #         #     print('Scale factor ',scale_x,scale_y)
-    #         else:
-    #             # Regular sizing for other charts
-    #             size_configs = {
-    #                 "tiny": 3.5 * inch,
-    #                 "small": 4 * inch,
-    #                 "compact":4.5 * inch,
-    #                 "medium": 5.0 * inch,
-    #                 "large": 6.5 * inch
-    #             }
-    #             target_width = size_configs.get(size, 5.0 * inch)
-    #             target_height = target_width * 0.6
-    
-    #         # Calculate scale factors
-    #         original_width = getattr(drawing, 'width', 400)
-    #         original_height = getattr(drawing, 'height', 400)
-    #         scale_x = target_width / original_width
-    #         scale_y = target_height / original_height
-    
-    #         # Create properly scaled drawing
-    #         from reportlab.graphics.shapes import Drawing, Group
-            
-    #         scaled_drawing = Drawing(target_width, target_height)
-    #         content_group = Group()
-    #         content_group.transform = (scale_x, 0, 0, scale_y, 0, 0)
-            
-    #         # Add original contents
-    #         if hasattr(drawing, 'contents'):
-    #             for item in drawing.contents:
-    #                 content_group.add(item)
-            
-    #         scaled_drawing.add(content_group)
-    #         scaled_drawing.hAlign = 'CENTER'
-            
-    #         self.story.append(Spacer(1, 0.01 * inch))
-    #         self.story.append(scaled_drawing)
-    #         self.story.append(Spacer(1, 0.001 * inch))
-            
-    #         print(f"SUCCESS: Perfectly scaled chart '{chart_id}' added")
-    #         return True
-            
-    #     except Exception as e:
-    #         print(f"ERROR: {e}")
-    #         return False
+   
     def insert_chart_by_id(self, chart_id, size="medium", add_title=False, add_description=False):
         """Insert chart with proper scaling - ENHANCED for all chart types including detailed classification"""
         try:
@@ -783,7 +691,8 @@ class PDFReportGenerator:
                 "(iv) <b>Nature of Non Compliance Analysis</b>, using Audit Para Categorisation Coding System of Audit-1 commissionerate",
                 "(v) <b>Risk Parameter Analysis</b>",
                 "(vi) <b>Top Audit Group and Circle Performance</b>",
-                "(vii) <b>Top Taxpayers of Detection and Recovery</b>"
+                "(vii) <b>Top Taxpayers of Detection and Recovery</b>",
+                "(viii) <b>MCM Decision Analysis</b>"
             ]
             
             # Final part
@@ -1162,8 +1071,8 @@ class PDFReportGenerator:
            
             self.story.append(Paragraph(f"{self.selected_period.upper()}", title2_style))
             self.story.append(Spacer(1, 0.5 * inch))
-            self.story.append(Paragraph("EXECUTIVE SUMMARY REPORT1", title3_style))
-            self.story.append(Paragraph(" कार्यकारी सारांश प्रतिवेदन", hindi_style))
+            self.story.append(Paragraph("EXECUTIVE SUMMARY REPORT", title3_style))
+            #self.story.append(Paragraph(" कार्यकारी सारांश प्रतिवेदन", hindi_style))
             self.story.append(Paragraph("[Auto-generated by e-MCM App]", title4_style))
             
             self.story.append(Spacer(1, 2 * inch))
@@ -1171,12 +1080,13 @@ class PDFReportGenerator:
             # Emblem and Address at the Bottom using a Table
             contact_style = ParagraphStyle(name='Contact', fontSize=12, textColor=colors.HexColor("#193041"), alignment=TA_LEFT)
             org_style = ParagraphStyle(name='Org', fontSize=18, textColor=colors.HexColor("#193041"), alignment=TA_LEFT, fontName='Helvetica-Bold', leading=18)
-
+            disclaimer_style = ParagraphStyle(name='Org', fontSize=10, textColor=colors.HexColor("#193041"), alignment=TA_LEFT, fontName='Helvetica-Bold', leading=18)
             right_col_text = [
                 Paragraph("Office of the Commissioner of CGST & Central Excise", org_style),
                 Paragraph("Audit-I Commissionerate, Mumbai", org_style),
                 Spacer(1, 0.2 * inch),
-                Paragraph("Ph: 022-22617504 | Email: audit1mum@gov.in", contact_style)
+                Paragraph("Ph: 022-22617504 | Email: audit1mum@gov.in", contact_style),
+                Paragraph("Note:For more details on MCM decisions ,refer to Detailed Minutes of the Meeting document", disclaimer_style)
             ]
 
             try:
@@ -1769,377 +1679,7 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Error adding sectoral summary table: {e}")
             
-    # def add_comprehensive_classification_page(self):
-    #     #"""Add a comprehensive classification page using pre-processed data"""
-    #     print(f"DEBUG: vital_stats contains: {list(self.vital_stats.keys())}")
-    #     classification_data = self.vital_stats.get('classification_page_data')
-    #     print(f"DEBUG: classification_page_data = {classification_data}")
-       
-    #     try:
-    #         # Get pre-processed classification data from vital_stats
-    #         classification_data = self.vital_stats.get('classification_page_data', {})
-    #         print("🔍 === CLASSIFICATION PAGE DEBUG ===")
- 
     
-    #         print(f"🔍 classification_page_data exists: {classification_data is not None}")
-    
-    #         if classification_data:
-    #             total_observations = classification_data.get('total_observations', 0)
-    #             main_categories_count = classification_data.get('main_categories_count', 0)  
-    #             sub_categories_count = classification_data.get('sub_categories_count', 0)
-                
-    #             # Convert category stats back to DataFrame for compatibility
-    #             category_stats_records = classification_data.get('category_stats', [])
-    #             category_stats = pd.DataFrame(category_stats_records)
-                
-    #             print(f"SUCCESS: Loaded classification data - {total_observations} observations")
-    #         else:
-    #             # Fallback values if no data
-    #             total_observations = main_categories_count = sub_categories_count = 0
-    #             category_stats = pd.DataFrame()
-    #             print("WARNING: No classification data found in vital_stats")
-    #         # PAGE HEADER with gradient effect using table
-    #         header_style = ParagraphStyle(
-    #             name='ClassificationHeader',
-    #             parent=self.styles['Heading1'],
-    #             fontSize=20,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold',
-    #             spaceAfter=0,
-    #             spaceBefore=0
-    #         )
-                    
-    #         subtitle_style = ParagraphStyle(
-    #             name='ClassificationSubtitle',
-    #             parent=self.styles['Normal'],
-    #             fontSize=12,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica',
-    #             spaceAfter=0
-    #         )
-    
-    #         # Create header with blue gradient background
-    #         header_data = [
-    #             [Paragraph("GST Audit Para Classification", header_style)],
-    #             [Paragraph("Comprehensive categorization by Nature of Non-Compliance", subtitle_style)],
-    #             [Paragraph(f"📅 Period: {self.selected_period} | 🔍 Real-time Analysis Data", subtitle_style)]
-    #         ]
-            
-    #         header_table = Table(header_data, colWidths=[7.5*inch])
-    #         header_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#2a5298")),
-    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 15),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-    #             ('LEFTPADDING', (0, 0), (-1, -1), 20),
-    #             ('RIGHTPADDING', (0, 0), (-1, -1), 20),
-    #         ]))
-            
-    #         self.story.append(header_table)
-            
-    #         # STATISTICS SECTION with purple gradient
-    #         stats_header_style = ParagraphStyle(
-    #             name='StatsHeader',
-    #             parent=self.styles['Heading2'],
-    #             fontSize=16,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         stats_data = [
-    #             [Paragraph("Classification Overview", stats_header_style)],
-    #             [self._create_stats_grid(main_categories_count, sub_categories_count, total_observations)]
-    #         ]
-            
-    #         stats_table = Table(stats_data, colWidths=[7.5*inch])
-    #         stats_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#764ba2")),
-    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 15),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-    #         ]))
-            
-    #         self.story.append(stats_table)
-    #         self.story.append(Spacer(1, 0.2*inch))
-    
-    #         # CLASSIFICATION CATEGORIES GRID
-    #         self._add_classification_categories_grid(category_stats)
-            
-    #         # LEGEND SECTION
-    #         self._add_classification_legend()
-            
-    #     except Exception as e:
-    #         print(f"Error adding comprehensive classification page: {e}")
-    #         import traceback
-    #         traceback.print_exc()
-    
-    # def _create_stats_grid(self, main_categories, sub_categories, total_observations):
-    #         """Create statistics grid for the classification page"""
-            
-    #         stat_style = ParagraphStyle(
-    #             name='StatNumber',
-    #             fontSize=20,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold',
-    #             spaceAfter=3
-    #         )
-            
-    #         label_style = ParagraphStyle(
-    #             name='StatLabel',
-    #             fontSize=10,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica',
-    #             spaceAfter=0
-    #         )
-            
-    #         # Create mini tables for each stat
-    #         stats_data = [
-    #             [
-    #                 Table([
-    #                     [Paragraph(str(main_categories), stat_style)],
-    #                     [Paragraph("Main Categories", label_style)]
-    #                 ], colWidths=[1.5*inch]),
-                    
-    #                 Table([
-    #                     [Paragraph(str(sub_categories), stat_style)],
-    #                     [Paragraph("Sub-Categories", label_style)]
-    #                 ], colWidths=[1.5*inch]),
-                    
-    #                 Table([
-    #                     [Paragraph(str(total_observations), stat_style)],
-    #                     [Paragraph("Audit Observations", label_style)]
-    #                 ], colWidths=[1.5*inch]),
-                    
-    #                 Table([
-    #                     [Paragraph("100%" if total_observations > 0 else "0%", stat_style)],
-    #                     [Paragraph("Coverage", label_style)]
-    #                 ], colWidths=[1.5*inch])
-    #             ]
-    #         ]
-            
-    #         grid_table = Table(stats_data, colWidths=[1.7*inch, 1.7*inch, 1.7*inch, 1.7*inch])
-    #         grid_table.setStyle(TableStyle([
-    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #         ]))
-            
-    #         return grid_table
-        
-    # def _add_classification_categories_grid(self, category_stats):
-    #         """Add the 9 classification categories in a 3x3 grid"""
-            
-    #         categories_info = [
-    #             ("TP", "Tax Payment Defaults", "#e74c3c", [
-    #                 "Output Tax Short Payment", "Output Tax on Other Income", 
-    #                 "Export & SEZ Related Issues", "Credit Note Related Errors"
-    #             ]),
-    #             ("RC", "Reverse Charge Mechanism", "#f39c12", [
-    #                 "Transportation & Logistics", "Professional & Legal Services",
-    #                 "Import of Services", "RCM Reconciliation Issues"
-    #             ]),
-    #             ("IT", "Input Tax Credit Violations", "#3498db", [
-    #                 "Blocked Credit Claims (Sec 17(5))", "Ineligible ITC Claims (Sec 16)",
-    #                 "Excess ITC Reconciliation", "ITC Reversal Defaults"
-    #             ]),
-    #             ("IN", "Interest Liability Defaults", "#9b59b6", [
-    #                 "Tax Payment Related Interest", "ITC Related Interest (Sec 50)",
-    #                 "Time of Supply Interest", "Self-Assessment Interest"
-    #             ]),
-    #             ("RF", "Return Filing Non-Compliance", "#2ecc71", [
-    #                 "Late Filing Penalties", "Non-Filing Issues (ITC-04)",
-    #                 "Filing Quality Issues", "Annual Return Issues"
-    #             ]),
-    #             ("PD", "Procedural & Documentation", "#34495e", [
-    #                 "Return Reconciliation", "Documentation Deficiencies",
-    #                 "Cash Payment Violations", "Record Maintenance"
-    #             ]),
-    #             ("CV", "Classification & Valuation", "#e67e22", [
-    #                 "Service Classification Errors", "Wrong Chapter Heading",
-    #                 "Incorrect Notification Claims", "Rate Classification Errors"
-    #             ]),
-    #             ("SS", "Special Situations", "#1abc9c", [
-    #                 "Construction/Real Estate", "Job Work Related Compliance",
-    #                 "Inter-Company Transactions", "Composition Scheme Issues"
-    #             ]),
-    #             ("PG", "Penalty & General Compliance", "#c0392b", [
-    #                 "Statutory Penalties (Sec 123)", "Stock & Physical Verification",
-    #                 "General Non-Compliance", "Compliance Monitoring"
-    #             ])
-    #         ]
-            
-    #         # Create 3x3 grid
-    #         rows_data = []
-    #         for i in range(0, 9, 3):
-    #             row_cards = []
-    #             for j in range(3):
-    #                 if i + j < len(categories_info):
-    #                     card = self._create_category_card(categories_info[i + j], category_stats)
-    #                     row_cards.append(card)
-    #                 else:
-    #                     row_cards.append("")  # Empty cell if needed
-    #             rows_data.append(row_cards)
-            
-    #         # Create the grid table
-    #         grid_table = Table(rows_data, colWidths=[2.5*inch, 2.5*inch, 2.5*inch])
-    #         grid_table.setStyle(TableStyle([
-    #             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-    #             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-    #             ('LEFTPADDING', (0, 0), (-1, -1), 5),
-    #             ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 5),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-    #         ]))
-            
-    #         self.story.append(grid_table)
-        
-    # def _create_category_card(self, category_info, category_stats):
-    #         """Create a visual card for each classification category"""
-    #         code, title, color, subcategories = category_info
-            
-    #         # Get real statistics for this category
-    #         stats_text = self._get_category_stats_text(category_stats, code)
-            
-    #         # Card title style
-    #         title_style = ParagraphStyle(
-    #             name=f'CardTitle_{code}',
-    #             fontSize=11,
-    #             textColor=colors.HexColor("#2c3e50"),
-    #             alignment=TA_LEFT,
-    #             fontName='Helvetica-Bold',
-    #             spaceAfter=6
-    #         )
-            
-    #         # Subcategory style
-    #         sub_style = ParagraphStyle(
-    #             name=f'CardSub_{code}',
-    #             fontSize=8,
-    #             textColor=colors.HexColor("#5a6c7d"),
-    #             alignment=TA_LEFT,
-    #             fontName='Helvetica',
-    #             spaceAfter=2,
-    #             leftIndent=10
-    #         )
-            
-    #         # Stats style
-    #         stats_style = ParagraphStyle(
-    #             name=f'CardStats_{code}',
-    #             fontSize=8,
-    #             textColor=colors.HexColor("#34495e"),
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold',
-    #             spaceAfter=0
-    #         )
-            
-    #         # Create card content
-    #         card_content = [
-    #             [Paragraph(f"<font color='{color}'>{code}</font> • {title}", title_style)]
-    #         ]
-            
-    #         # Add subcategories (limit to 3 for space)
-    #         for sub in subcategories[:3]:
-    #             card_content.append([Paragraph(f"▶ {sub}", sub_style)])
-            
-    #         # Add statistics
-    #         card_content.append([Paragraph(stats_text, stats_style)])
-            
-    #         # Create the card table
-    #         card_table = Table(card_content, colWidths=[2.3*inch])
-    #         card_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8f9fa")),
-    #             ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#e0e0e0")),
-    #             ('LEFTPADDING', (0, 0), (-1, -1), 8),
-    #             ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 8),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    #             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-    #             # Add colored left border
-    #             ('LINEABOVE', (0, 0), (0, 0), 4, colors.HexColor(color)),
-    #         ]))
-            
-    #         return card_table
-        
-    # def _get_category_stats_text(self, category_stats, category_code):
-    #         """Get formatted statistics text for a category"""
-    #         if category_stats.empty:
-    #             return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
-            
-    #         category_data = category_stats[category_stats['major_code'] == category_code]
-    #         if category_data.empty:
-    #             return "📊 No data | 💰 ₹0 L | 💎 ₹0 L"
-            
-    #         paras = int(category_data['para_count'].iloc[0])
-    #         detection = float(category_data['total_detection'].iloc[0])
-    #         recovery = float(category_data['total_recovery'].iloc[0])
-            
-    #         return f"📊 {paras} paras | 💰 ₹{detection:.1f}L | 💎 ₹{recovery:.1f}L"
-        
-    # def _add_classification_legend(self):
-    #         """Add color legend and usage guide"""
-    #         legend_style = ParagraphStyle(
-    #             name='LegendHeader',
-    #             fontSize=14,
-    #             textColor=colors.white,
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         legend_item_style = ParagraphStyle(
-    #             name='LegendItem',
-    #             fontSize=9,
-    #             textColor=colors.white,
-    #             alignment=TA_LEFT,
-    #             fontName='Helvetica'
-    #         )
-            
-    #         # Legend items with color indicators
-    #         legend_items = [
-    #             ("■", "#e74c3c", "High Risk - Tax Payment Issues"),
-    #             ("■", "#f39c12", "Medium Risk - RCM Compliance"), 
-    #             ("■", "#3498db", "High Volume - ITC Issues"),
-    #             ("■", "#9b59b6", "Financial Impact - Interest"),
-    #             ("■", "#2ecc71", "Administrative - Filing Issues"),
-    #             ("■", "#34495e", "Process Related - Documentation")
-    #         ]
-            
-    #         # Create legend grid
-    #         legend_data = [
-    #             [Paragraph("🎯 Classification Guide & Impact Assessment", legend_style)]
-    #         ]
-            
-    #         # Add legend items in 2 columns
-    #         for i in range(0, len(legend_items), 2):
-    #             row = []
-    #             for j in range(2):
-    #                 if i + j < len(legend_items):
-    #                     symbol, color, text = legend_items[i + j]
-    #                     colored_text = f"<font color='{color}'>{symbol}</font> {text}"
-    #                     row.append(Paragraph(colored_text, legend_item_style))
-    #                 else:
-    #                     row.append("")
-    #             legend_data.append(row)
-            
-    #         legend_table = Table(legend_data, colWidths=[3.75*inch, 3.75*inch])
-    #         legend_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#34495e")),
-    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center header
-    #             ('ALIGN', (0, 1), (-1, -1), 'LEFT'),   # Left align items
-    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-    #             ('LEFTPADDING', (0, 0), (-1, -1), 15),
-    #             ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-    #             ('SPAN', (0, 0), (1, 0)),  # Span header across both columns
-    #         ]))
-            
-    #         self.story.append(Spacer(1, 0.2*inch))
-    #         self.story.append(legend_table)
     def add_comprehensive_classification_page(self):
         """Add an ultra-compact classification page that fits on one page"""
         try:
@@ -2186,8 +1726,8 @@ class PDFReportGenerator:
     
             # Create compact header with reduced padding
             header_data = [
-                [Paragraph("GST Audit Para Classification", header_style)],
-                [Paragraph("Comprehensive categorization by Nature of Non-Compliance", subtitle_style)],
+                [Paragraph("GST Audit Para Codification and Classification ", header_style)],
+                [Paragraph("Comprehensive categorization by Nature of Non-Compliance using AI Agent", subtitle_style)],
                 [Paragraph(f"📅 Period: {self.selected_period} | 🔍 Real-time Analysis Data", subtitle_style)]
             ]
             
@@ -2453,7 +1993,7 @@ class PDFReportGenerator:
         )
         
         # Single line legend text
-        legend_text = "Audit 1 Commissionerate Mumbai GST Zone codified Nature of compliances into total 58 Sub codes under 9 main classification codes for analysis"
+        legend_text = "Audit 1 Commissionerate Mumbai GST Zone codified Nature of compliances into total 58 Sub codes under 9 main classification codes for analysis using AI Agent"
         
         # Create simple legend table
         legend_data = [
@@ -3057,7 +2597,7 @@ class PDFReportGenerator:
             )
             
             description_text = """
-            This section analyzes audit performance based on pre-defined GST risk parameters. 
+            This section analyzes audit performance based on pre-defined GST risk parameters of DGARM . 
             It helps identify which risks are most frequently associated with audit observations and which ones 
             contribute most to revenue detection and recovery. The charts are sorted to highlight the most significant parameters.
             """
@@ -3203,22 +2743,7 @@ class PDFReportGenerator:
                 
         except Exception as e:
               print(f"Error adding risk parameter analysis: {e}")#0, 0), (-1, -1), 'MIDDLE'),
-        #     ]))
-            
-        #     self.story.append(performance_table)
-        #     self.story.append(Spacer(1, 0.3 * inch))
-            
-        # except Exception as e:
-        #     print(f"Error adding monthly performance summary: {e}")
-        #     # Add error message if table creation fails
-        #     error_style = ParagraphStyle(
-        #         name='TableError',
-        #         parent=self.styles['Normal'],
-        #         fontSize=10,
-        #         textColor=colors.red,
-        #         alignment=TA_CENTER
-        #     )
-        #     self.story.append(Paragraph("Error loading performance summary table", error_style))
+        
 
     def add_top_performance_analysis(self):
         """Add Section V - Top Audit Group and Circle Performance"""
@@ -3797,142 +3322,7 @@ class PDFReportGenerator:
                 self.story.append(Spacer(1, 0.2 * inch))
             except:
                 pass  # Don't let error handling crash the whole PDF
-    # def add_audit_group_performance_summary(self):
-    #     """Add Section VII - Performance Summary of Audit Group"""
-    #     try:
-    #         # Section header
-    #         self.add_section_highlight_bar("VII. Performance Summary of Audit Group", text_color="#0E4C92")
-            
-    #         # Description
-    #         desc_style = ParagraphStyle(
-    #             name='GroupPerformanceDesc',
-    #             parent=self.styles['Normal'],
-    #             fontSize=11,
-    #             textColor=colors.HexColor("#2C2C2C"),
-    #             alignment=TA_JUSTIFY,
-    #             fontName='Helvetica',
-    #             leftIndent=0.25*inch,
-    #             rightIndent=0.25*inch,
-    #             leading=14,
-    #             spaceAfter=16
-    #         )
-            
-    #         description_text = """
-    #         This section provides a comprehensive performance analysis of each audit group, showing their contribution 
-    #         to overall audit performance in terms of DARs submitted, audit paras raised, detection amounts, and recovery efficiency.
-    #         """
-            
-    #         self.story.append(Paragraph(description_text, desc_style))
-            
-    #         # Table header style
-    #         table_header_style = ParagraphStyle(
-    #             name='GroupPerformanceTableHeader',
-    #             parent=self.styles['Heading3'],
-    #             fontSize=14,
-    #             textColor=colors.HexColor("#1134A6"),
-    #             alignment=TA_LEFT,
-    #             fontName='Helvetica-Bold',
-    #             spaceAfter=12,
-    #             spaceBefore=16
-    #         )
-            
-    #         self.story.append(Paragraph("📊 Audit Group Performance Summary", table_header_style))
-            
-    #         # Get data from vital_stats
-    #         group_performance_data = self.vital_stats.get('group_performance_data', [])
-            
-    #         if group_performance_data:
-    #             # Create the performance table
-    #             performance_data = [['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %']]
-                
-    #             for group_item in group_performance_data:
-    #                 # Calculate circle number from audit group (groups 1-3 = circle 1, 4-6 = circle 2, etc.)
-    #                 audit_group = str(group_item.get('audit_group', 'N/A'))
-    #                 try:
-    #                     group_num = int(audit_group)
-    #                     circle_num = str(((group_num - 1) // 3) + 1) if group_num > 0 else 'N/A'
-    #                 except (ValueError, TypeError):
-    #                     circle_num = 'N/A'
-                    
-    #                 dar_count = int(group_item.get('dar_count', 0))
-    #                 paras_count = int(group_item.get('paras_count', 0))
-    #                 detection = float(group_item.get('total_detection', 0))
-    #                 recovery = float(group_item.get('total_recovery', 0))
-    #                 recovery_pct = float(group_item.get('recovery_percentage', 0))
-                    
-    #                 performance_data.append([
-    #                     circle_num,
-    #                     audit_group,
-    #                     str(dar_count),
-    #                     str(paras_count),
-    #                     f'Rs.{detection:.2f} L',
-    #                     f'Rs.{recovery:.2f} L',
-    #                     f'{recovery_pct:.1f}%'
-    #                 ])
-    #         else:
-    #             # Fallback data if no group performance data available
-    #             performance_data = [
-    #                 ['Circle No.', 'Audit Group', 'Total DARs', 'Total Audit Paras', 'Total Detection (Rs.L)', 'Total Recovery (Rs.L)', 'Recovery %'],
-    #                 ['1', '1', '2', '8', 'Rs.5.25 L', 'Rs.2.10 L', '40.0%'],
-    #                 ['1', '2', '3', '12', 'Rs.8.75 L', 'Rs.3.50 L', '40.0%'],
-    #                 ['1', '3', '1', '4', 'Rs.2.15 L', 'Rs.0.85 L', '39.5%'],
-    #                 ['2', '4', '2', '7', 'Rs.6.80 L', 'Rs.2.95 L', '43.4%'],
-    #                 ['2', '5', '1', '3', 'Rs.1.95 L', 'Rs.0.75 L', '38.5%'],
-    #                 ['2', '6', '1', '5', 'Rs.3.45 L', 'Rs.1.25 L', '36.2%']
-    #             ]
-            
-    #         # Create table with optimized column widths
-    #         col_widths = [0.8*inch, 1.0*inch, 0.9*inch, 1.2*inch, 1.5*inch, 1.5*inch, 1.0*inch]
-    #         performance_table = Table(performance_data, colWidths=col_widths)
-            
-    #         # Apply professional styling with gradient colors
-    #         performance_table.setStyle(TableStyle([
-    #             # Header styling with gradient effect
-    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F4E79")),  # Dark blue header
-    #             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    #             ('FONTSIZE', (0, 0), (-1, 0), 9),
-    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                
-    #             # Data rows styling
-    #             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-    #             ('FONTSIZE', (0, 1), (-1, -1), 9),
-    #             ('ALIGN', (0, 1), (1, -1), 'CENTER'),   # Circle and Group columns centered
-    #             ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # All other columns centered
-                
-    #             # Circle-wise grouping colors
-    #             ('BACKGROUND', (0, 1), (-1, 3), colors.HexColor("#E8F5E8")),    # Light green for Circle 1
-    #             ('BACKGROUND', (0, 4), (-1, 6), colors.HexColor("#FFF3CD")),    # Light yellow for Circle 2
-    #             ('BACKGROUND', (0, 7), (-1, 9), colors.HexColor("#F8D7DA")),    # Light red for Circle 3
-                
-    #             # Alternating row colors for better readability
-    #             ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),    # Alice blue
-    #             ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0F8FF")),    # Alice blue
-    #             ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0F8FF")),    # Alice blue
-                
-    #             # Grid and borders
-    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-    #             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#1F4E79")),
-                
-    #             # Special borders for circle separation
-    #             ('LINEBELOW', (0, 3), (-1, 3), 1.5, colors.HexColor("#2E8B57")),  # Green line after Circle 1
-    #             ('LINEBELOW', (0, 6), (-1, 6), 1.5, colors.HexColor("#DAA520")),  # Gold line after Circle 2
-                
-    #             # Padding
-    #             ('TOPPADDING', (0, 0), (-1, -1), 8),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    #             ('LEFTPADDING', (0, 0), (-1, -1), 6),
-    #             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                
-    #             # Vertical alignment
-    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #         ]))
-            
-    #         self.story.append(performance_table)
-    #         self.story.append(Spacer(1, 0.3 * inch))
-            
-    #     except Exception as e:
-    #         print(f"Error adding audit group performance summary: {e}")
+    
 
     def add_summary_of_audit_paras(self):
         """Add Section VIII - Summary of Audit Paras (Comprehensive MCM Summary)"""
@@ -4646,7 +4036,7 @@ class PDFReportGenerator:
                 'Para closed since recovered',
                 'Para deferred', 
                 'Para to be pursued else issue SCN',
-                'Decision pending'
+                'Decision pending(not saved)'
             ]
             
             # Initialize counters
@@ -4914,7 +4304,6 @@ class PDFReportGenerator:
                 <b>Summary of MCM Decisions:</b><br/>
                 • Total audit paras reviewed: <b>{total_paras}</b><br/>
                 • Most common decision: <b>"{most_common_decision['decision']}"</b> ({most_common_decision['para_count']} paras)<br/>
-                • Paras requiring follow-up action: <b>{total_action_paras}</b> ({(total_action_paras/total_paras*100):.1f}% of total)<br/>
                 • Decisions have been recorded for all paras to ensure proper tracking and compliance monitoring.
                 """
                 
@@ -4924,134 +4313,4 @@ class PDFReportGenerator:
             
         except Exception as e:
             print(f"Error adding MCM decision insights: {e}")    
-    # def add_top_taxpayers_summary_table(self):
-    #     """Add top taxpayers summary table"""
-    #     try:
-    #         top_taxpayers_data = self.vital_stats.get('top_taxpayers_data', {})
-            
-    #         if top_taxpayers_data:
-    #             table_header_style = ParagraphStyle(
-    #                 name='TopTaxpayersTableHeader',
-    #                 parent=self.styles['Heading3'],
-    #                 fontSize=14,
-    #                 textColor=colors.HexColor("#1134A6"),
-    #                 alignment=TA_LEFT,
-    #                 fontName='Helvetica-Bold',
-    #                 spaceAfter=12,
-    #                 spaceBefore=16
-    #             )
-                
-    #             # Top Detection Taxpayers Table
-    #             top_detection = top_taxpayers_data.get('top_detection', [])
-    #             if top_detection:
-    #                 self.story.append(Paragraph("🏆 Top 5 Taxpayers by Detection Amount", table_header_style))
-                    
-    #                 detection_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
-                    
-    #                 for taxpayer in top_detection[:5]:
-    #                     trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-    #                     # Truncate long trade names
-    #                     if len(trade_name) > 40:
-    #                         trade_name = trade_name[:37] + '...'
-                        
-    #                     category = taxpayer.get('category', 'Unknown')
-    #                     detection = float(taxpayer.get('total_detection', 0))
-    #                     recovery = float(taxpayer.get('total_recovery', 0))
-    #                     recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                        
-    #                     detection_data.append([
-    #                         trade_name,
-    #                         category,
-    #                         f'Rs.{detection:.2f} L',
-    #                         f'Rs.{recovery:.2f} L',
-    #                         f'{recovery_pct:.1f}%'
-    #                     ])
-                    
-    #                 detection_table = Table(detection_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-    #                 detection_table.setStyle(TableStyle([
-    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
-    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
-    #                     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-    #                     ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
-    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #                     # Alternating row colors
-    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-    #                     ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-    #                     ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-    #                 ]))
-                    
-    #                 self.story.append(detection_table)
-    #                 self.story.append(Spacer(1, 0.15 * inch))
-                
-    #             # Top Recovery Taxpayers Table
-    #             top_recovery = top_taxpayers_data.get('top_recovery', [])
-    #             if top_recovery:
-    #                 self.story.append(Paragraph("💎 Top 5 Taxpayers by Recovery Amount", table_header_style))
-                    
-    #                 recovery_data = [['Trade Name', 'Category', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Recovery %']]
-                    
-    #                 for taxpayer in top_recovery[:5]:
-    #                     trade_name = str(taxpayer.get('trade_name', 'Unknown'))
-    #                     # Truncate long trade names
-    #                     if len(trade_name) > 40:
-    #                         trade_name = trade_name[:37] + '...'
-                        
-    #                     category = taxpayer.get('category', 'Unknown')
-    #                     detection = float(taxpayer.get('total_detection', 0))
-    #                     recovery = float(taxpayer.get('total_recovery', 0))
-    #                     recovery_pct = float(taxpayer.get('recovery_percentage', 0))
-                        
-    #                     recovery_data.append([
-    #                         trade_name,
-    #                         category,
-    #                         f'Rs.{detection:.2f} L',
-    #                         f'Rs.{recovery:.2f} L',
-    #                         f'{recovery_pct:.1f}%'
-    #                     ])
-                    
-    #                 recovery_table = Table(recovery_data, colWidths=[2.5*inch, 1*inch, 1.3*inch, 1.3*inch, 1*inch])
-    #                 recovery_table.setStyle(TableStyle([
-    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2E8B57")),  # Sea green
-    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
-    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
-    #                     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Center numeric columns
-    #                     ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Left align text columns
-    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
-    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #                     # Alternating row colors
-    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0FFF0")),
-    #                     ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F0FFF0")),
-    #                     ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F0FFF0")),
-    #                 ]))
-                    
-    #                 self.story.append(recovery_table)
-    #                 self.story.append(Spacer(1, 0.2 * inch))
-    #         else:
-    #             # Fallback message if no data
-    #             info_style = ParagraphStyle(
-    #                 name='InfoStyle',
-    #                 parent=self.styles['Normal'],
-    #                 fontSize=10,
-    #                 textColor=colors.HexColor("#666666"),
-    #                 alignment=TA_CENTER
-    #             )
-    #             self.story.append(Paragraph("No top taxpayers data available for this period.", info_style))
-                    
-    #     except Exception as e:
-    #         print(f"Error adding top taxpayers summary table: {e}")
-    
     
