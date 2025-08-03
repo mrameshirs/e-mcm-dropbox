@@ -530,13 +530,17 @@ class PDFReportGenerator:
         """Generate the full report with comprehensive error handling"""
         try:
             print("=== STARTING PDF GENERATION ===")
-            
-            # 1. Create cover page
-            self.create_cover_page_story()
-            self.story.append(PageBreak())
-            
-            # 2. Create summary header
-            self.create_summary_header()
+            try:
+   
+
+                # 1. Create cover page
+                self.create_cover_page_story()
+                self.story.append(PageBreak())
+                
+                # 2. Create summary header
+                self.create_summary_header()
+            except Exception as e:
+                print(f"ERROR in Coverpage and summary header: {e}")
             
          
             # 3. Add comprehensive monthly performance summary with charts Section I and II
@@ -566,11 +570,17 @@ class PDFReportGenerator:
           
                          
             # 7. Add Section V - Top Audit Group and Circle Performance
-            self.add_top_performance_analysis()
+            try:
+                self.add_top_performance_analysis()
+            except Exception as e:
+                print(f"Error in top performance analysis: {e}")
             
             # 8. Add Section VI - Top Taxpayers of Detection and Recovery
-            self.add_top_taxpayers_analysis()
-            
+            try:
+                self.add_top_taxpayers_analysis()
+            except Exception as e:
+                print(f"Error in top taxpayer analysis: {e}")
+                
             # 8a. Add Section VII - Performance Summary of Audit Group  
             self.add_audit_group_performance_summary()
 
