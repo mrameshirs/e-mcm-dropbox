@@ -1080,12 +1080,13 @@ class PDFReportGenerator:
             # Emblem and Address at the Bottom using a Table
             contact_style = ParagraphStyle(name='Contact', fontSize=12, textColor=colors.HexColor("#193041"), alignment=TA_LEFT)
             org_style = ParagraphStyle(name='Org', fontSize=18, textColor=colors.HexColor("#193041"), alignment=TA_LEFT, fontName='Helvetica-Bold', leading=18)
-            disclaimer_style = ParagraphStyle(name='Org', fontSize=10, textColor=colors.HexColor("#193041"), alignment=TA_LEFT, fontName='Helvetica-Bold', leading=18)
+            disclaimer_style = ParagraphStyle(name='Org', fontSize=10, textColor=colors.HexColor("#193041"), alignment=TA_LEFT, fontName='Helvetica-Oblique', leading=18)
             right_col_text = [
                 Paragraph("Office of the Commissioner of CGST & Central Excise", org_style),
                 Paragraph("Audit-I Commissionerate, Mumbai", org_style),
                 Spacer(1, 0.2 * inch),
                 Paragraph("Ph: 022-22617504 | Email: audit1mum@gov.in", contact_style),
+                Spacer(1, 0.4 * inch),
                 Paragraph("Note:For more details on MCM decisions ,refer to Detailed Minutes of the Meeting document", disclaimer_style)
             ]
 
@@ -3647,11 +3648,154 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Error adding GSTIN section: {e}")
 
+    # def _create_paras_table(self, paras_data):
+    #     """Create professional table for audit paras with totals summary"""
+    #     try:
+    #         # Table header
+    #         table_data = [['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']]
+            
+    #         # Initialize totals
+    #         total_detection = 0
+    #         total_recovery = 0
+            
+    #         # Add para data
+    #         for i, para in enumerate(paras_data):
+    #             para_num = str(int(para.get('audit_para_number', 0))) if para.get('audit_para_number') else 'N/A'
+                
+    #             # Text-wrapped para title
+    #             para_title = para.get('audit_para_heading', 'N/A')
+    #             if len(para_title) > 80:
+    #                 para_title = para_title[:77] + '...'
+                
+    #             # Get amounts in actual rupees (not lakhs)
+    #             detection_lakhs = para.get('revenue_involved_lakhs_rs', 0) or 0
+    #             recovery_lakhs = para.get('revenue_recovered_lakhs_rs', 0) or 0
+                
+    #             detection_rs = detection_lakhs * 100000  # Convert lakhs to rupees
+    #             recovery_rs = recovery_lakhs * 100000
+                
+    #             total_detection += detection_rs
+    #             total_recovery += recovery_rs
+                
+    #             status = para.get('status_of_para', 'N/A')
+    #             mcm_decision = para.get('mcm_decision', 'N/A')
+                
+    #             # Format amounts using Indian numbering system
+    #             detection_formatted = self.format_indian_currency(detection_rs)
+    #             recovery_formatted = self.format_indian_currency(recovery_rs)
+                
+    #             table_data.append([
+    #                 para_num,
+    #                 para_title,
+    #                 detection_formatted,
+    #                 recovery_formatted,
+    #                 status,
+    #                 mcm_decision
+    #             ])
+            
+    #         # Add totals row
+    #         total_detection_formatted = self.format_indian_currency(total_detection)
+    #         total_recovery_formatted = self.format_indian_currency(total_recovery)
+            
+    #         table_data.append([
+    #             '',
+    #             'Total of Paras',
+    #             total_detection_formatted,
+    #             total_recovery_formatted,
+    #             '',
+    #             ''
+    #         ])
+            
+    #         # Create table
+    #         col_widths = [0.7*inch, 2.8*inch, 1.0*inch, 1.0*inch, 1.2*inch, 1.8*inch]
+    #         paras_table = Table(table_data, colWidths=col_widths)
+            
+    #         # Apply colorful styling
+    #         paras_table.setStyle(TableStyle([
+    #             # Header styling
+    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#34495E")),
+    #             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 0), (-1, 0), 9),
+    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+    #             # Data rows
+    #             ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),  # Exclude totals row
+    #             ('FONTSIZE', (0, 1), (-1, -2), 8),
+    #             ('ALIGN', (0, 1), (0, -2), 'CENTER'),     # Para No. centered
+    #             ('ALIGN', (1, 1), (1, -2), 'LEFT'),      # Para Title left-aligned
+    #             ('ALIGN', (2, 1), (-1, -2), 'CENTER'),   # Other columns centered
+                
+    #             # Totals row styling
+    #             ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
+    #             ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, -1), (-1, -1), 9),
+    #             ('ALIGN', (1, -1), (1, -1), 'RIGHT'),    # "Total of Paras" right-aligned
+    #             ('ALIGN', (2, -1), (-1, -1), 'CENTER'),  # Amount columns centered
+    #             ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
+                
+    #             # Alternating row colors (excluding header and totals)
+    #             ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F9FA")),
+    #             ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F9FA")),
+    #             ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F9FA")),
+    #             ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor("#F8F9FA")),
+                
+    #             # Grid and borders
+    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#BDC3C7")),
+    #             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#34495E")),
+    #             ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor("#1F3A4D")),  # Line above totals
+                
+    #             # Padding for text wrapping
+    #             ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 4),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                
+    #             # Vertical alignment
+    #             ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Top alignment for text wrapping
+    #         ]))
+            
+    #         self.story.append(paras_table)
+            
+    #         # Add company totals summary (like in the UI)
+    #         self._add_company_totals_summary(paras_data, total_detection, total_recovery)
+            
+    #     except Exception as e:
+    #         print(f"Error creating paras table: {e}")
     def _create_paras_table(self, paras_data):
-        """Create professional table for audit paras with totals summary"""
+        """Create professional table for audit paras with totals summary - FIXED TEXT WRAPPING"""
         try:
-            # Table header
-            table_data = [['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']]
+            # Define styles for table content
+            para_title_style = ParagraphStyle(
+                name='ParaTitleStyle',
+                parent=self.styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_LEFT,
+                fontName='Helvetica',
+                leading=10,
+                wordWrap='LTR'  # Enable word wrapping
+            )
+            
+            cell_style = ParagraphStyle(
+                name='CellStyle',
+                parent=self.styles['Normal'],
+                fontSize=8,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_CENTER,
+                fontName='Helvetica',
+                leading=10
+            )
+            
+            # Table header - using Paragraph objects for proper formatting
+            table_data = [[
+                Paragraph('Para No.', cell_style),
+                Paragraph('Para Title', cell_style), 
+                Paragraph('Detection (₹)', cell_style),
+                Paragraph('Recovery (₹)', cell_style),
+                Paragraph('Status', cell_style),
+                Paragraph('MCM Decision', cell_style)
+            ]]
             
             # Initialize totals
             total_detection = 0
@@ -3661,10 +3805,10 @@ class PDFReportGenerator:
             for i, para in enumerate(paras_data):
                 para_num = str(int(para.get('audit_para_number', 0))) if para.get('audit_para_number') else 'N/A'
                 
-                # Text-wrapped para title
-                para_title = para.get('audit_para_heading', 'N/A')
-                if len(para_title) > 80:
-                    para_title = para_title[:77] + '...'
+                # Para title with proper text wrapping - DON'T truncate, let it wrap
+                para_title_text = para.get('audit_para_heading', 'N/A')
+                # Remove truncation - let the paragraph handle wrapping
+                para_title = Paragraph(para_title_text, para_title_style)
                 
                 # Get amounts in actual rupees (not lakhs)
                 detection_lakhs = para.get('revenue_involved_lakhs_rs', 0) or 0
@@ -3683,33 +3827,43 @@ class PDFReportGenerator:
                 detection_formatted = self.format_indian_currency(detection_rs)
                 recovery_formatted = self.format_indian_currency(recovery_rs)
                 
+                # Create table row with Paragraph objects for wrapping
                 table_data.append([
-                    para_num,
-                    para_title,
-                    detection_formatted,
-                    recovery_formatted,
-                    status,
-                    mcm_decision
+                    Paragraph(para_num, cell_style),
+                    para_title,  # This is already a Paragraph object
+                    Paragraph(detection_formatted, cell_style),
+                    Paragraph(recovery_formatted, cell_style),
+                    Paragraph(status, cell_style),
+                    Paragraph(mcm_decision, cell_style)
                 ])
             
             # Add totals row
             total_detection_formatted = self.format_indian_currency(total_detection)
             total_recovery_formatted = self.format_indian_currency(total_recovery)
             
+            total_style = ParagraphStyle(
+                name='TotalStyle',
+                parent=cell_style,
+                fontName='Helvetica-Bold',
+                fontSize=9
+            )
+            
             table_data.append([
-                '',
-                'Total of Paras',
-                total_detection_formatted,
-                total_recovery_formatted,
-                '',
-                ''
+                Paragraph('', total_style),
+                Paragraph('Total of Paras', total_style),
+                Paragraph(total_detection_formatted, total_style),
+                Paragraph(total_recovery_formatted, total_style),
+                Paragraph('', total_style),
+                Paragraph('', total_style)
             ])
             
-            # Create table
-            col_widths = [0.7*inch, 2.8*inch, 1.0*inch, 1.0*inch, 1.2*inch, 1.8*inch]
+            # FIXED COLUMN WIDTHS - Make Para Title column wider
+            col_widths = [0.6*inch, 3.5*inch, 1.0*inch, 1.0*inch, 1.1*inch, 1.3*inch]
+            # Total width = 8.5 inches (fits in page width)
+            
             paras_table = Table(table_data, colWidths=col_widths)
             
-            # Apply colorful styling
+            # Apply enhanced styling with text wrapping
             paras_table.setStyle(TableStyle([
                 # Header styling
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#34495E")),
@@ -3718,17 +3872,13 @@ class PDFReportGenerator:
                 ('FONTSIZE', (0, 0), (-1, 0), 9),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
-                # Data rows
-                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),  # Exclude totals row
-                ('FONTSIZE', (0, 1), (-1, -2), 8),
+                # Data rows - REMOVED specific font settings since we're using Paragraph objects
                 ('ALIGN', (0, 1), (0, -2), 'CENTER'),     # Para No. centered
                 ('ALIGN', (1, 1), (1, -2), 'LEFT'),      # Para Title left-aligned
                 ('ALIGN', (2, 1), (-1, -2), 'CENTER'),   # Other columns centered
                 
                 # Totals row styling
                 ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
-                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, -1), (-1, -1), 9),
                 ('ALIGN', (1, -1), (1, -1), 'RIGHT'),    # "Total of Paras" right-aligned
                 ('ALIGN', (2, -1), (-1, -1), 'CENTER'),  # Amount columns centered
                 ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
@@ -3742,16 +3892,19 @@ class PDFReportGenerator:
                 # Grid and borders
                 ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#BDC3C7")),
                 ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#34495E")),
-                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor("#1F3A4D")),  # Line above totals
+                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor("#1F3A4D")),
                 
-                # Padding for text wrapping
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                # CRITICAL: Padding for text wrapping - increase vertical padding
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('LEFTPADDING', (0, 0), (-1, -1), 4),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 4),
                 
-                # Vertical alignment
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Top alignment for text wrapping
+                # CRITICAL: TOP alignment for proper text wrapping
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                
+                # CRITICAL: Allow row height to expand for wrapped text
+                ('ROWBACKGROUNDS', (0, 0), (-1, -1), [None]),  # Ensures row height adapts
             ]))
             
             self.story.append(paras_table)
@@ -3759,9 +3912,12 @@ class PDFReportGenerator:
             # Add company totals summary (like in the UI)
             self._add_company_totals_summary(paras_data, total_detection, total_recovery)
             
+            print("✓ Created paras table with proper text wrapping")
+            
         except Exception as e:
             print(f"Error creating paras table: {e}")
-
+            import traceback
+            traceback.print_exc()
     def format_indian_currency(self, amount):
         """Format currency in Indian numbering system"""
         try:
@@ -4305,6 +4461,9 @@ class PDFReportGenerator:
                 • Total audit paras reviewed: <b>{total_paras}</b><br/>
                 • Most common decision: <b>"{most_common_decision['decision']}"</b> ({most_common_decision['para_count']} paras)<br/>
                 • Decisions have been recorded for all paras to ensure proper tracking and compliance monitoring.
+
+
+                                              (SUMMARY OF AUDIT PARAS - FROM NEXT PAGE)
                 """
                 
                 self.story.append(Paragraph(insights_text, insights_style))
