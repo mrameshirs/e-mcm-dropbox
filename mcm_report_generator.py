@@ -4396,14 +4396,34 @@ class PDFReportGenerator:
             print(f"Error adding audit group {audit_group} section: {e}")
 
     def _add_gstin_section(self, gstin_info):
-        """Add individual GSTIN section with paras table and remarks - FIXED VERSION"""
+        """Add individual GSTIN section with paras table and remarks - ENHANCED DEBUG VERSION"""
         try:
-            # GSTIN Header Box (matching UI style)
-            trade_name = gstin_info['trade_name']
-            category = gstin_info['category']
-            gstin = gstin_info['gstin']
+            print("\n" + "🏢" + "="*70)
+            print(f"🏢 PROCESSING GSTIN SECTION")
+            print("="*71)
             
-            # Create header similar to UI
+            # STEP 1: Validate and extract basic info
+            print(f"📋 GSTIN Info Analysis:")
+            print(f"   - Type: {type(gstin_info)}")
+            print(f"   - Keys: {list(gstin_info.keys()) if isinstance(gstin_info, dict) else 'Not a dict'}")
+            
+            if not isinstance(gstin_info, dict):
+                print("❌ CRITICAL: gstin_info is not a dictionary")
+                return
+            
+            trade_name = gstin_info.get('trade_name', 'Unknown Company')
+            category = gstin_info.get('category', 'Unknown')
+            gstin = gstin_info.get('gstin', 'Unknown')
+            paras = gstin_info.get('paras', [])
+            chair_remarks = gstin_info.get('chair_remarks', '')
+            
+            print(f"   - Trade Name: {trade_name}")
+            print(f"   - Category: {category}")
+            print(f"   - GSTIN: {gstin}")
+            print(f"   - Number of paras: {len(paras) if hasattr(paras, '__len__') else 'No length'}")
+            print(f"   - Chair Remarks: {chair_remarks[:50]}{'...' if len(str(chair_remarks)) > 50 else ''}")
+            
+            # STEP 2: Create header sections (existing code)
             header_style = ParagraphStyle(
                 name='GSTINHeaderStyle',
                 parent=self.styles['Normal'],
@@ -4426,8 +4446,9 @@ class PDFReportGenerator:
             ]))
             
             self.story.append(company_header_table)
+            print("✅ Company header added")
             
-            # Category and GSTIN info boxes (side by side like UI)
+            # Category and GSTIN info boxes
             info_style = ParagraphStyle(
                 name='InfoStyle',
                 parent=self.styles['Normal'],
@@ -4467,8 +4488,9 @@ class PDFReportGenerator:
             
             self.story.append(info_table)
             self.story.append(Spacer(1, 0.1 * inch))
+            print("✅ Category and GSTIN info added")
             
-            # Section title (matching UI)
+            # Section title
             section_title_style = ParagraphStyle(
                 name='SectionTitleStyle',
                 parent=self.styles['Normal'],
@@ -4482,29 +4504,97 @@ class PDFReportGenerator:
             
             section_title = f"Gist of Audit Paras & MCM Decisions for: {trade_name}"
             self.story.append(Paragraph(section_title, section_title_style))
-            print('GSTIN PARAS:', gstin_info['paras'])
+            print("✅ Section title added")
             
-            # ✅ FIX: Actually add the paras table to the story
-            if gstin_info['paras']:
-                paras_table = self._create_paras_table(gstin_info['paras'])
-                if paras_table:
-                    self.story.append(paras_table)
-                    self.story.append(Spacer(1, 0.1 * inch))
+            # STEP 3: Detailed paras analysis and table creation
+            print(f"\n📊 PARAS DATA DETAILED ANALYSIS:")
+            print(f"   - Paras type: {type(paras)}")
+            print(f"   - Paras length: {len(paras) if hasattr(paras, '__len__') else 'No length'}")
+            print(f"   - Paras empty: {not paras}")
+            
+            if paras:
+                print(f"   - Sample para structure (first para):")
+                if len(paras) > 0:
+                    sample_para = paras[0]
+                    print(f"     Type: {type(sample_para)}")
+                    if isinstance(sample_para, dict):
+                        print(f"     Keys: {list(sample_para.keys())}")
+                        for key, value in list(sample_para.items())[:10]:  # Show first 10 items
+                            print(f"       {key}: {value}")
+                    else:
+                        print(f"     Value: {sample_para}")
+            
+            # STEP 4: Attempt to create paras table with detailed error handling
+            if paras:
+                print(f"\n🔧 ATTEMPTING TO CREATE PARAS TABLE...")
+                try:
+                    paras_table = self._create_paras_table(paras)
                     
-                    # Add company totals summary after the table
-                    self._add_company_totals_summary_from_paras(gstin_info['paras'], trade_name)
-                else:
-                    # Add a message if table creation failed
-                    no_table_style = ParagraphStyle(
-                        name='NoTableStyle',
+                    if paras_table:
+                        print("✅ Paras table created successfully")
+                        self.story.append(paras_table)
+                        self.story.append(Spacer(1, 0.1 * inch))
+                        
+                        # Add company totals summary
+                        print("🔧 Adding company totals summary...")
+                        try:
+                            self._add_company_totals_summary_from_paras(paras, trade_name)
+                            print("✅ Company totals summary added")
+                        except Exception as totals_error:
+                            print(f"❌ Error adding company totals: {totals_error}")
+                            import traceback
+                            traceback.print_exc()
+                    else:
+                        print("❌ Paras table creation returned None")
+                        # Add detailed error message to PDF
+                        error_message = f"""
+                        <b>Error Details:</b><br/>
+                        • Company: {trade_name}<br/>
+                        • Number of paras: {len(paras)}<br/>
+                        • Paras data type: {type(paras)}<br/>
+                        • First para type: {type(paras[0]) if paras else 'No paras'}<br/>
+                        • Error: Table creation returned None - check console for details
+                        """
+                        
+                        error_style = ParagraphStyle(
+                            name='DetailedErrorStyle',
+                            parent=self.styles['Normal'],
+                            fontSize=9,
+                            textColor=colors.red,
+                            alignment=TA_LEFT,
+                            fontName='Helvetica',
+                            leading=12
+                        )
+                        self.story.append(Paragraph(error_message, error_style))
+                        
+                except Exception as table_creation_error:
+                    print(f"❌ EXCEPTION during table creation: {table_creation_error}")
+                    import traceback
+                    traceback.print_exc()
+                    
+                    # Add comprehensive error message to PDF
+                    error_details = f"""
+                    <b>Table Creation Error:</b><br/>
+                    • Company: {trade_name}<br/>
+                    • Error Type: {type(table_creation_error).__name__}<br/>
+                    • Error Message: {str(table_creation_error)}<br/>
+                    • Number of paras: {len(paras) if hasattr(paras, '__len__') else 'Unknown'}<br/>
+                    • Check console for full traceback
+                    """
+                    
+                    detailed_error_style = ParagraphStyle(
+                        name='DetailedErrorStyle',
                         parent=self.styles['Normal'],
-                        fontSize=10,
+                        fontSize=9,
                         textColor=colors.red,
-                        alignment=TA_CENTER
+                        alignment=TA_LEFT,
+                        fontName='Helvetica',
+                        leading=12
                     )
-                    self.story.append(Paragraph("Error creating paras table.", no_table_style))
+                    self.story.append(Paragraph(error_details, detailed_error_style))
             else:
-                # Add a message if no paras
+                print("ℹ️ No paras data available")
+                # Add message for no paras
                 no_paras_style = ParagraphStyle(
                     name='NoParasStyle',
                     parent=self.styles['Normal'],
@@ -4514,25 +4604,84 @@ class PDFReportGenerator:
                 )
                 self.story.append(Paragraph("No audit paras found for this taxpayer.", no_paras_style))
             
-            # Add chair remarks
-            self._add_chair_remarks(gstin_info['chair_remarks'])
+            # STEP 5: Add chair remarks
+            print(f"\n💬 Adding chair remarks...")
+            try:
+                self._add_chair_remarks(chair_remarks)
+                print("✅ Chair remarks added")
+            except Exception as remarks_error:
+                print(f"❌ Error adding chair remarks: {remarks_error}")
             
             self.story.append(Spacer(1, 0.2 * inch))
             
+            print("="*71)
+            print("✅ GSTIN SECTION PROCESSING COMPLETED")
+            print("="*71)
+            
         except Exception as e:
-            print(f"Error adding GSTIN section: {e}")
+            print(f"\n❌ CRITICAL ERROR in _add_gstin_section: {e}")
+            print("="*71)
+            print("🚨 FULL ERROR TRACEBACK:")
             import traceback
             traceback.print_exc()
+            print("="*71)
+            
+            # Add error message to PDF
+            try:
+                critical_error_style = ParagraphStyle(
+                    name='CriticalErrorStyle',
+                    parent=self.styles['Normal'],
+                    fontSize=12,
+                    textColor=colors.red,
+                    alignment=TA_CENTER,
+                    fontName='Helvetica-Bold'
+                )
+                self.story.append(Paragraph(f"Critical Error in GSTIN Section: {str(e)}", critical_error_style))
+                self.story.append(Spacer(1, 0.2 * inch))
+            except:
+                pass  # Don't let error handling crash the whole process
     
     def _create_paras_table(self, paras_data):
-        """Create a clean table for audit paras using revenue_involved_rs and revenue_recovered_rs - FIXED VERSION"""
+        """Create a clean table for audit paras - ENHANCED DEBUG VERSION"""
         try:
+            print("\n" + "="*80)
+            print("🔍 DEBUGGING PARAS TABLE CREATION")
+            print("="*80)
+            
+            # STEP 1: Basic data validation
+            print(f"📊 Input Data Analysis:")
+            print(f"   - Type of paras_data: {type(paras_data)}")
+            print(f"   - Length: {len(paras_data) if hasattr(paras_data, '__len__') else 'No length'}")
+            print(f"   - Is empty: {not paras_data}")
+            
             if not paras_data:
-                print("No paras data to create table")
+                print("❌ CRITICAL: No paras data provided")
                 return None
     
-            print(f"Creating paras table with {len(paras_data)} paras")
+            # STEP 2: Examine first para structure
+            if len(paras_data) > 0:
+                first_para = paras_data[0]
+                print(f"\n📋 First Para Structure Analysis:")
+                print(f"   - Type: {type(first_para)}")
+                print(f"   - Keys: {list(first_para.keys()) if isinstance(first_para, dict) else 'Not a dict'}")
+                print(f"   - Full first para: {first_para}")
+                
+                # Check for required fields
+                required_fields = ['audit_para_number', 'audit_para_heading', 'revenue_involved_rs', 
+                                 'revenue_recovered_rs', 'status_of_para', 'mcm_decision']
+                
+                print(f"\n🔍 Required Fields Check:")
+                for field in required_fields:
+                    if isinstance(first_para, dict):
+                        has_field = field in first_para
+                        value = first_para.get(field, 'MISSING')
+                        print(f"   - {field}: {'✅' if has_field else '❌'} = {value}")
+                    else:
+                        print(f"   - {field}: ❌ First para is not a dictionary")
     
+            # STEP 3: Try to create table with enhanced error handling
+            print(f"\n🔧 Starting Table Creation...")
+            
             # Define styles
             header_style = ParagraphStyle(
                 name='HeaderStyle',
@@ -4562,6 +4711,8 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold'
             )
     
+            print("✅ Styles created successfully")
+    
             # Table header
             table_data = [[
                 Paragraph('Para No.', header_style),
@@ -4572,103 +4723,180 @@ class PDFReportGenerator:
                 Paragraph('MCM Decision', header_style)
             ]]
     
-            # Accumulate totals
+            print("✅ Table header created successfully")
+    
+            # STEP 4: Process each para with detailed logging
             total_detection = 0.0
             total_recovery = 0.0
+            successful_rows = 0
+            failed_rows = 0
     
-            # Add rows
             for i, para in enumerate(paras_data):
+                print(f"\n📝 Processing Para {i+1}:")
                 try:
-                    para_num = str(para.get('audit_para_number', 'N/A'))
-                    title = para.get('audit_para_heading', 'N/A')
+                    # Check if para is a dictionary
+                    if not isinstance(para, dict):
+                        print(f"   ❌ Para {i+1} is not a dictionary: {type(para)}")
+                        failed_rows += 1
+                        continue
+                    
+                    # Extract para number
+                    para_num_raw = para.get('audit_para_number', 'N/A')
+                    para_num = str(para_num_raw)
+                    print(f"   - Para Number: {para_num_raw} -> {para_num}")
+                    
+                    # Extract title
+                    title_raw = para.get('audit_para_heading', 'N/A')
+                    title = str(title_raw)
+                    if len(title) > 60:
+                        title = title[:57] + '...'
+                    print(f"   - Title: {title_raw[:50]}{'...' if len(str(title_raw)) > 50 else ''}")
     
-                    # ✅ FIXED: Use correct field names - revenue_involved_rs and revenue_recovered_rs
-                    detection = float(para.get('revenue_involved_rs', 0) or 0)
-                    recovery = float(para.get('revenue_recovered_rs', 0) or 0)
+                    # Extract amounts with detailed validation
+                    detection_raw = para.get('revenue_involved_rs')
+                    recovery_raw = para.get('revenue_recovered_rs')
+                    
+                    print(f"   - Detection raw: {detection_raw} (type: {type(detection_raw)})")
+                    print(f"   - Recovery raw: {recovery_raw} (type: {type(recovery_raw)})")
+                    
+                    # Convert amounts safely
+                    try:
+                        detection = float(detection_raw or 0)
+                        print(f"   - Detection converted: {detection}")
+                    except (ValueError, TypeError) as e:
+                        print(f"   ❌ Detection conversion failed: {e}")
+                        detection = 0.0
+                    
+                    try:
+                        recovery = float(recovery_raw or 0)
+                        print(f"   - Recovery converted: {recovery}")
+                    except (ValueError, TypeError) as e:
+                        print(f"   ❌ Recovery conversion failed: {e}")
+                        recovery = 0.0
     
                     total_detection += detection
                     total_recovery += recovery
     
-                    print(f"Para {i+1}: Detection=₹{detection:,.2f}, Recovery=₹{recovery:,.2f}")
+                    # Extract status and decision
+                    status = str(para.get('status_of_para', 'N/A'))
+                    mcm_decision = str(para.get('mcm_decision', 'Pending'))
+                    
+                    print(f"   - Status: {status}")
+                    print(f"   - MCM Decision: {mcm_decision}")
     
-                    # Format with commas (e.g., ₹1,23,456.78)
+                    # Format amounts
                     def fmt_amt(x):
                         return f"₹ {x:,.2f}"
     
-                    # Truncate long titles
-                    if len(title) > 60:
-                        title = title[:57] + '...'
-    
-                    table_data.append([
+                    # Create table row
+                    table_row = [
                         Paragraph(para_num, cell_style),
                         Paragraph(title, cell_style),
                         Paragraph(fmt_amt(detection), amount_style),
                         Paragraph(fmt_amt(recovery), amount_style),
-                        Paragraph(para.get('status_of_para', 'N/A'), cell_style),
-                        Paragraph(para.get('mcm_decision', 'Pending'), cell_style)
-                    ])
+                        Paragraph(status, cell_style),
+                        Paragraph(mcm_decision, cell_style)
+                    ]
+                    
+                    table_data.append(table_row)
+                    successful_rows += 1
+                    print(f"   ✅ Para {i+1} processed successfully")
                     
                 except Exception as para_error:
-                    print(f"Error processing para {i}: {para_error}")
+                    print(f"   ❌ Error processing para {i+1}: {para_error}")
+                    print(f"   ❌ Para data: {para}")
+                    failed_rows += 1
+                    import traceback
+                    traceback.print_exc()
                     continue
     
-            # Add total row
+            print(f"\n📊 Processing Summary:")
+            print(f"   - Successful rows: {successful_rows}")
+            print(f"   - Failed rows: {failed_rows}")
+            print(f"   - Total detection: ₹{total_detection:,.2f}")
+            print(f"   - Total recovery: ₹{total_recovery:,.2f}")
+    
+            if successful_rows == 0:
+                print("❌ CRITICAL: No rows were successfully processed")
+                return None
+    
+            # STEP 5: Add total row
             def fmt_amt(x):
                 return f"₹ {x:,.2f}"
                 
-            table_data.append([
+            total_row = [
                 Paragraph('', total_style),
                 Paragraph('Total of Paras', total_style),
                 Paragraph(fmt_amt(total_detection), total_style),
                 Paragraph(fmt_amt(total_recovery), total_style),
                 Paragraph('', total_style),
                 Paragraph('', total_style)
-            ])
+            ]
+            
+            table_data.append(total_row)
+            print("✅ Total row added successfully")
     
-            print(f"Table totals: Detection=₹{total_detection:,.2f}, Recovery=₹{total_recovery:,.2f}")
-    
-            # Create table
+            # STEP 6: Create table
+            print(f"\n🔧 Creating Table Object...")
             col_widths = [0.8*inch, 3.0*inch, 1.1*inch, 1.1*inch, 1.0*inch, 1.2*inch]
-            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+            
+            try:
+                table = Table(table_data, colWidths=col_widths, repeatRows=1)
+                print("✅ Table object created successfully")
+            except Exception as table_error:
+                print(f"❌ Error creating table object: {table_error}")
+                return None
     
-            # Apply styling
-            table.setStyle(TableStyle([
-                # Header row
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F3A4D")),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 9),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                
-                # Total row
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F0F0F0")),
-                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, -1), (-1, -1), 9),
-                ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
-                
-                # Data rows
-                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -2), 8),
-                ('ALIGN', (0, 1), (1, -2), 'LEFT'),      # Para number and title left
-                ('ALIGN', (2, 1), (3, -2), 'RIGHT'),     # Amounts right
-                ('ALIGN', (4, 1), (-1, -2), 'CENTER'),   # Status and decision center
-                
-                # Grid and padding
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-            ]))
+            # STEP 7: Apply styling
+            print("🎨 Applying table styling...")
+            try:
+                table.setStyle(TableStyle([
+                    # Header row
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F3A4D")),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 9),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    
+                    # Total row
+                    ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F0F0F0")),
+                    ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, -1), (-1, -1), 9),
+                    ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
+                    
+                    # Data rows
+                    ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -2), 8),
+                    ('ALIGN', (0, 1), (1, -2), 'LEFT'),      # Para number and title left
+                    ('ALIGN', (2, 1), (3, -2), 'RIGHT'),     # Amounts right
+                    ('ALIGN', (4, 1), (-1, -2), 'CENTER'),   # Status and decision center
+                    
+                    # Grid and padding
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                ]))
+                print("✅ Table styling applied successfully")
+            except Exception as style_error:
+                print(f"❌ Error applying table styling: {style_error}")
+                # Return table without styling rather than None
+                pass
     
-            print("✅ Successfully created paras table")
+            print("="*80)
+            print("✅ PARAS TABLE CREATION COMPLETED SUCCESSFULLY")
+            print("="*80)
             return table
             
         except Exception as e:
-            print(f"Error creating paras table: {e}")
+            print(f"\n❌ CRITICAL ERROR in _create_paras_table: {e}")
+            print("="*80)
+            print("🚨 FULL ERROR TRACEBACK:")
             import traceback
             traceback.print_exc()
+            print("="*80)
             return None
     
     def _add_company_totals_summary_from_paras(self, paras_data, company_name):
