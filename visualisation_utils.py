@@ -1501,7 +1501,12 @@ def get_visualization_data(dbx, selected_period):
             'mcm_detailed_data': mcm_detailed_data,                    # New - detailed MCM data
             'overall_remarks': overall_remarks, 
         })
+        st.subheader("MCM Detailed Data from vital_stats")
+        mcm_detailed_data1 = vital_stats.get('mcm_detailed_data', [])
         
+        if mcm_detailed_data1:
+            df_mcm = pd.DataFrame(mcm_detailed_data1)
+            st.dataframe(df_mcm)
         return vital_stats, charts
         
     except Exception as e:
