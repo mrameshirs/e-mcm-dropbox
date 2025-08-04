@@ -1392,12 +1392,20 @@ def get_visualization_data(dbx, selected_period):
         mcm_detailed_data = []
         if not df_viz_data.empty:
             # Get detailed MCM data with all required fields
+            # mcm_columns = [
+            #     'audit_group_number', 'gstin', 'trade_name', 'category', 
+            #     'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
+            #     'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+            # ]
             mcm_columns = [
-                'audit_group_number', 'gstin', 'trade_name', 'category', 
-                'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
-                'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+                'audit_group_number', 'gstin', 'trade_name', 'category',
+                'audit_para_number', 'audit_para_heading', 
+                'revenue_involved_rs',           # ← Add rupees field
+                'revenue_recovered_rs',          # ← Add rupees field
+                'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
+                'revenue_recovered_lakhs_rs',
+                'status_of_para', 'mcm_decision', 'chair_remarks'
             ]
-            
             # Filter for records with actual para data
             df_mcm_data = df_viz_data[
                 df_viz_data['audit_para_number'].notna() & 
