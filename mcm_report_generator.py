@@ -2035,7 +2035,7 @@ class PDFReportGenerator:
                     if total_rows > 2:  # Only if we have data rows beyond header
                         for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
                             if row_idx % 2 == 0:  # Every other row
-                                performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+                                sectoral_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                     # Apply styles safely
                     try:
                         sectoral_table.setStyle(TableStyle(sectoral_styles))
@@ -3846,7 +3846,7 @@ class PDFReportGenerator:
                 if total_rows > 2:  # Only if we have data rows beyond header
                     for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
                         if row_idx % 2 == 0:  # Every other row
-                            performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+                            base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                 
                 # Apply all styles at once
                 table.setStyle(TableStyle(base_styles))
@@ -4113,7 +4113,7 @@ class PDFReportGenerator:
             if total_rows > 2:  # Only if we have data rows beyond header
                 for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
                     if row_idx % 2 == 0:  # Every other row
-                        performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+                        base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
             # Apply all styles safely
             try:
                 performance_table.setStyle(TableStyle(base_styles))
