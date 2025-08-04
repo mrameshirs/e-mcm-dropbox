@@ -5855,6 +5855,8 @@ class PDFReportGenerator:
                 'audit_para_heading': 'Non-payment of late fee for late filing of monthly return GSTR-1',
                 'revenue_involved_lakhs_rs': 0.06850,
                 'revenue_recovered_lakhs_rs': 0,
+                'revenue_recovered_rs': 0,
+                'revenue_involved_rs': 0,
                 'status_of_para': 'Agreed yet to pay',
                 'mcm_decision': 'Para to be pursued else issue SCN',
                 'chair_remarks': 'Follow up required for payment compliance'
@@ -5868,6 +5870,8 @@ class PDFReportGenerator:
                 'audit_para_heading': 'Non-payment of late fee for late filing of GSTR-3B',
                 'revenue_involved_lakhs_rs': 0.03850,
                 'revenue_recovered_lakhs_rs': 0,
+                'revenue_recovered_rs': 0,
+                'revenue_involved_rs': 0,
                 'status_of_para': 'Agreed yet to pay',
                 'mcm_decision': 'Para to be pursued else issue SCN',
                 'chair_remarks': 'Follow up required for payment compliance'
