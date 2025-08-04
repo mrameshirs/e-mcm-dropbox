@@ -3056,6 +3056,185 @@ class PDFReportGenerator:
  
            
 
+    # def add_risk_parameter_analysis(self):
+    #     """Add Risk Parameter Analysis section"""
+    #     try:
+    #         # Section header with description
+    #         risk_header_style = ParagraphStyle(
+    #             name='RiskHeader',
+    #             parent=self.styles['Heading2'],
+    #             fontSize=18,
+    #             textColor=colors.HexColor("#1134A6"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=12,
+    #             spaceBefore=20
+    #         )
+    #         self.add_section_highlight_bar("V. Risk Parameter Analysis", text_color="#0E4C92")
+    #         #self.story.append(Paragraph("Risk Parameter Analysis", risk_header_style))
+            
+    #         # Add description
+    #         desc_style = ParagraphStyle(
+    #             name='RiskDesc',
+    #             parent=self.styles['Normal'],
+    #             fontSize=11,
+    #             textColor=colors.HexColor("#2C2C2C"),
+    #             alignment=TA_JUSTIFY,
+    #             fontName='Helvetica',
+    #             leftIndent=0.25*inch,
+    #             rightIndent=0.25*inch,
+    #             leading=14,
+    #             spaceAfter=16
+    #         )
+            
+    #         description_text = """
+    #         This section analyzes audit performance based on pre-defined GST risk parameters of DGARM . 
+    #         It helps identify which risks are most frequently associated with audit observations and which ones 
+    #         contribute most to revenue detection and recovery. The charts are sorted to highlight the most significant parameters.
+    #         """
+            
+    #         self.story.append(Paragraph(description_text, desc_style))
+            
+    #         # Get risk analysis data from vital_stats
+    #         risk_summary_data = self.vital_stats.get('risk_summary', [])
+    #         gstins_with_risk = self.vital_stats.get('gstins_with_risk_data', 4)
+    #         paras_linked_to_risks = self.vital_stats.get('paras_linked_to_risks', 10)
+            
+    #         # Add metrics
+    #         col1, col2 = st.columns(2) if 'st' in globals() else (None, None)
+            
+    #         # Create metrics table
+    #         risk_metrics_data = [
+    #             ['GSTINs with Risk Data', 'Paras Linked to Risks'],
+    #             [f'{gstins_with_risk}', f'{paras_linked_to_risks}']
+    #         ]
+            
+    #         risk_metrics_table = Table(risk_metrics_data, colWidths=[3.5*inch, 3.5*inch])
+    #         risk_metrics_table.setStyle(TableStyle([
+    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 0), (-1, 0), 12),
+    #             ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 1), (-1, 1), 18),
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8F4F8")),
+    #             ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),
+    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 8),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    #         ]))
+            
+    #         self.story.append(risk_metrics_table)
+    #         self.story.append(Spacer(1, 0.2 * inch))
+            
+    #         # Risk Parameter Summary Table Header
+    #         risk_table_header_style = ParagraphStyle(
+    #             name='RiskTableHeader',
+    #             parent=self.styles['Heading3'],
+    #             fontSize=14,
+    #             textColor=colors.HexColor("#1F3A4D"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=12,
+    #             spaceBefore=16
+    #         )
+    #           # Risk Parameter Charts in 2x2 Layout
+    #         chart_header_style = ParagraphStyle(
+    #             name='RiskChartHeader',
+    #             parent=self.styles['Heading3'],
+    #             fontSize=14,
+    #             textColor=colors.HexColor("#1134A6"),
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=8,
+    #             spaceBefore=12
+    #         )
+            
+    #         self.story.append(Paragraph("📊 Risk Parameter Analysis Charts", chart_header_style))
+    #         self.story.append(Spacer(1, 0.1 * inch))
+            
+    #         # Create 2x2 layout for risk charts
+    #         self._add_risk_charts_2x2_layout()
+            
+      
+    #         self.story.append(Paragraph("📊 Risk Parameter Summary", risk_table_header_style))
+            
+    #         if risk_summary_data:
+    #             # Build table from actual data
+    #             risk_data = [['RISK FLAG', 'RISK DESCRIPTION', 'NO.OF PARAS', 'TOTAL DETECTION ', 'TOTAL RECOVERY', 'RECOVERY %']]
+                
+    #             for risk_item in risk_summary_data:
+    #                 risk_flag = risk_item.get('risk_flag', 'Unknown')
+    #                 description = risk_item.get('description', 'Unknown Risk Code')[:60] + '...' if len(risk_item.get('description', '')) > 60 else risk_item.get('description', 'Unknown Risk Code')
+    #                 paras = int(risk_item.get('Para_Count', 0))
+    #                 detection = float(risk_item.get('Total_Detection', 0))
+    #                 recovery = float(risk_item.get('Total_Recovery', 0))
+    #                 recovery_pct = float(risk_item.get('Percentage_Recovery', 0))
+                    
+    #                 risk_data.append([
+    #                     risk_flag,
+    #                     description,
+    #                     str(paras),
+    #                     f'Rs.{detection:.2f} L',
+    #                     f'Rs.{recovery:.2f} L',
+    #                     f'{recovery_pct:.1f}%'
+    #                 ])
+    #         else:
+    #             # Fallback data based on the image you shared
+    #             risk_data = [
+    #                 ['RISK FLAG', 'RISK DESCRIPTION', 'NO. OF PARAS', 'TOTAL DETECTION (Rs. L)', 'TOTAL RECOVERY (Rs. L)', 'RECOVERY %'],
+    #                 ['P07', 'High ratio of tax paid through ITC to total tax payable', 'NA', 'NA', 'NA', 'NA'],
+    #                 ['P10', 'High ratio of non-GST supplies to total turnover', 'NA', 'NA', 'NA', 'NA']
+                  
+    #             ]
+            
+    #         # Create the risk table with dynamic column widths
+    #         risk_col_widths = [0.8*inch, 3.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 0.9*inch]
+    #         risk_table = Table(risk_data, colWidths=risk_col_widths)
+            
+    #         # Apply colorful styling matching the image
+    #         risk_table.setStyle(TableStyle([
+    #             # Header styling with gradient colors
+    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple header
+    #             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 0), (-1, 0), 9),
+    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+    #             # Data rows
+    #             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #             ('FONTSIZE', (0, 1), (-1, -1), 8),
+    #             ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Numbers centered
+    #             ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Flag and description left-aligned
+                
+    #             # Row background colors - creating the colorful effect from the image
+    #             ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#E8F5E8")),    # Light green
+    #             ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor("#FFF3CD")),    # Light yellow  
+    #             ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#E2E3E5")),    # Light gray
+    #             ('BACKGROUND', (0, 4), (-1, 4), colors.HexColor("#FFF3CD")),    # Light yellow
+    #             ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#D4EDDA")),    # Light green
+    #             ('BACKGROUND', (0, 6), (-1, 6), colors.HexColor("#D4EDDA")),    # Light green
+                
+    #             # Grid and borders
+    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#8B4A9C")),
+                
+    #             # Padding
+    #             ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                
+    #             # Vertical alignment
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #         ]))
+            
+    #         self.story.append(risk_table)
+    #         self.story.append(Spacer(1, 0.3 * inch))
+                
+    #     except Exception as e:
+    #           print(f"Error adding risk parameter analysis: {e}")#0, 0), (-1, -1), 'MIDDLE'),
+        
     def add_risk_parameter_analysis(self):
         """Add Risk Parameter Analysis section"""
         try:
@@ -3071,7 +3250,6 @@ class PDFReportGenerator:
                 spaceBefore=20
             )
             self.add_section_highlight_bar("V. Risk Parameter Analysis", text_color="#0E4C92")
-            #self.story.append(Paragraph("Risk Parameter Analysis", risk_header_style))
             
             # Add description
             desc_style = ParagraphStyle(
@@ -3099,9 +3277,6 @@ class PDFReportGenerator:
             risk_summary_data = self.vital_stats.get('risk_summary', [])
             gstins_with_risk = self.vital_stats.get('gstins_with_risk_data', 4)
             paras_linked_to_risks = self.vital_stats.get('paras_linked_to_risks', 10)
-            
-            # Add metrics
-            col1, col2 = st.columns(2) if 'st' in globals() else (None, None)
             
             # Create metrics table
             risk_metrics_data = [
@@ -3138,7 +3313,8 @@ class PDFReportGenerator:
                 spaceAfter=12,
                 spaceBefore=16
             )
-              # Risk Parameter Charts in 2x2 Layout
+            
+            # Risk Parameter Charts in 2x2 Layout
             chart_header_style = ParagraphStyle(
                 name='RiskChartHeader',
                 parent=self.styles['Heading3'],
@@ -3152,20 +3328,18 @@ class PDFReportGenerator:
             
             self.story.append(Paragraph("📊 Risk Parameter Analysis Charts", chart_header_style))
             self.story.append(Spacer(1, 0.1 * inch))
-            
-            # Create 2x2 layout for risk charts
             self._add_risk_charts_2x2_layout()
             
-      
             self.story.append(Paragraph("📊 Risk Parameter Summary", risk_table_header_style))
             
+            # Build risk table data
+            risk_data = [['RISK FLAG', 'RISK DESCRIPTION', 'NO.OF PARAS', 'TOTAL DETECTION ', 'TOTAL RECOVERY', 'RECOVERY %']]
+            
             if risk_summary_data:
-                # Build table from actual data
-                risk_data = [['RISK FLAG', 'RISK DESCRIPTION', 'NO.OF PARAS', 'TOTAL DETECTION ', 'TOTAL RECOVERY', 'RECOVERY %']]
-                
                 for risk_item in risk_summary_data:
                     risk_flag = risk_item.get('risk_flag', 'Unknown')
-                    description = risk_item.get('description', 'Unknown Risk Code')[:60] + '...' if len(risk_item.get('description', '')) > 60 else risk_item.get('description', 'Unknown Risk Code')
+                    description = risk_item.get('description', 'Unknown Risk Code')
+                    description = (description[:60] + '...') if len(description) > 60 else description
                     paras = int(risk_item.get('Para_Count', 0))
                     detection = float(risk_item.get('Total_Detection', 0))
                     recovery = float(risk_item.get('Total_Recovery', 0))
@@ -3180,40 +3354,37 @@ class PDFReportGenerator:
                         f'{recovery_pct:.1f}%'
                     ])
             else:
-                # Fallback data based on the image you shared
-                risk_data = [
-                    ['RISK FLAG', 'RISK DESCRIPTION', 'NO. OF PARAS', 'TOTAL DETECTION (Rs. L)', 'TOTAL RECOVERY (Rs. L)', 'RECOVERY %'],
-                    ['P07', 'High ratio of tax paid through ITC to total tax payable', 'NA', 'NA', 'NA', 'NA'],
-                    ['P10', 'High ratio of non-GST supplies to total turnover', 'NA', 'NA', 'NA', 'NA']
-                  
-                ]
+                # Fallback data
+                risk_data.append([
+                    'P07',
+                    'High ratio of tax paid through ITC to total tax payable',
+                    'NA', 'NA', 'NA', 'NA'
+                ])
+                risk_data.append([
+                    'P10',
+                    'High ratio of non-GST supplies to total turnover',
+                    'NA', 'NA', 'NA', 'NA'
+                ])
             
-            # Create the risk table with dynamic column widths
+            # Define column widths
             risk_col_widths = [0.8*inch, 3.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 0.9*inch]
             risk_table = Table(risk_data, colWidths=risk_col_widths)
             
-            # Apply colorful styling matching the image
-            risk_table.setStyle(TableStyle([
-                # Header styling with gradient colors
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple header
+            # Build dynamic TableStyle to avoid IndexError
+            num_rows = len(risk_data)
+            style_commands = [
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 9),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
-                # Data rows
+                # Data row fonts
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Numbers centered
-                ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Flag and description left-aligned
-                
-                # Row background colors - creating the colorful effect from the image
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#E8F5E8")),    # Light green
-                ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor("#FFF3CD")),    # Light yellow  
-                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#E2E3E5")),    # Light gray
-                ('BACKGROUND', (0, 4), (-1, 4), colors.HexColor("#FFF3CD")),    # Light yellow
-                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#D4EDDA")),    # Light green
-                ('BACKGROUND', (0, 6), (-1, 6), colors.HexColor("#D4EDDA")),    # Light green
+                ('ALIGN', (2, 1), (-1, -1), 'CENTER'),  # Numeric columns
+                ('ALIGN', (0, 1), (1, -1), 'LEFT'),     # Risk flag & description
                 
                 # Grid and borders
                 ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
@@ -3224,18 +3395,30 @@ class PDFReportGenerator:
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                 ('LEFTPADDING', (0, 0), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                
-                # Vertical alignment
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
+            ]
+            
+            # Alternating or color-coded row backgrounds (safe for any number of rows)
+            # Use a color cycle to avoid hardcoded indices
+            row_colors = [
+                "#E8F5E8", "#FFF3CD", "#E2E3E5", 
+                "#FFF3CD", "#D4EDDA", "#D4EDDA"
+            ]
+            
+            for i in range(1, num_rows):  # Skip header (row 0)
+                color = row_colors[i % len(row_colors)]
+                style_commands.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor(color)))
+            
+            # Apply the dynamic style
+            risk_table.setStyle(TableStyle(style_commands))
             
             self.story.append(risk_table)
             self.story.append(Spacer(1, 0.3 * inch))
-                
+            
         except Exception as e:
-              print(f"Error adding risk parameter analysis: {e}")#0, 0), (-1, -1), 'MIDDLE'),
-        
-
+            print(f"Error adding risk parameter analysis: {e}")
+            import traceback
+            traceback.print_exc()
     def add_top_performance_analysis(self):
         """Add Section V - Top Audit Group and Circle Performance"""
         try:
