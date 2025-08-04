@@ -228,7 +228,7 @@ class PDFReportGenerator:
             'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
             'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
             'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
-            'PG': 'PENALTY & OTHERS'
+            'PG': 'PENALTY & GENERAL'
         }
         
         # Add detailed DETECTION charts for each classification code
@@ -2609,7 +2609,7 @@ class PDFReportGenerator:
                     'PD': 'PROCEDURAL & DOCUMENTATION',
                     'CV': 'CLASSIFICATION & VALUATION', 
                     'SS': 'SPECIAL SITUATIONS',
-                    'PG': 'PENALTY & OTHERS'
+                    'PG': 'PENALTY & GENERAL'
                 }
                 
                 # Create classification table data
