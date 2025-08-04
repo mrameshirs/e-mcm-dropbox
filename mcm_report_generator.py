@@ -3561,7 +3561,7 @@ class PDFReportGenerator:
             self.story.append(PageBreak())
             
             # Section header
-            self.add_section_highlight_bar("IX. Summary of Audit Paras 1", text_color="#0E4C92")
+            self.add_section_highlight_bar("IX. Summary of Audit Paras ", text_color="#0E4C92")
             
             # Description
             desc_style = ParagraphStyle(
