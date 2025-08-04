@@ -1322,9 +1322,11 @@ class PDFReportGenerator:
             ]
             
             # SAFE alternating row colors - only for rows that exist
-            for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row, skip totals
-                if row_idx < total_rows - 1:  # Don't color the totals row
-                    performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+            # SAFE - proper bounds checking
+            if total_rows > 2:  # Only if we have data rows beyond header
+                for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+                    if row_idx % 2 == 0:  # Every other row
+                        performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
             
             # Apply styles safely
             try:
@@ -1382,8 +1384,236 @@ class PDFReportGenerator:
             )
             self.story.append(Paragraph("Error loading performance summary table", error_style))
 
+    # def add_status_summary_table(self):
+    #     """Add Status Summary Table section"""
+    #     try:
+    #         # Section header
+    #         status_header_style = ParagraphStyle(
+    #             name='StatusHeader',
+    #             parent=self.styles['Heading3'],
+    #             fontSize=14,
+    #             textColor=colors.HexColor("#1134A6"),
+    #             alignment=TA_LEFT,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=12,
+    #             spaceBefore=16
+    #         )
+            
+    #         self.story.append(Paragraph("📊 Status Summary Table", status_header_style))
+            
+    #         # Get status summary data from vital_stats (if available from visualization processing)
+    #         status_summary_data = self.vital_stats.get('status_summary', [])
+            
+    #         if status_summary_data:
+    #             # Build table from actual data
+    #             status_data = [['STATUS OF PARA', 'NO. OF PARAS', 'TOTAL DETECTION (Rs.L)', 'TOTAL RECOVERY (Rs.L)', 'RECOVERY %']]
+                
+    #             for status_item in status_summary_data:
+    #                 status = status_item.get('status_of_para', 'Unknown')
+    #                 paras = int(status_item.get('Para_Count', 0))
+    #                 detection = float(status_item.get('Total_Detection', 0))
+    #                 recovery = float(status_item.get('Total_Recovery', 0))
+    #                 recovery_pct = float(status_item.get('Recovery_Percentage', 0))
+                    
+    #                 status_data.append([
+    #                     status,
+    #                     str(paras),
+    #                     f'Rs.{detection:,.2f} L',
+    #                     f'Rs.{recovery:,.2f} L',
+    #                     f'{recovery_pct:.1f}%'
+    #                 ])
+    #         else:
+    #             # Fallback data based on the image you shared
+    #             status_data = [
+    #                 ['STATUS OF PARA', 'NO. OF PARAS', 'TOTAL DETECTION ( L)', 'TOTAL RECOVERY (L)', 'RECOVERY %'],
+    #                 ['Agreed yet to pay', '51', '₹13.74 L', '₹0.00 L', '0.0%'],
+    #                 ['Agreed and Paid', '26', '₹19.96 L', '₹9.20 L', '46.1%'],
+    #                 ['Not agreed', '16', '₹1.07 L', '₹0.00 L', '0.0%'],
+    #                 ['Partially agreed, yet to paid', '1', '₹0.00 L', '₹0.00 L', '0.0%']
+    #             ]
+            
+    #         # Create the status table
+    #         #status_col_widths = [2.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 1.0*inch]
+    #         status_col_widths = [1.8*inch, 1*inch, 1.8*inch, 1.8*inch, 1.8*inch]
+    #         status_table = Table(status_data, colWidths=status_col_widths)
+    #         # SAFE TABLE STYLING - check table size first
+    #         total_rows = len(status_data)
+    #         print(f"Status table has {total_rows} rows")
+            
+    #         # Base styles that are always safe
+    #         base_styles = [
+    #             # Header styling with gradient effect
+    #             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple header
+    #             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #             ('FONTSIZE', (0, 0), (-1, 0), 9),
+    #             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+    #             # Data rows with alternating colors
+    #             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #             ('FONTSIZE', (0, 1), (-1, -1), 9),
+    #             ('ALIGN', (1, 1), (-1, -1), 'CENTER'),  # Numbers centered
+    #             ('ALIGN', (0, 1), (0, -1), 'LEFT'),     # Status left-aligned
+                
+    #             # Grid and borders
+    #             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#8B4A9C")),
+                
+    #             # Padding
+    #             ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                
+    #             # Vertical alignment
+    #             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #         ]
+            
+    #         # SAFE row coloring - only for rows that actually exist
+    #         row_colors = ["#E8F5E8", "#FFF3CD", "#F8D7DA", "#E2E3E5"]
+            
+    #         for i in range(1, total_rows):  # Start from row 1 (skip header at row 0)
+    #             if i <= len(row_colors):  # Don't exceed available colors
+    #                 color_index = (i - 1) % len(row_colors)  # Cycle through colors
+    #                 base_styles.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor(row_colors[color_index])))
+            
+    #         # Apply all styles safely
+    #         status_table.setStyle(TableStyle(base_styles))
+            
+            
+    #         self.story.append(status_table)
+    #         self.story.append(Spacer(1, 0.05 * inch))
+    #         self.story.append(Paragraph("📊 Total Recovery Potential", status_header_style))
+    #         self.insert_chart_by_id("status_analysis", size="small")
+    #         self.story.append(Spacer(1, 0.05 * inch))
+    #         # Add "Top 5 Paras with Largest Detection" section if data is available
+    #         # if self.vital_stats.get('agreed_yet_to_pay_analysis'):
+    #         #     self.add_top_agreed_paras_section()
+          
+    #         try:
+    #             # Get the analysis data
+    #             agreed_analysis = self.vital_stats.get('agreed_yet_to_pay_analysis', {})
+                
+    #             if agreed_analysis and agreed_analysis.get('top_5_paras') is not None:
+    #                 # Add summary metrics
+    #                 total_paras = agreed_analysis.get('total_paras', 0)
+    #                 total_detection = agreed_analysis.get('total_detection', 0)
+    #                 total_recovery = agreed_analysis.get('total_recovery', 0)
+                    
+    #                 # Create metrics row
+    #                 metrics_data = [
+    #                     [f"Total 'Agreed yet to pay' Paras", f"Total Detection Amount", f"Total Recovery Potential"],
+    #                     [f"{total_paras}", f"Rs.{total_detection:,.2f} L", f"Rs.{total_detection:,.2f} L"]
+    #                 ]
+    #                    # Section header
+    #                 top_paras_header_style = ParagraphStyle(
+    #                     name='TopParasHeader',
+    #                     parent=self.styles['Heading3'],
+    #                     fontSize=14,
+    #                     textColor=colors.HexColor("#1134A6"),
+    #                     alignment=TA_LEFT,
+    #                     fontName='Helvetica-Bold',
+    #                     spaceAfter=12,
+    #                     spaceBefore=16
+    #                 )
+                    
+                    
+    #                 metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
+    #                 metrics_table.setStyle(TableStyle([
+    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 0), (-1, 0), 10),
+    #                     ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 1), (-1, 1), 12),
+    #                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8F4F8")),
+    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),
+    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #                 ]))
+                    
+    #                 self.story.append(metrics_table)
+    #                 top_5_paras = agreed_analysis['top_5_paras']
+                    
+    #                 # Create table data
+    #                 #para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Status']]
+    #                 para_data = [['Audit Group', 'Trade Name', 'Para Heading', 'Detection (Rs.L)']]
+    #                 for _, row in top_5_paras.iterrows():
+    #                     audit_group = str(row.get('audit_group_number_str', 'N/A'))
+    #                     trade_name = str(row.get('trade_name', 'N/A'))[:50] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
+    #                     #para_no = str(row.get('audit_para_number', 'N/A'))
+    #                     para_heading = str(row.get('audit_para_heading', 'N/A'))[:100] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 100 else str(row.get('audit_para_heading', 'N/A'))
+    #                     detection = f"Rs.{row.get('Para Detection in Lakhs', 0):.2f} L"
+    #                     #recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
+    #                     #status = str(row.get('status_of_para', 'N/A'))
+                        
+    #                     #para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
+    #                     para_data.append([audit_group, trade_name,  para_heading, detection])
+                    
+    #                 # Create table
+    #                 para_col_widths = [0.7*inch, 1.6*inch, 4.8*inch, 1.1*inch]
+    #                 para_table = Table(para_data, colWidths=para_col_widths)
+                    
+    #                 # FIX 3: Correct table styling for 4 columns (indices 0,1,2,3)
+    #                 para_table.setStyle(TableStyle([
+    #                     # Header styling
+    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
+    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                        
+    #                     # Data rows
+    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
+                        
+    #                     # FIXED ALIGNMENTS for 4 columns (0=Group, 1=Trade, 2=Heading, 3=Detection)
+    #                     ('ALIGN', (3, 1), (3, -1), 'RIGHT'),   # Detection column (index 3) right-aligned
+    #                     ('ALIGN', (0, 1), (2, -1), 'LEFT'),    # Other columns (0,1,2) left-aligned
+    #                     # REMOVED: Status center alignment (no Status column anymore)
+                        
+    #                     # Alternating row colors
+    #                     ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
+    #                     ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
+    #                     ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
+                        
+    #                     # Grid and borders
+    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #                     ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
+                        
+    #                     # Padding
+    #                     ('TOPPADDING', (0, 0), (-1, -1), 4),
+    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    #                     ('LEFTPADDING', (0, 0), (-1, -1), 4),
+    #                     ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                        
+    #                     # Vertical alignment - ADD TOP alignment for better text wrapping
+    #                     ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Changed from MIDDLE to TOP
+    #                 ]))
+    #                 self.story.append(Paragraph("🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'", top_paras_header_style))
+    #                 self.story.append(para_table)
+    #                 self.story.append(Spacer(1, 0.2 * inch))
+                    
+                    
+                    
+    #             else:
+    #                 # Fallback message
+    #                 info_style = ParagraphStyle(
+    #                     name='InfoStyle',
+    #                     parent=self.styles['Normal'],
+    #                     fontSize=10,
+    #                     textColor=colors.HexColor("#666666"),
+    #                     alignment=TA_CENTER
+    #                 )
+    #                 self.story.append(Paragraph("No 'Agreed yet to pay' paras found for this period.", info_style))
+                    
+    #         except Exception as e:
+    #             print(f"Error adding top agreed paras section: {e}")    
+    #     except Exception as e:
+    #         print(f"Error adding status summary table: {e}") 
     def add_status_summary_table(self):
-        """Add Status Summary Table section"""
+        """Add Status Summary Table section - FIXED IndexError Safe Version"""
         try:
             # Section header
             status_header_style = ParagraphStyle(
@@ -1399,7 +1629,7 @@ class PDFReportGenerator:
             
             self.story.append(Paragraph("📊 Status Summary Table", status_header_style))
             
-            # Get status summary data from vital_stats (if available from visualization processing)
+            # Get status summary data from vital_stats
             status_summary_data = self.vital_stats.get('status_summary', [])
             
             if status_summary_data:
@@ -1421,7 +1651,7 @@ class PDFReportGenerator:
                         f'{recovery_pct:.1f}%'
                     ])
             else:
-                # Fallback data based on the image you shared
+                # Fallback data
                 status_data = [
                     ['STATUS OF PARA', 'NO. OF PARAS', 'TOTAL DETECTION ( L)', 'TOTAL RECOVERY (L)', 'RECOVERY %'],
                     ['Agreed yet to pay', '51', '₹13.74 L', '₹0.00 L', '0.0%'],
@@ -1430,28 +1660,33 @@ class PDFReportGenerator:
                     ['Partially agreed, yet to paid', '1', '₹0.00 L', '₹0.00 L', '0.0%']
                 ]
             
-            # Create the status table
-            #status_col_widths = [2.2*inch, 0.8*inch, 1.3*inch, 1.3*inch, 1.0*inch]
+            # SAFE TABLE CREATION - check dimensions first
+            total_rows = len(status_data)
+            total_cols = len(status_data[0]) if status_data else 0
+            print(f"Status table: {total_rows} rows x {total_cols} cols")
+            
+            if total_rows < 2:  # Need at least header + 1 data row
+                print("Warning: Insufficient data for status table")
+                return
+            
+            # Create table
             status_col_widths = [1.8*inch, 1*inch, 1.8*inch, 1.8*inch, 1.8*inch]
             status_table = Table(status_data, colWidths=status_col_widths)
-            # SAFE TABLE STYLING - check table size first
-            total_rows = len(status_data)
-            print(f"Status table has {total_rows} rows")
             
-            # Base styles that are always safe
+            # SAFE BASE STYLES - no hardcoded row references
             base_styles = [
-                # Header styling with gradient effect
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),  # Purple header
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8B4A9C")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 9),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                 
-                # Data rows with alternating colors
+                # Data rows - SAFE ranges
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 1), (-1, -1), 9),
                 ('ALIGN', (1, 1), (-1, -1), 'CENTER'),  # Numbers centered
-                ('ALIGN', (0, 1), (0, -1), 'LEFT'),     # Status left-aligned
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),     # Status left-aligned only
                 
                 # Grid and borders
                 ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
@@ -1462,155 +1697,207 @@ class PDFReportGenerator:
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                 ('LEFTPADDING', (0, 0), (-1, -1), 8),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                
-                # Vertical alignment
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ]
             
-            # SAFE row coloring - only for rows that actually exist
-            row_colors = ["#E8F5E8", "#FFF3CD", "#F8D7DA", "#E2E3E5"]
+            # SAFE ALTERNATING ROW COLORS - dynamic based on actual table size
+            alternating_colors = ["#E8F5E8", "#FFF3CD", "#F8D7DA", "#E2E3E5"]
             
-            for i in range(1, total_rows):  # Start from row 1 (skip header at row 0)
-                if i <= len(row_colors):  # Don't exceed available colors
-                    color_index = (i - 1) % len(row_colors)  # Cycle through colors
-                    base_styles.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor(row_colors[color_index])))
+            for row_idx in range(1, total_rows):  # Start from row 1 (skip header)
+                try:
+                    color_index = (row_idx - 1) % len(alternating_colors)
+                    base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), 
+                                     colors.HexColor(alternating_colors[color_index])))
+                except Exception as color_error:
+                    print(f"Error applying color to row {row_idx}: {color_error}")
+                    break
             
-            # Apply all styles safely
-            status_table.setStyle(TableStyle(base_styles))
-            
+            # SAFE TABLE STYLING APPLICATION
+            try:
+                status_table.setStyle(TableStyle(base_styles))
+                print(f"✓ Applied {len(base_styles)} styles successfully to status table")
+            except IndexError as e:
+                print(f"IndexError in status table styling: {e}")
+                # FALLBACK - minimal styling
+                safe_styles = [
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ]
+                status_table.setStyle(TableStyle(safe_styles))
+            except Exception as e:
+                print(f"Critical error in status table styling: {e}")
+                # Absolute fallback
+                status_table.setStyle(TableStyle([('GRID', (0, 0), (-1, -1), 1, colors.black)]))
             
             self.story.append(status_table)
             self.story.append(Spacer(1, 0.05 * inch))
+            
+            # Charts and additional content...
             self.story.append(Paragraph("📊 Total Recovery Potential", status_header_style))
             self.insert_chart_by_id("status_analysis", size="small")
             self.story.append(Spacer(1, 0.05 * inch))
-            # Add "Top 5 Paras with Largest Detection" section if data is available
-            # if self.vital_stats.get('agreed_yet_to_pay_analysis'):
-            #     self.add_top_agreed_paras_section()
-          
+            
+            # SAFE TOP 5 PARAS SECTION
             try:
-                # Get the analysis data
                 agreed_analysis = self.vital_stats.get('agreed_yet_to_pay_analysis', {})
                 
                 if agreed_analysis and agreed_analysis.get('top_5_paras') is not None:
-                    # Add summary metrics
-                    total_paras = agreed_analysis.get('total_paras', 0)
-                    total_detection = agreed_analysis.get('total_detection', 0)
-                    total_recovery = agreed_analysis.get('total_recovery', 0)
+                    self._add_safe_top_paras_table(agreed_analysis)
+                else:
+                    info_style = ParagraphStyle(name='InfoStyle', parent=self.styles['Normal'],
+                                              fontSize=10, textColor=colors.HexColor("#666666"), alignment=TA_CENTER)
+                    self.story.append(Paragraph("No 'Agreed yet to pay' paras found for this period.", info_style))
                     
-                    # Create metrics row
-                    metrics_data = [
-                        [f"Total 'Agreed yet to pay' Paras", f"Total Detection Amount", f"Total Recovery Potential"],
-                        [f"{total_paras}", f"Rs.{total_detection:,.2f} L", f"Rs.{total_detection:,.2f} L"]
-                    ]
-                       # Section header
+            except Exception as e:
+                print(f"Error adding top agreed paras section: {e}")
+                
+        except Exception as e:
+            print(f"Error adding status summary table: {e}")
+    
+    def _add_safe_top_paras_table(self, agreed_analysis):
+        """SAFE version of top paras table creation"""
+        try:
+            total_paras = agreed_analysis.get('total_paras', 0)
+            total_detection = agreed_analysis.get('total_detection', 0)
+            total_recovery = agreed_analysis.get('total_recovery', 0)
+            
+            # Metrics table - SAFE creation
+            metrics_data = [
+                [f"Total 'Agreed yet to pay' Paras", f"Total Detection Amount", f"Total Recovery Potential"],
+                [f"{total_paras}", f"Rs.{total_detection:,.2f} L", f"Rs.{total_detection:,.2f} L"]
+            ]
+            
+            metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
+            
+            # SAFE metrics table styling
+            safe_metrics_styles = [
+                ('FONTNAME', (0, 0), (2, 0), 'Helvetica-Bold'),  # SAFE: specific range
+                ('FONTSIZE', (0, 0), (2, 0), 10),
+                ('FONTNAME', (0, 1), (2, 1), 'Helvetica-Bold'),  # SAFE: specific range
+                ('FONTSIZE', (0, 1), (2, 1), 12),
+                ('ALIGN', (0, 0), (2, 1), 'CENTER'),             # SAFE: specific range
+                ('VALIGN', (0, 0), (2, 1), 'MIDDLE'),            # SAFE: specific range
+                ('BACKGROUND', (0, 0), (2, 0), colors.HexColor("#E8F4F8")),
+                ('BACKGROUND', (0, 1), (2, 1), colors.HexColor("#F0F8FF")),
+                ('GRID', (0, 0), (2, 1), 1, colors.HexColor("#CCCCCC")),  # SAFE: exact range
+                ('TOPPADDING', (0, 0), (2, 1), 6),
+                ('BOTTOMPADDING', (0, 0), (2, 1), 6),
+            ]
+            
+            try:
+                metrics_table.setStyle(TableStyle(safe_metrics_styles))
+                self.story.append(metrics_table)
+            except Exception as metrics_error:
+                print(f"Error styling metrics table: {metrics_error}")
+                # Add without styling if needed
+                self.story.append(metrics_table)
+            
+            # Main paras table - SAFE creation
+            top_5_paras = agreed_analysis['top_5_paras']
+            para_data = [['Audit Group', 'Trade Name', 'Para Heading', 'Detection (Rs.L)']]
+            
+            # SAFE row processing
+            rows_added = 0
+            for _, row in top_5_paras.iterrows():
+                if rows_added >= 5:  # Limit to 5 rows max
+                    break
+                    
+                try:
+                    audit_group = str(row.get('audit_group_number_str', 'N/A'))
+                    trade_name = str(row.get('trade_name', 'N/A'))
+                    if len(trade_name) > 30:
+                        trade_name = trade_name[:30] + '...'
+                    
+                    para_heading = str(row.get('audit_para_heading', 'N/A'))
+                    if len(para_heading) > 100:
+                        para_heading = para_heading[:100] + '...'
+                    
+                    detection = f"Rs.{row.get('Para Detection in Lakhs', 0):.2f} L"
+                    
+                    para_data.append([audit_group, trade_name, para_heading, detection])
+                    rows_added += 1
+                    
+                except Exception as row_error:
+                    print(f"Error processing para row: {row_error}")
+                    continue
+            
+            # SAFE TABLE CREATION
+            if len(para_data) > 1:  # More than just header
+                para_table = Table(para_data, colWidths=[0.7*inch, 1.6*inch, 4.8*inch, 1.1*inch])
+                
+                # SAFE STYLING - calculate valid ranges
+                actual_rows = len(para_data)
+                actual_cols = 4  # We know we have 4 columns
+                
+                para_styles = [
+                    # Header styling - SAFE
+                    ('BACKGROUND', (0, 0), (3, 0), colors.HexColor("#6F2E2E")),  # Exact range
+                    ('TEXTCOLOR', (0, 0), (3, 0), colors.white),
+                    ('FONTNAME', (0, 0), (3, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (3, 0), 8),
+                    ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+                    
+                    # Grid and borders - SAFE
+                    ('GRID', (0, 0), (3, actual_rows-1), 1, colors.HexColor("#CCCCCC")),
+                    ('LINEBELOW', (0, 0), (3, 0), 2, colors.HexColor("#6F2E2E")),
+                    
+                    # Padding - SAFE
+                    ('TOPPADDING', (0, 0), (3, actual_rows-1), 4),
+                    ('BOTTOMPADDING', (0, 0), (3, actual_rows-1), 4),
+                    ('LEFTPADDING', (0, 0), (3, actual_rows-1), 4),
+                    ('RIGHTPADDING', (0, 0), (3, actual_rows-1), 4),
+                    ('VALIGN', (0, 0), (3, actual_rows-1), 'TOP'),
+                ]
+                
+                # SAFE DATA ROW STYLING - only if we have data rows
+                if actual_rows > 1:
+                    para_styles.extend([
+                        ('FONTNAME', (0, 1), (3, actual_rows-1), 'Helvetica'),
+                        ('FONTSIZE', (0, 1), (3, actual_rows-1), 8),
+                        ('ALIGN', (3, 1), (3, actual_rows-1), 'RIGHT'),   # Detection column right-aligned
+                        ('ALIGN', (0, 1), (2, actual_rows-1), 'LEFT'),    # Other columns left-aligned
+                    ])
+                
+                # SAFE ALTERNATING COLORS - dynamic based on actual rows
+                for row_idx in range(1, actual_rows):  # Skip header
+                    if row_idx % 2 == 0:  # Every other row
+                        para_styles.append(('BACKGROUND', (0, row_idx), (3, row_idx), colors.HexColor("#F8F8F8")))
+                
+                # APPLY STYLES SAFELY
+                try:
+                    para_table.setStyle(TableStyle(para_styles))
+                    
+                    # Add to story
                     top_paras_header_style = ParagraphStyle(
-                        name='TopParasHeader',
-                        parent=self.styles['Heading3'],
-                        fontSize=14,
-                        textColor=colors.HexColor("#1134A6"),
-                        alignment=TA_LEFT,
-                        fontName='Helvetica-Bold',
-                        spaceAfter=12,
-                        spaceBefore=16
+                        name='TopParasHeader', parent=self.styles['Heading3'],
+                        fontSize=14, textColor=colors.HexColor("#1134A6"),
+                        alignment=TA_LEFT, fontName='Helvetica-Bold',
+                        spaceAfter=12, spaceBefore=16
                     )
                     
-                    
-                    metrics_table = Table(metrics_data, colWidths=[2.33*inch, 2.33*inch, 2.33*inch])
-                    metrics_table.setStyle(TableStyle([
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 0), (-1, 0), 10),
-                        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 1), (-1, 1), 12),
-                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8F4F8")),
-                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F0F8FF")),
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                        ('TOPPADDING', (0, 0), (-1, -1), 6),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                    ]))
-                    
-                    self.story.append(metrics_table)
-                    top_5_paras = agreed_analysis['top_5_paras']
-                    
-                    # Create table data
-                    #para_data = [['Audit Group', 'Trade Name', 'Para No.', 'Para Heading', 'Detection (Rs.L)', 'Recovery (Rs.L)', 'Status']]
-                    para_data = [['Audit Group', 'Trade Name', 'Para Heading', 'Detection (Rs.L)']]
-                    for _, row in top_5_paras.iterrows():
-                        audit_group = str(row.get('audit_group_number_str', 'N/A'))
-                        trade_name = str(row.get('trade_name', 'N/A'))[:50] + '...' if len(str(row.get('trade_name', 'N/A'))) > 30 else str(row.get('trade_name', 'N/A'))
-                        #para_no = str(row.get('audit_para_number', 'N/A'))
-                        para_heading = str(row.get('audit_para_heading', 'N/A'))[:100] + '...' if len(str(row.get('audit_para_heading', 'N/A'))) > 100 else str(row.get('audit_para_heading', 'N/A'))
-                        detection = f"Rs.{row.get('Para Detection in Lakhs', 0):.2f} L"
-                        #recovery = f"₹{row.get('Para Recovery in Lakhs', 0):.2f} L"
-                        #status = str(row.get('status_of_para', 'N/A'))
-                        
-                        #para_data.append([audit_group, trade_name, para_no, para_heading, detection, recovery, status])
-                        para_data.append([audit_group, trade_name,  para_heading, detection])
-                    
-                    # Create table
-                    para_col_widths = [0.7*inch, 1.6*inch, 4.8*inch, 1.1*inch]
-                    para_table = Table(para_data, colWidths=para_col_widths)
-                    
-                    # FIX 3: Correct table styling for 4 columns (indices 0,1,2,3)
-                    para_table.setStyle(TableStyle([
-                        # Header styling
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 0), (-1, 0), 8),
-                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                        
-                        # Data rows
-                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 1), (-1, -1), 8),
-                        
-                        # FIXED ALIGNMENTS for 4 columns (0=Group, 1=Trade, 2=Heading, 3=Detection)
-                        ('ALIGN', (3, 1), (3, -1), 'RIGHT'),   # Detection column (index 3) right-aligned
-                        ('ALIGN', (0, 1), (2, -1), 'LEFT'),    # Other columns (0,1,2) left-aligned
-                        # REMOVED: Status center alignment (no Status column anymore)
-                        
-                        # Alternating row colors
-                        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#F8F8F8")),
-                        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor("#F8F8F8")),
-                        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor("#F8F8F8")),
-                        
-                        # Grid and borders
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
-                        
-                        # Padding
-                        ('TOPPADDING', (0, 0), (-1, -1), 4),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                        ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-                        
-                        # Vertical alignment - ADD TOP alignment for better text wrapping
-                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Changed from MIDDLE to TOP
-                    ]))
                     self.story.append(Paragraph("🎯 Top 5 Paras with Largest Detection - Status: 'Agreed yet to pay'", top_paras_header_style))
                     self.story.append(para_table)
                     self.story.append(Spacer(1, 0.2 * inch))
                     
+                    print("✓ Successfully added safe top paras table")
                     
+                except IndexError as style_error:
+                    print(f"IndexError in para table styling: {style_error}")
+                    # MINIMAL FALLBACK
+                    para_table.setStyle(TableStyle([
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ]))
+                    self.story.append(para_table)
                     
-                else:
-                    # Fallback message
-                    info_style = ParagraphStyle(
-                        name='InfoStyle',
-                        parent=self.styles['Normal'],
-                        fontSize=10,
-                        textColor=colors.HexColor("#666666"),
-                        alignment=TA_CENTER
-                    )
-                    self.story.append(Paragraph("No 'Agreed yet to pay' paras found for this period.", info_style))
-                    
-            except Exception as e:
-                print(f"Error adding top agreed paras section: {e}")    
+            else:
+                print("No para data to display")
+                
         except Exception as e:
-            print(f"Error adding status summary table: {e}") 
-    
+            print(f"Error in _add_safe_top_paras_table: {e}")
     
     def add_sectoral_analysis(self):
         """Add Section III - Sectoral Analysis with pie charts and summary table"""
@@ -1744,11 +2031,11 @@ class PDFReportGenerator:
                         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     ]
                     
-                    # SAFE alternating row colors - only for rows that exist
-                    for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
-                        if row_idx < total_rows:
-                            sectoral_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F9FA")))
-                    
+                    # SAFE - proper bounds checking
+                    if total_rows > 2:  # Only if we have data rows beyond header
+                        for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+                            if row_idx % 2 == 0:  # Every other row
+                                performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                     # Apply styles safely
                     try:
                         sectoral_table.setStyle(TableStyle(sectoral_styles))
@@ -2262,10 +2549,11 @@ class PDFReportGenerator:
                     ]
                     
                     # SAFE alternating row colors - only for rows that exist
-                    for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
-                        if row_idx < total_rows:
-                            classification_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F9FA")))
-                    
+                    # SAFE - proper bounds checking
+                    if total_rows > 2:  # Only if we have data rows beyond header
+                        for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+                            if row_idx % 2 == 0:  # Every other row
+                                performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                     # Apply styles safely
                     try:
                         classification_table.setStyle(TableStyle(classification_styles))
@@ -3244,9 +3532,11 @@ class PDFReportGenerator:
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ]
                 total_rows = len(table_data)
-                for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
-                    if row_idx < total_rows:  # Safety check
-                        base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+                # SAFE - proper bounds checking
+                if total_rows > 2:  # Only if we have data rows beyond header
+                    for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+                        if row_idx % 2 == 0:  # Every other row
+                            performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
                 
                 # Apply all styles at once
                 table.setStyle(TableStyle(base_styles))
@@ -3509,10 +3799,11 @@ class PDFReportGenerator:
             # except Exception as span_error:
             #     print(f"Warning: Could not apply circle spans: {span_error}")
             # SAFE alternating row colors - only for rows that exist
-            for row_idx in range(2, total_rows, 2):  # Start from row 2, every other row
-                if row_idx < total_rows:
-                    base_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F9FA")))
-            
+            # SAFE - proper bounds checking
+            if total_rows > 2:  # Only if we have data rows beyond header
+                for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+                    if row_idx % 2 == 0:  # Every other row
+                        performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
             # Apply all styles safely
             try:
                 performance_table.setStyle(TableStyle(base_styles))
