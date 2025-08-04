@@ -2472,8 +2472,116 @@ class PDFReportGenerator:
                     
     #         except Exception as e:
     #             print(f"Error adding classification summary table: {e}")
+    # def add_classification_summary_table(self):
+    #     """Add classification summary table - FIXED VERSION with bounds checking"""  
+    #     try:
+    #         classification_summary = self.vital_stats.get('classification_summary', [])
+            
+    #         if classification_summary:
+    #             table_header_style = ParagraphStyle(
+    #                 name='ClassificationTableHeader',
+    #                 parent=self.styles['Heading3'],
+    #                 fontSize=14,
+    #                 textColor=colors.HexColor("#1134A6"),
+    #                 alignment=TA_LEFT,
+    #                 fontName='Helvetica-Bold',
+    #                 spaceAfter=12,
+    #                 spaceBefore=16
+    #             )
+                
+    #             self.story.append(Paragraph("📊 Non-Compliance Categories Summary", table_header_style))
+                
+    #             # Classification codes mapping
+    #             CLASSIFICATION_CODES_DESC = {
+    #                 'TP': 'TAX PAYMENT DEFAULTS', 
+    #                 'RC': 'REVERSE CHARGE MECHANISM',
+    #                 'IT': 'INPUT TAX CREDIT VIOLATIONS', 
+    #                 'IN': 'INTEREST LIABILITY DEFAULTS',
+    #                 'RF': 'RETURN FILING NON-COMPLIANCE', 
+    #                 'PD': 'PROCEDURAL & DOCUMENTATION',
+    #                 'CV': 'CLASSIFICATION & VALUATION', 
+    #                 'SS': 'SPECIAL SITUATIONS',
+    #                 'PG': 'PENALTY & GENERAL COMPLIANCE'
+    #             }
+                
+    #             # Create classification table data
+    #             classification_data = [['Code', 'Description', 'Paras', 'Detection (Rs. L)', 'Recovery (Rs. L)']]
+                
+    #             for item in classification_summary[:7]:  # Top 7 categories
+    #                 code = item.get('major_code', 'Unknown')
+    #                 description = CLASSIFICATION_CODES_DESC.get(code, 'Unknown Category')
+    #                 para_count = item.get('Para_Count', 0)
+    #                 detection = item.get('Total_Detection', 0)
+    #                 recovery = item.get('Total_Recovery', 0)
+                    
+    #                 classification_data.append([
+    #                     code,
+    #                     description[:35] + '...' if len(description) > 35 else description,
+    #                     str(para_count),
+    #                     f'Rs.{detection:.2f} L',
+    #                     f'Rs.{recovery:.2f} L'
+    #                 ])
+                
+    #             # SAFE table creation - check if we have data
+    #             total_rows = len(classification_data)
+    #             print(f"Classification table will have {total_rows} rows")
+                
+    #             if total_rows > 1:  # More than just header
+    #                 classification_table = Table(classification_data, 
+    #                                            colWidths=[0.6*inch, 2.4*inch, 0.8*inch, 1.3*inch, 1.3*inch])
+                    
+    #                 # SAFE styling with bounds checking
+    #                 classification_styles = [
+    #                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
+    #                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    #                     ('FONTSIZE', (0, 0), (-1, 0), 8),
+    #                     ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    #                     ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+    #                     ('FONTSIZE', (0, 1), (-1, -1), 8),
+    #                     ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+    #                     ('ALIGN', (0, 1), (1, -1), 'LEFT'),
+    #                     ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
+    #                     ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
+    #                     ('TOPPADDING', (0, 0), (-1, -1), 6),
+    #                     ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    #                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    #                 ]
+                    
+    #                 # SAFE alternating row colors - only for rows that exist
+    #                 # SAFE - proper bounds checking
+    #                 if total_rows > 2:  # Only if we have data rows beyond header
+    #                     for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
+    #                         if row_idx % 2 == 0:  # Every other row
+    #                             performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+    #                 # Apply styles safely
+    #                 try:
+    #                     classification_table.setStyle(TableStyle(classification_styles))
+    #                     self.story.append(classification_table)
+    #                     self.story.append(Spacer(1, 0.01 * inch))
+    #                     print(f"✓ Successfully added classification table with {total_rows} rows")
+                        
+    #                 except Exception as style_error:
+    #                     print(f"ERROR applying classification table styles: {style_error}")
+    #                     # Fallback with minimal styling
+    #                     classification_table.setStyle(TableStyle([
+    #                         ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    #                         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+    #                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #                     ]))
+    #                     self.story.append(classification_table)
+    #                     self.story.append(Spacer(1, 0.01 * inch))
+    #             else:
+    #                 print("No classification data to display")
+    #         else:
+    #             print("No classification summary data available")
+                
+    #     except Exception as e:
+    #         print(f"Error adding classification summary table: {e}")
+    #         import traceback
+    #         traceback.print_exc()            
     def add_classification_summary_table(self):
-        """Add classification summary table - FIXED VERSION with bounds checking"""  
+        """Add classification summary table - FIXED IndexError Safe Version"""  
         try:
             classification_summary = self.vital_stats.get('classification_summary', [])
             
@@ -2524,45 +2632,56 @@ class PDFReportGenerator:
                 
                 # SAFE table creation - check if we have data
                 total_rows = len(classification_data)
-                print(f"Classification table will have {total_rows} rows")
+                total_cols = len(classification_data[0]) if classification_data else 0
+                print(f"Classification table will have {total_rows} rows x {total_cols} cols")
                 
-                if total_rows > 1:  # More than just header
+                if total_rows > 1 and total_cols == 5:  # More than header + correct columns
                     classification_table = Table(classification_data, 
                                                colWidths=[0.6*inch, 2.4*inch, 0.8*inch, 1.3*inch, 1.3*inch])
                     
-                    # SAFE styling with bounds checking
+                    # CORRECT VARIABLE NAME - classification_styles NOT performance_styles
                     classification_styles = [
-                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#6F2E2E")),
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                        ('FONTSIZE', (0, 0), (-1, 0), 8),
-                        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 1), (-1, -1), 8),
-                        ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
-                        ('ALIGN', (0, 1), (1, -1), 'LEFT'),
-                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor("#CCCCCC")),
-                        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor("#6F2E2E")),
-                        ('TOPPADDING', (0, 0), (-1, -1), 6),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        # Header styling
+                        ('BACKGROUND', (0, 0), (4, 0), colors.HexColor("#6F2E2E")),  # Exact range
+                        ('TEXTCOLOR', (0, 0), (4, 0), colors.white),
+                        ('FONTNAME', (0, 0), (4, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (4, 0), 8),
+                        ('ALIGN', (0, 0), (4, 0), 'CENTER'),
+                        
+                        # Grid and borders
+                        ('GRID', (0, 0), (4, total_rows-1), 1, colors.HexColor("#CCCCCC")),
+                        ('LINEBELOW', (0, 0), (4, 0), 2, colors.HexColor("#6F2E2E")),
+                        
+                        # Padding
+                        ('TOPPADDING', (0, 0), (4, total_rows-1), 6),
+                        ('BOTTOMPADDING', (0, 0), (4, total_rows-1), 6),
+                        ('VALIGN', (0, 0), (4, total_rows-1), 'MIDDLE'),
                     ]
                     
+                    # SAFE data row styling - only if we have data rows
+                    if total_rows > 1:
+                        data_end = total_rows - 1
+                        classification_styles.extend([
+                            ('FONTNAME', (0, 1), (4, data_end), 'Helvetica'),
+                            ('FONTSIZE', (0, 1), (4, data_end), 8),
+                            ('ALIGN', (2, 1), (4, data_end), 'CENTER'),  # Numbers centered (cols 2-4)
+                            ('ALIGN', (0, 1), (1, data_end), 'LEFT'),    # Code and description left (cols 0-1)
+                        ])
+                    
                     # SAFE alternating row colors - only for rows that exist
-                    # SAFE - proper bounds checking
-                    if total_rows > 2:  # Only if we have data rows beyond header
-                        for row_idx in range(2, min(total_rows - 1, 10)):  # Limit to reasonable range and exclude totals
-                            if row_idx % 2 == 0:  # Every other row
-                                performance_styles.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F8F8")))
+                    for row_idx in range(1, total_rows):  # Skip header
+                        if row_idx % 2 == 0:  # Every other row
+                            classification_styles.append(('BACKGROUND', (0, row_idx), (4, row_idx), colors.HexColor("#F8F9FA")))
+                    
                     # Apply styles safely
                     try:
-                        classification_table.setStyle(TableStyle(classification_styles))
+                        classification_table.setStyle(TableStyle(classification_styles))  # CORRECT VARIABLE NAME
                         self.story.append(classification_table)
-                        self.story.append(Spacer(1, 0.01 * inch))
+                        self.story.append(Spacer(1, 0.2 * inch))
                         print(f"✓ Successfully added classification table with {total_rows} rows")
                         
-                    except Exception as style_error:
-                        print(f"ERROR applying classification table styles: {style_error}")
+                    except IndexError as style_error:
+                        print(f"IndexError applying classification table styles: {style_error}")
                         # Fallback with minimal styling
                         classification_table.setStyle(TableStyle([
                             ('GRID', (0, 0), (-1, -1), 1, colors.black),
@@ -2570,16 +2689,24 @@ class PDFReportGenerator:
                             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                         ]))
                         self.story.append(classification_table)
-                        self.story.append(Spacer(1, 0.01 * inch))
+                        self.story.append(Spacer(1, 0.2 * inch))
+                        
+                    except Exception as other_error:
+                        print(f"Other error in classification table styling: {other_error}")
+                        # Basic table without styling
+                        basic_table = Table(classification_data, colWidths=[0.6*inch, 2.4*inch, 0.8*inch, 1.3*inch, 1.3*inch])
+                        basic_table.setStyle(TableStyle([('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+                        self.story.append(basic_table)
+                        self.story.append(Spacer(1, 0.2 * inch))
                 else:
-                    print("No classification data to display")
+                    print("Invalid classification table dimensions - skipping")
             else:
                 print("No classification summary data available")
-                
+                    
         except Exception as e:
             print(f"Error adding classification summary table: {e}")
             import traceback
-            traceback.print_exc()            
+            traceback.print_exc()
     def _add_detailed_charts_2x3_layout_simple(self, chart_type):
         """Simple approach: Add detailed charts in 2x3 layout using direct insertion"""
         try:
