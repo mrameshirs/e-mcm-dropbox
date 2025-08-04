@@ -1431,8 +1431,9 @@ def get_visualization_data(dbx, selected_period):
             
             # Convert to list of dictionaries
             mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
-            st.dataframe(pd.DataFrame(mcm_detailed_data))
             import streamlit as st
+            st.dataframe(pd.DataFrame(mcm_detailed_data))
+            
 
             def debug_mcm_data_structure_ui(mcm_detailed_data):
                 """
