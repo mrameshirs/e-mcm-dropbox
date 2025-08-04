@@ -4370,7 +4370,23 @@ class PDFReportGenerator:
                         'paras': []
                     }
                 
-                gstin_data[key]['paras'].append(record)
+                #gstin_data[key]['paras'].append(record)
+                gstin_data[key]['paras'].append({
+                    'audit_group_number': record.get('audit_group_number'),
+                    'gstin': record.get('gstin'),
+                    'trade_name': record.get('trade_name'),
+                    'category': record.get('category', 'Unknown'),
+                    'audit_para_number': record.get('audit_para_number'),
+                    'audit_para_heading': record.get('audit_para_heading'),
+                    
+                    # ✅ Include the critical rupee fields
+                    'revenue_involved_rs': record.get('revenue_involved_rs', 0),
+                    'revenue_recovered_rs': record.get('revenue_recovered_rs', 0),
+                    
+                    'status_of_para': record.get('status_of_para'),
+                    'mcm_decision': record.get('mcm_decision'),
+                    'chair_remarks': record.get('chair_remarks')
+                })
             
             # Add each GSTIN section
             for gstin_key, gstin_info in gstin_data.items():
