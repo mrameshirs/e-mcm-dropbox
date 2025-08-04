@@ -1402,8 +1402,8 @@ def get_visualization_data(dbx, selected_period):
                 'audit_para_number', 'audit_para_heading', 
                 'revenue_involved_rs',           # ← Add rupees field
                 'revenue_recovered_rs',          # ← Add rupees field
-                # 'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
-                # 'revenue_recovered_lakhs_rs',
+                'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
+                'revenue_recovered_lakhs_rs',
                 'status_of_para', 'mcm_decision', 'chair_remarks'
             ]
             # Filter for records with actual para data
