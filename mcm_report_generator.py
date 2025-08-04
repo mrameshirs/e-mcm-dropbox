@@ -4210,16 +4210,24 @@ class PDFReportGenerator:
                 para_title_text = para.get('audit_para_heading', 'N/A')
                 # Remove truncation - let the paragraph handle wrapping
                 para_title = Paragraph(para_title_text, para_title_style)
+
+                # FIXED: Use correct field names from your data model
+                # Get amounts in rupees (already in rupees according to your model)
+                detection_rs = para.get('revenue_involved_rs', 0) or 0
+                recovery_rs = para.get('revenue_recovered_rs', 0) or 0
                 
-                # Get amounts in actual rupees (not lakhs)
-                detection_lakhs = para.get('revenue_involved_lakhs_rs', 0) or 0
-                recovery_lakhs = para.get('revenue_recovered_lakhs_rs', 0) or 0
-                
-                detection_rs = detection_lakhs * 100000  # Convert lakhs to rupees
-                recovery_rs = recovery_lakhs * 100000
-                
+                # NO CONVERSION NEEDED - amounts are already in rupees
                 total_detection += detection_rs
                 total_recovery += recovery_rs
+                # # Get amounts in actual rupees (not lakhs)
+                # detection_lakhs = para.get('revenue_involved_lakhs_rs', 0) or 0
+                # recovery_lakhs = para.get('revenue_recovered_lakhs_rs', 0) or 0
+                
+                # detection_rs = detection_lakhs * 100000  # Convert lakhs to rupees
+                # recovery_rs = recovery_lakhs * 100000
+                
+                # total_detection += detection_rs
+                # total_recovery += recovery_rs
                 
                 status = para.get('status_of_para', 'N/A')
                 mcm_decision = para.get('mcm_decision', 'N/A')
