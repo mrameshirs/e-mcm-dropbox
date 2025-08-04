@@ -4262,7 +4262,7 @@ class PDFReportGenerator:
         """Organize MCM data by circles and groups"""
         try:
             organized = {}
-            
+            print('MCM DATA ',mcm_data)
             for record in mcm_data:
                 # Calculate circle from audit group
                 audit_group = record.get('audit_group_number', 0)
