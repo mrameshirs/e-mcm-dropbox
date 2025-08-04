@@ -7,7 +7,7 @@ import json
 from dropbox_utils import read_from_spreadsheet
 from config import MCM_DATA_PATH
 from plotly.subplots import make_subplots
-
+import streamlit as st
 def wrap_text(text, max_length=15):
     """
     Helper function to wrap long text into multiple lines
