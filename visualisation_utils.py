@@ -581,7 +581,7 @@ def get_visualization_data(dbx, selected_period):
             'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
             'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
             'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
-            'PG': 'PENALTY & GENERAL COMPLIANCE'
+            'PG': 'PENALTY & GENERAL'
         }
         
         df_paras = df_viz_data[df_viz_data['para_classification_code'] != 'UNCLASSIFIED'].copy()
