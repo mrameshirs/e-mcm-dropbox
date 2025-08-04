@@ -306,7 +306,7 @@ def mcm_agenda_tab(dbx):
             
             # Convert numeric columns
             cols_to_convert_numeric = ['audit_group_number', 'audit_circle_number', 'total_amount_detected_overall_rs',
-                                       'total_amount_recovered_overall_rs', 'audit_para_number',revenue_involved_rs,revenue_recovered_rs,
+                                       'total_amount_recovered_overall_rs', 'audit_para_number','revenue_involved_rs','revenue_recovered_rs',
                                        'revenue_involved_lakhs_rs', 'revenue_recovered_lakhs_rs']
             for col_name in cols_to_convert_numeric:
                 if col_name in df.columns:
