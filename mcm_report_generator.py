@@ -4466,7 +4466,7 @@ class PDFReportGenerator:
             
             section_title = f"Gist of Audit Paras & MCM Decisions for: {trade_name}"
             self.story.append(Paragraph(section_title, section_title_style))
-            
+            print('GSTIN PARAS' ,gstin_info['paras'])
             # Create paras table with enhanced formatting
             self._create_paras_table(gstin_info['paras'])
             
