@@ -1402,8 +1402,8 @@ def get_visualization_data(dbx, selected_period):
                 'audit_para_number', 'audit_para_heading', 
                 'revenue_involved_rs',           # ← Add rupees field
                 'revenue_recovered_rs',          # ← Add rupees field
-                'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
-                'revenue_recovered_lakhs_rs',
+                # 'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
+                # 'revenue_recovered_lakhs_rs',
                 'status_of_para', 'mcm_decision', 'chair_remarks'
             ]
             # Filter for records with actual para data
@@ -1423,8 +1423,8 @@ def get_visualization_data(dbx, selected_period):
                     df_mcm_data[col] = ''
             
             # Fill missing values appropriately
-            df_mcm_data['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
-            df_mcm_data['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+            # df_mcm_data['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
+            # df_mcm_data['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
             df_mcm_data['chair_remarks'] = df_mcm_data['chair_remarks'].fillna('')
             df_mcm_data['mcm_decision'] = df_mcm_data['mcm_decision'].fillna('Decision pending')
             df_mcm_data['status_of_para'] = df_mcm_data['status_of_para'].fillna('Status not updated')
@@ -1433,7 +1433,138 @@ def get_visualization_data(dbx, selected_period):
             mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
             
             print(f"MCM detailed data prepared: {len(mcm_detailed_data)} records")
-        
+            def validate_mcm_data(mcm_detailed_data):
+                """
+                Validate MCM data structure to identify issues before PDF generation
+                """
+                print("🔍 MCM DATA VALIDATION REPORT")
+                print("="*60)
+                
+                if not mcm_detailed_data:
+                    print("❌ CRITICAL: mcm_detailed_data is empty or None")
+                    return False
+                
+                print(f"📊 Basic Structure:")
+                print(f"   - Type: {type(mcm_detailed_data)}")
+                print(f"   - Length: {len(mcm_detailed_data)}")
+                
+                # Test organizing data by circles
+                organized_data = {}
+                issues_found = []
+                
+                for i, record in enumerate(mcm_detailed_data):
+                    print(f"\n📋 Record {i+1}:")
+                    print(f"   - Type: {type(record)}")
+                    
+                    if not isinstance(record, dict):
+                        issues_found.append(f"Record {i+1}: Not a dictionary")
+                        continue
+                    
+                    # Check required fields
+                    required_fields = [
+                        'audit_group_number', 'gstin', 'trade_name', 'category',
+                        'audit_para_number', 'audit_para_heading', 
+                        'revenue_involved_rs', 'revenue_recovered_rs',
+                        'status_of_para', 'mcm_decision', 'chair_remarks'
+                    ]
+                    
+                    missing_fields = []
+                    for field in required_fields:
+                        if field not in record:
+                            missing_fields.append(field)
+                    
+                    if missing_fields:
+                        issues_found.append(f"Record {i+1}: Missing fields: {missing_fields}")
+                    
+                    print(f"   - Audit Group: {record.get('audit_group_number', 'MISSING')}")
+                    print(f"   - GSTIN: {record.get('gstin', 'MISSING')}")
+                    print(f"   - Trade Name: {record.get('trade_name', 'MISSING')}")
+                    print(f"   - Category: {record.get('category', 'MISSING')}")
+                    print(f"   - Para Number: {record.get('audit_para_number', 'MISSING')}")
+                    print(f"   - Revenue Involved: {record.get('revenue_involved_rs', 'MISSING')} (type: {type(record.get('revenue_involved_rs'))})")
+                    print(f"   - Revenue Recovered: {record.get('revenue_recovered_rs', 'MISSING')} (type: {type(record.get('revenue_recovered_rs'))})")
+                    print(f"   - Status: {record.get('status_of_para', 'MISSING')}")
+                    print(f"   - MCM Decision: {record.get('mcm_decision', 'MISSING')}")
+                    
+                    # Test circle calculation
+                    try:
+                        audit_group = record.get('audit_group_number', 0)
+                        group_num = int(audit_group)
+                        circle_num = ((group_num - 1) // 3) + 1 if group_num > 0 else 0
+                        print(f"   - Calculated Circle: {circle_num}")
+                        
+                        if circle_num not in organized_data:
+                            organized_data[circle_num] = {}
+                        if audit_group not in organized_data[circle_num]:
+                            organized_data[circle_num][audit_group] = []
+                        organized_data[circle_num][audit_group].append(record)
+                        
+                    except Exception as e:
+                        issues_found.append(f"Record {i+1}: Circle calculation error: {e}")
+                
+                print(f"\n📊 Organization by Circles:")
+                for circle_num in sorted(organized_data.keys()):
+                    print(f"   Circle {circle_num}:")
+                    for audit_group in sorted(organized_data[circle_num].keys()):
+                        group_records = organized_data[circle_num][audit_group]
+                        print(f"     - Group {audit_group}: {len(group_records)} records")
+                        
+                        # Test GSTIN grouping
+                        gstin_data = {}
+                        for record in group_records:
+                            gstin = record.get('gstin', 'Unknown')
+                            trade_name = record.get('trade_name', 'Unknown')
+                            key = f"{gstin}_{trade_name}"
+                            
+                            if key not in gstin_data:
+                                gstin_data[key] = {
+                                    'gstin': gstin,
+                                    'trade_name': trade_name,
+                                    'category': record.get('category', 'Unknown'),
+                                    'chair_remarks': record.get('chair_remarks', ''),
+                                    'paras': []
+                                }
+                            
+                            gstin_data[key]['paras'].append({
+                                'audit_group_number': record.get('audit_group_number'),
+                                'gstin': record.get('gstin'),
+                                'trade_name': record.get('trade_name'),
+                                'category': record.get('category', 'Unknown'),
+                                'audit_para_number': record.get('audit_para_number'),
+                                'audit_para_heading': record.get('audit_para_heading'),
+                                'revenue_involved_rs': record.get('revenue_involved_rs', 0),
+                                'revenue_recovered_rs': record.get('revenue_recovered_rs', 0),
+                                'status_of_para': record.get('status_of_para'),
+                                'mcm_decision': record.get('mcm_decision'),
+                                'chair_remarks': record.get('chair_remarks')
+                            })
+                        
+                        for gstin_key, gstin_info in gstin_data.items():
+                            print(f"       - {gstin_info['trade_name']}: {len(gstin_info['paras'])} paras")
+                            
+                            # Test table creation data
+                            for j, para in enumerate(gstin_info['paras']):
+                                try:
+                                    detection = float(para.get('revenue_involved_rs', 0) or 0)
+                                    recovery = float(para.get('revenue_recovered_rs', 0) or 0)
+                                    print(f"         Para {j+1}: Detection=₹{detection:,.2f}, Recovery=₹{recovery:,.2f}")
+                                except Exception as e:
+                                    issues_found.append(f"Group {audit_group}, GSTIN {gstin_key}, Para {j+1}: Amount conversion error: {e}")
+                
+                print(f"\n🔍 VALIDATION SUMMARY:")
+                if issues_found:
+                    print(f"❌ {len(issues_found)} issues found:")
+                    for issue in issues_found:
+                        print(f"   - {issue}")
+                    return False
+                else:
+                    print("✅ All validations passed!")
+                    return True
+            # Test your actual data
+            validation_result = validate_mcm_data(your_mcm_detailed_data)
+            if not validation_result:
+                print("⚠️ Data validation failed - fix issues before generating PDF")
+                
         # OVERALL REMARKS - Get from periods info
         def get_overall_remarks_for_period(dbx, selected_period):
             """Helper function to get overall remarks for the selected MCM period"""
