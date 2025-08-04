@@ -1431,8 +1431,109 @@ def get_visualization_data(dbx, selected_period):
             
             # Convert to list of dictionaries
             mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
-            
+            import streamlit as st
+
+            def debug_mcm_data_structure_ui(mcm_detailed_data):
+                """
+                Add this function to your main Streamlit app file
+                Place it where you have your other UI functions
+                """
+                st.subheader("🔍 MCM Data Debug")
+                
+                if st.button("Run MCM Data Diagnostic"):
+                    with st.spinner("Running diagnostic..."):
+                        
+                        # Basic structure check
+                        st.write("**MCM Data Overview:**")
+                        st.write(f"- Type: `{type(mcm_detailed_data)}`")
+                        st.write(f"- Length: `{len(mcm_detailed_data) if mcm_detailed_data else 0}`")
+                        st.write(f"- Is None: `{mcm_detailed_data is None}`")
+                        
+                        if not mcm_detailed_data:
+                            st.error("❌ MCM data is empty or None!")
+                            return
+                        
+                        # Search for R B GOLD specifically
+                        st.write("**Searching for R B GOLD:**")
+                        rb_gold_records = []
+                        
+                        for i, record in enumerate(mcm_detailed_data):
+                            trade_name = str(record.get('trade_name', '')).upper()
+                            if 'R B GOLD' in trade_name:
+                                rb_gold_records.append((i, record))
+                        
+                        if rb_gold_records:
+                            st.success(f"✅ Found {len(rb_gold_records)} R B GOLD records")
+                            
+                            # Show first record
+                            first_record = rb_gold_records[0][1]
+                            st.write("**First R B GOLD record:**")
+                            
+                            with st.expander("View Record Details"):
+                                st.json(first_record)
+                            
+                            # Test organization process
+                            st.write("**Testing Paras Organization:**")
+                            
+                            # Collect all R B GOLD paras
+                            rb_gold_paras = []
+                            gstin = first_record.get('gstin', 'Unknown')
+                            trade_name = first_record.get('trade_name', 'R B GOLD')
+                            
+                            for record in mcm_detailed_data:
+                                if (record.get('trade_name') == trade_name and 
+                                    record.get('gstin') == gstin):
+                                    
+                                    para_data = {
+                                        'audit_group_number': record.get('audit_group_number'),
+                                        'gstin': record.get('gstin'),
+                                        'trade_name': record.get('trade_name'),
+                                        'category': record.get('category', 'Unknown'),
+                                        'audit_para_number': record.get('audit_para_number'),
+                                        'audit_para_heading': record.get('audit_para_heading'),
+                                        'revenue_involved_rs': record.get('revenue_involved_rs', 0),
+                                        'revenue_recovered_rs': record.get('revenue_recovered_rs', 0),
+                                        'status_of_para': record.get('status_of_para'),
+                                        'mcm_decision': record.get('mcm_decision'),
+                                        'chair_remarks': record.get('chair_remarks')
+                                    }
+                                    rb_gold_paras.append(para_data)
+                            
+                            st.write(f"**R B GOLD Paras Analysis:**")
+                            st.write(f"- Total paras: `{len(rb_gold_paras)}`")
+                            st.write(f"- Paras type: `{type(rb_gold_paras)}`")
+                            st.write(f"- First para type: `{type(rb_gold_paras[0]) if rb_gold_paras else 'No paras'}`")
+                            
+                            if rb_gold_paras:
+                                with st.expander("View First Para"):
+                                    st.json(rb_gold_paras[0])
+                                
+                                # Test amount fields
+                                first_para = rb_gold_paras[0]
+                                detection_raw = first_para.get('revenue_involved_rs')
+                                recovery_raw = first_para.get('revenue_recovered_rs')
+                                
+                                st.write(f"- Detection field: `{detection_raw}` (type: {type(detection_raw).__name__})")
+                                st.write(f"- Recovery field: `{recovery_raw}` (type: {type(recovery_raw).__name__})")
+                                
+                                try:
+                                    detection = float(detection_raw or 0)
+                                    recovery = float(recovery_raw or 0)
+                                    st.success(f"✅ Amount conversion successful: Detection=₹{detection:,.2f}, Recovery=₹{recovery:,.2f}")
+                                except Exception as e:
+                                    st.error(f"❌ Amount conversion failed: {e}")
+                            
+                        else:
+                            st.warning("⚠️ R B GOLD not found in MCM data")
+                            
+                            # Show sample of available trade names
+                            st.write("**Available trade names (first 10):**")
+                            for i, record in enumerate(mcm_detailed_data[:10]):
+                                trade_name = record.get('trade_name', 'Unknown')
+                                st.write(f"- {i+1}: {trade_name}")
+           
             print(f"MCM detailed data prepared: {len(mcm_detailed_data)} records")
+            debug_mcm_data_structure_ui(mcm_detailed_data)
             # def validate_mcm_data(mcm_detailed_data):
             #     """
             #     Validate MCM data structure to identify issues before PDF generation
