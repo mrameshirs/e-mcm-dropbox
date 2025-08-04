@@ -4485,7 +4485,11 @@ class PDFReportGenerator:
             print('GSTIN PARAS' ,gstin_info['paras'])
             # Create paras table with enhanced formatting
             self._create_paras_table(gstin_info['paras'])
-            
+            # FIX: Actually add the table to story
+            paras_table = self._create_paras_table(gstin_info['paras'])
+            if paras_table:
+                self.story.append(paras_table)
+                self._add_company_totals_summary_from_paras(gstin_info['paras'], trade_name)
             # Add chair remarks
             self._add_chair_remarks(gstin_info['chair_remarks'])
             
@@ -5126,9 +5130,15 @@ class PDFReportGenerator:
                         decision = 'Decision pending'
                     
                     # Get financial amounts (convert from lakhs to lakhs for consistency)
-                    detection_lakhs = float(record.get('revenue_involved_lakhs_rs', 0))
-                    recovery_lakhs = float(record.get('revenue_recovered_lakhs_rs', 0))
-                    
+                    # detection_lakhs = float(record.get('revenue_involved_lakhs_rs', 0))
+                    # recovery_lakhs = float(record.get('revenue_recovered_lakhs_rs', 0))
+                    # FIXED: Use correct field names
+                    detection_rs = float(record.get('revenue_involved_rs', 0) or 0)
+                    recovery_rs = float(record.get('revenue_recovered_rs', 0) or 0)
+
+                    # Convert to lakhs for consistency
+                    detection_lakhs = detection_rs / 100000
+                    recovery_lakhs = recovery_rs / 100000
                     if decision in standard_decisions:
                         decision_counts[decision] += 1
                         decision_detection[decision] += detection_lakhs
