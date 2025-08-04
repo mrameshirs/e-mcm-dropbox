@@ -1425,6 +1425,8 @@ def get_visualization_data(dbx, selected_period):
             # Fill missing values appropriately
             df_mcm_data['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
             df_mcm_data['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_data['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+            df_mcm_data['revenue_involved_rs'] = pd.to_numeric(df_mcm_data['revenue_involved_rs'], errors='coerce').fillna(0)
+            df_mcm_data['revenue_recovered_rs'] = pd.to_numeric(df_mcm_data['revenue_recovered_rs'], errors='coerce').fillna(0)
             df_mcm_data['chair_remarks'] = df_mcm_data['chair_remarks'].fillna('')
             df_mcm_data['mcm_decision'] = df_mcm_data['mcm_decision'].fillna('Decision pending')
             df_mcm_data['status_of_para'] = df_mcm_data['status_of_para'].fillna('Status not updated')
