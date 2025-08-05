@@ -917,7 +917,7 @@ def mcm_agenda_tab(dbx):
                     mcm_columns = [
                         'audit_group_number', 'gstin', 'trade_name', 'category', 
                         'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
-                        'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+                        'revenue_recovered_lakhs_rs', 'revenue_involved_rs','revenue_recovered_rs','status_of_para', 'mcm_decision', 'chair_remarks'
                     ]
                     
                     # Filter for actual paras only
