@@ -481,8 +481,8 @@ def pco_dashboard(dbx):
             st.metric(label="📁 Total DARs Submitted", value=f"{total_dars}")
         with col2:
             st.metric(label="📝 Total Audit Paras", value=f"{total_paras}")
-        total_detection = df_filtered['Detection in Lakhs'].sum()
-        total_recovery = df_filtered['Recovery in Lakhs'].sum()
+        total_detection = df_filtered['total_amount_detected_overall_rs'].sum()
+        total_recovery = df_filtered['total_amount_recovered_overall_rs'].sum()
         
         col3, col4 = st.columns(2)
         with col3:
@@ -1553,6 +1553,7 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
 
 
 
