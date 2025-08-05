@@ -472,6 +472,25 @@ def pco_dashboard(dbx):
 
         # Summary section
         st.markdown("#### Summary of Uploads")
+        # --- 🔢 HIGH-LEVEL SUMMARY METRICS ---
+        total_dars = df_filtered['dar_pdf_path'].nunique()
+        total_paras = len(df_filtered)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(label="📁 Total DARs Submitted", value=f"{total_dars}")
+        with col2:
+            st.metric(label="📝 Total Audit Paras", value=f"{total_paras}")
+        total_detection = df_filtered['Detection in Lakhs'].sum()
+        total_recovery = df_filtered['Recovery in Lakhs'].sum()
+        
+        col3, col4 = st.columns(2)
+        with col3:
+            st.metric(label="💰 Revenue Involved (L)", value=f"₹{total_detection:,.2f} L")
+        with col4:
+            st.metric(label="🏆 Revenue Recovered (L)", value=f"₹{total_recovery:,.2f} L")
+        st.markdown("<hr>", unsafe_allow_html=True)
+        # --- END SUMMARY ---
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
         df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
         
@@ -1534,5 +1553,6 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
 
 
