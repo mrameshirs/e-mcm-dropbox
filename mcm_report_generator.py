@@ -4651,7 +4651,7 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold'
             )
             self.story.append(Paragraph(section_title, title_style))
-            
+            self.story.append(Spacer(1, 0.1 * inch))
             # Create paras table
             if paras:
                 try:
