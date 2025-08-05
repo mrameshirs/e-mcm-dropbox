@@ -4189,32 +4189,18 @@ class PDFReportGenerator:
             # Overall Remarks Section
             self._add_overall_remarks_section()
             
-            # MCM Data - Get from vital_stats or fallback
-            mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
-            st.subheader("Original MCM Data")
-            mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
-            if mcm_data:
-                st.dataframe(pd.DataFrame(mcm_data))
-                st.write(f"Columns in original data: {list(pd.DataFrame(mcm_data).columns)}")
-            else:
-                st.write("No MCM data found")
+            # # MCM Data - Get from vital_stats or fallback
+            # mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
+            # st.subheader("Original MCM Data")
+            # mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
+            # if mcm_data:
+            #     st.dataframe(pd.DataFrame(mcm_data))
+            #     st.write(f"Columns in original data: {list(pd.DataFrame(mcm_data).columns)}")
+            # else:
+            #     st.write("No MCM data found")
             # Organize data by circles and groups
             organized_data = self._organize_mcm_data_by_circles(mcm_data)
-            # Display organized data structure
-            st.subheader("Organized Data by Circles")
-            #organized_data = self._organize_mcm_data_by_circles(mcm_data)
             
-            for circle_num in sorted(organized_data.keys()):
-                st.write(f"**Circle {circle_num}:**")
-                for audit_group in sorted(organized_data[circle_num].keys()):
-                    st.write(f"  - Audit Group {audit_group}:")
-                    group_records = organized_data[circle_num][audit_group]
-                    if group_records:
-                        df_group = pd.DataFrame(group_records)
-                        st.dataframe(df_group)
-                        # Check specifically for revenue columns
-                        revenue_cols = [col for col in df_group.columns if 'revenue' in col.lower()]
-                        st.write(f"    Revenue columns found: {revenue_cols}")
             # Add circle-wise sections
             for circle_num in sorted(organized_data.keys()):
                 self._add_circle_section(circle_num, organized_data[circle_num])
@@ -4374,19 +4360,19 @@ class PDFReportGenerator:
             )
             
             self.story.append(Paragraph(f"📋 Audit Group {audit_group}", group_header_style))
-            # 🔍 DEBUG: Display group data
-            st.subheader(f"Debug: Circle {circle_num}, Group {audit_group}")
-            st.write("Raw group data:")
-            st.dataframe(pd.DataFrame(group_data))
+            # # 🔍 DEBUG: Display group data
+            # st.subheader(f"Debug: Circle {circle_num}, Group {audit_group}")
+            # st.write("Raw group data:")
+            # st.dataframe(pd.DataFrame(group_data))
             
-            # Check what columns are available
-            if group_data:
-                available_cols = list(pd.DataFrame(group_data).columns)
-                st.write(f"Available columns: {available_cols}")
+            # # Check what columns are available
+            # if group_data:
+            #     available_cols = list(pd.DataFrame(group_data).columns)
+            #     st.write(f"Available columns: {available_cols}")
                 
-                # Check for revenue columns specifically
-                revenue_cols = [col for col in available_cols if 'revenue' in col.lower()]
-                st.write(f"Revenue columns: {revenue_cols}")
+            #     # Check for revenue columns specifically
+            #     revenue_cols = [col for col in available_cols if 'revenue' in col.lower()]
+            #     st.write(f"Revenue columns: {revenue_cols}")
             # Organize by GSTIN/Trade Name
             gstin_data = {}
             for record in group_data:
@@ -4421,16 +4407,16 @@ class PDFReportGenerator:
                     'chair_remarks': record.get('chair_remarks')
                 })
             st.write("Processed para data:")
-            all_paras = []
-            for gstin_key, gstin_info in gstin_data.items():
-                all_paras.extend(gstin_info['paras'])
+            # all_paras = []
+            # for gstin_key, gstin_info in gstin_data.items():
+            #     all_paras.extend(gstin_info['paras'])
             
-            if all_paras:
-                st.dataframe(pd.DataFrame(all_paras))
-                para_cols = list(pd.DataFrame(all_paras).columns)
-                st.write(f"Para columns: {para_cols}")
-                revenue_para_cols = [col for col in para_cols if 'revenue' in col.lower()]
-                st.write(f"Revenue columns in paras: {revenue_para_cols}")
+            # if all_paras:
+            #     st.dataframe(pd.DataFrame(all_paras))
+            #     para_cols = list(pd.DataFrame(all_paras).columns)
+            #     st.write(f"Para columns: {para_cols}")
+            #     revenue_para_cols = [col for col in para_cols if 'revenue' in col.lower()]
+            #     st.write(f"Revenue columns in paras: {revenue_para_cols}")
             
             # Add each GSTIN section
             for gstin_key, gstin_info in gstin_data.items():
