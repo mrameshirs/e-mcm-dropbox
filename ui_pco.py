@@ -484,12 +484,12 @@ def pco_dashboard(dbx):
         total_detection = df_filtered['total_amount_detected_overall_rs'].sum()
         total_recovery = df_filtered['total_amount_recovered_overall_rs'].sum()
         
-        col3, col4 = st.columns(2)
-        with col3:
-            st.metric(label="💰 Revenue Involved (L)", value=f"₹{total_detection:,.2f} L")
-        with col4:
-            st.metric(label="🏆 Revenue Recovered (L)", value=f"₹{total_recovery:,.2f} L")
-        st.markdown("<hr>", unsafe_allow_html=True)
+        # col3, col4 = st.columns(2)
+        # with col3:
+        #     st.metric(label="💰 Revenue Involved (L)", value=f"₹{total_detection:,.2f} L")
+        # with col4:
+        #     st.metric(label="🏆 Revenue Recovered (L)", value=f"₹{total_recovery:,.2f} L")
+        # st.markdown("<hr>", unsafe_allow_html=True)
         # --- END SUMMARY ---
         df_filtered['audit_group_number'] = pd.to_numeric(df_filtered['audit_group_number'], errors='coerce')
         df_filtered['audit_circle_number'] = pd.to_numeric(df_filtered['audit_circle_number'], errors='coerce')
@@ -1553,6 +1553,7 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
 
 
 
