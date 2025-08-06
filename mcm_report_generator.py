@@ -2472,8 +2472,10 @@ class PDFReportGenerator:
                         ('LINEBELOW', (0, 0), (4, 0), 2, colors.HexColor("#6F2E2E")),
                         
                         # Padding
-                        ('TOPPADDING', (0, 0), (4, total_rows-1), 6),
-                        ('BOTTOMPADDING', (0, 0), (4, total_rows-1), 6),
+                        # ('TOPPADDING', (0, 0), (-1, -1), 4)
+                        # ('BOTTOMPADDING', (0, 0), (-1, -1), 4)
+                        ('TOPPADDING', (0, 0), (4, total_rows-1), 4),
+                        ('BOTTOMPADDING', (0, 0), (4, total_rows-1), 4),
                         ('VALIGN', (0, 0), (4, total_rows-1), 'MIDDLE'),
                     ]
                     
