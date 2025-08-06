@@ -4491,7 +4491,7 @@ class PDFReportGenerator:
                 try:
                     # Safe extraction with defaults
                     para_num = str(para.get('audit_para_number', 'N/A'))
-                    title = str(para.get('audit_para_heading', 'N/A'))[:60]
+                    title = str(para.get('audit_para_heading', 'N/A'))[:110]
                     
                     # Safe amount conversion
                     detection = 0.0
