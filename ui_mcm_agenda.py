@@ -479,21 +479,32 @@ def mcm_agenda_tab(dbx):
                                     # det_rs = (row.get('revenue_involved_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_involved_lakhs_rs')) else 0
                                     # rec_rs = (row.get('revenue_recovered_lakhs_rs', 0) * 100000) if pd.notna(row.get('revenue_recovered_lakhs_rs')) else 0
 
-                                    # Get the lakhs values safely
-                                    det_lakhs = row.get('revenue_involved_lakhs_rs', 0)
-                                    rec_lakhs = row.get('revenue_recovered_lakhs_rs', 0)
+                                    # # Get the lakhs values safely
+                                    # det_lakhs = row.get('revenue_involved_lakhs_rs', 0)
+                                    # rec_lakhs = row.get('revenue_recovered_lakhs_rs', 0)
+                                    
+                                    # # Clean and convert to numeric (handles string values with commas, etc.)
+                                    # det_lakhs = pd.to_numeric(str(det_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    # rec_lakhs = pd.to_numeric(str(rec_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    
+                                    # # Handle NaN values
+                                    # det_lakhs = det_lakhs if pd.notna(det_lakhs) else 0
+                                    # rec_lakhs = rec_lakhs if pd.notna(rec_lakhs) else 0
+
+                                    # FIXED: Use direct rupee columns instead of converting from lakhs
+                                    det_rs = row.get('revenue_involved_rs', 0)
+                                    rec_rs = row.get('revenue_recovered_rs', 0)
                                     
                                     # Clean and convert to numeric (handles string values with commas, etc.)
-                                    det_lakhs = pd.to_numeric(str(det_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
-                                    rec_lakhs = pd.to_numeric(str(rec_lakhs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    det_rs = pd.to_numeric(str(det_rs).replace(',', '').replace('₹', ''), errors='coerce')
+                                    rec_rs = pd.to_numeric(str(rec_rs).replace(',', '').replace('₹', ''), errors='coerce')
                                     
                                     # Handle NaN values
-                                    det_lakhs = det_lakhs if pd.notna(det_lakhs) else 0
-                                    rec_lakhs = rec_lakhs if pd.notna(rec_lakhs) else 0
-                                    
-                                    # Convert lakhs to rupees (multiply by 1,00,000)
-                                    det_rs = int(det_lakhs * 100000) if det_lakhs > 0 else 0
-                                    rec_rs = int(rec_lakhs * 100000) if rec_lakhs > 0 else 0
+                                    det_rs = int(det_rs) if pd.notna(det_rs) else 0
+                                    rec_rs = int(rec_rs) if pd.notna(rec_rs) else 0
+                                    # # Convert lakhs to rupees (multiply by 1,00,000)
+                                    # det_rs = int(det_lakhs * 100000) if det_lakhs > 0 else 0
+                                    # rec_rs = int(rec_lakhs * 100000) if rec_lakhs > 0 else 0
 
                                     total_para_det_rs += det_rs
                                     total_para_rec_rs += rec_rs
@@ -675,154 +686,154 @@ def mcm_agenda_tab(dbx):
                             # st.markdown("<hr>", unsafe_allow_html=True)
 
     # --- Compile PDF Button ---
-    if st.button("Compile Full MCM Agenda PDF", key="compile_mcm_agenda_pdf_final_v4_progress", type="primary", help="Generates a comprehensive PDF.", use_container_width=True):
-        if df_period_data_full.empty:
-            st.error("No data available for the selected MCM period to compile into PDF.")
-        else:
-            status_message_area = st.empty()
-            progress_bar = st.progress(0)
+    # if st.button("Compile Full MCM Agenda PDF", key="compile_mcm_agenda_pdf_final_v4_progress", type="primary", help="Generates a comprehensive PDF.", use_container_width=True):
+    #     if df_period_data_full.empty:
+    #         st.error("No data available for the selected MCM period to compile into PDF.")
+    #     else:
+    #         status_message_area = st.empty()
+    #         progress_bar = st.progress(0)
 
-            with st.spinner("Preparing for PDF compilation..."):
-                final_pdf_merger = PdfWriter()
-                compiled_pdf_pages_count = 0
+    #         with st.spinner("Preparing for PDF compilation..."):
+    #             final_pdf_merger = PdfWriter()
+    #             compiled_pdf_pages_count = 0
 
-                # Filter and sort data for PDF
-                df_for_pdf = df_period_data_full.dropna(subset=['dar_pdf_path', 'trade_name', circle_col_to_use]).copy()
-                df_for_pdf[circle_col_to_use] = pd.to_numeric(df_for_pdf[circle_col_to_use], errors='coerce').fillna(0).astype(int)
+    #             # Filter and sort data for PDF
+    #             df_for_pdf = df_period_data_full.dropna(subset=['dar_pdf_path', 'trade_name', circle_col_to_use]).copy()
+    #             df_for_pdf[circle_col_to_use] = pd.to_numeric(df_for_pdf[circle_col_to_use], errors='coerce').fillna(0).astype(int)
 
-                # Get unique DARs, sorted for consistent processing order
-                unique_dars_to_process = df_for_pdf.sort_values(by=[circle_col_to_use, 'trade_name', 'dar_pdf_path']).drop_duplicates(subset=['dar_pdf_path'])
+    #             # Get unique DARs, sorted for consistent processing order
+    #             unique_dars_to_process = df_for_pdf.sort_values(by=[circle_col_to_use, 'trade_name', 'dar_pdf_path']).drop_duplicates(subset=['dar_pdf_path'])
 
-                total_dars = len(unique_dars_to_process)
+    #             total_dars = len(unique_dars_to_process)
 
-                dar_objects_for_merge_and_index = []
+    #             dar_objects_for_merge_and_index = []
 
-                if total_dars == 0:
-                    status_message_area.warning("No valid DARs with PDF paths found to compile.")
-                    progress_bar.empty()
-                    st.stop()
+    #             if total_dars == 0:
+    #                 status_message_area.warning("No valid DARs with PDF paths found to compile.")
+    #                 progress_bar.empty()
+    #                 st.stop()
 
-                total_steps_for_pdf = 4 + (2 * total_dars)
-                current_pdf_step = 0
+    #             total_steps_for_pdf = 4 + (2 * total_dars)
+    #             current_pdf_step = 0
 
-                # Step 1: Pre-fetch DAR PDFs to count pages
-                status_message_area.info(f"Pre-fetching {total_dars} DAR PDFs to count pages and prepare content...")
-                for idx, dar_row in unique_dars_to_process.iterrows():
-                    current_pdf_step += 1
-                    dar_path_val = dar_row.get('dar_pdf_path')
-                    num_pages_val = 1  # Default in case of fetch failure
-                    reader_obj_val = None
-                    trade_name_val = dar_row.get('trade_name', 'Unknown DAR')
-                    circle_val = f"Circle {int(dar_row.get(circle_col_to_use, 0))}"
+    #             # Step 1: Pre-fetch DAR PDFs to count pages
+    #             status_message_area.info(f"Pre-fetching {total_dars} DAR PDFs to count pages and prepare content...")
+    #             for idx, dar_row in unique_dars_to_process.iterrows():
+    #                 current_pdf_step += 1
+    #                 dar_path_val = dar_row.get('dar_pdf_path')
+    #                 num_pages_val = 1  # Default in case of fetch failure
+    #                 reader_obj_val = None
+    #                 trade_name_val = dar_row.get('trade_name', 'Unknown DAR')
+    #                 circle_val = f"Circle {int(dar_row.get(circle_col_to_use, 0))}"
 
-                    status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Fetching DAR for {trade_name_val}...")
-                    if dar_path_val:
-                        try:
-                            pdf_content = download_file(dbx, dar_path_val)
-                            if pdf_content:
-                                fh_val = BytesIO(pdf_content)
-                                reader_obj_val = PdfReader(fh_val)
-                                num_pages_val = len(reader_obj_val.pages) if reader_obj_val.pages else 1
-                            else:
-                                st.warning(f"Failed to download PDF for {trade_name_val} at path: {dar_path_val}")
-                        except Exception as e_fetch_val:
-                            st.warning(f"PDF Read Error for {trade_name_val} ({dar_path_val}): {e_fetch_val}. Using placeholder.")
+    #                 status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Fetching DAR for {trade_name_val}...")
+    #                 if dar_path_val:
+    #                     try:
+    #                         pdf_content = download_file(dbx, dar_path_val)
+    #                         if pdf_content:
+    #                             fh_val = BytesIO(pdf_content)
+    #                             reader_obj_val = PdfReader(fh_val)
+    #                             num_pages_val = len(reader_obj_val.pages) if reader_obj_val.pages else 1
+    #                         else:
+    #                             st.warning(f"Failed to download PDF for {trade_name_val} at path: {dar_path_val}")
+    #                     except Exception as e_fetch_val:
+    #                         st.warning(f"PDF Read Error for {trade_name_val} ({dar_path_val}): {e_fetch_val}. Using placeholder.")
 
-                    dar_objects_for_merge_and_index.append({
-                        'circle': circle_val,
-                        'trade_name': trade_name_val,
-                        'num_pages_in_dar': num_pages_val,
-                        'pdf_reader': reader_obj_val,
-                        'dar_path': dar_path_val
-                    })
-                    progress_bar.progress(current_pdf_step / total_steps_for_pdf)
+    #                 dar_objects_for_merge_and_index.append({
+    #                     'circle': circle_val,
+    #                     'trade_name': trade_name_val,
+    #                     'num_pages_in_dar': num_pages_val,
+    #                     'pdf_reader': reader_obj_val,
+    #                     'dar_path': dar_path_val
+    #                 })
+    #                 progress_bar.progress(current_pdf_step / total_steps_for_pdf)
 
-            # Now compile with progress
-            try:
-                # Step 2: Cover Page
-                current_pdf_step += 1
-                status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating Cover Page...")
-                cover_buffer = BytesIO()
-                create_cover_page_pdf(cover_buffer, f"Audit Paras for MCM {month_year_str}", "Audit 1 Commissionerate Mumbai")
-                cover_reader = PdfReader(cover_buffer)
-                final_pdf_merger.append(cover_reader)
-                compiled_pdf_pages_count += len(cover_reader.pages)
-                progress_bar.progress(current_pdf_step / total_steps_for_pdf)
+    #         # Now compile with progress
+    #         try:
+    #             # Step 2: Cover Page
+    #             current_pdf_step += 1
+    #             status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating Cover Page...")
+    #             cover_buffer = BytesIO()
+    #             create_cover_page_pdf(cover_buffer, f"Audit Paras for MCM {month_year_str}", "Audit 1 Commissionerate Mumbai")
+    #             cover_reader = PdfReader(cover_buffer)
+    #             final_pdf_merger.append(cover_reader)
+    #             compiled_pdf_pages_count += len(cover_reader.pages)
+    #             progress_bar.progress(current_pdf_step / total_steps_for_pdf)
 
-                # Step 3: High-Value Paras Table
-                current_pdf_step += 1
-                status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating High-Value Paras Table...")
-                df_hv_data = df_period_data_full[(df_period_data_full['revenue_involved_lakhs_rs'].fillna(0) * 100000) > 500000].copy()
-                df_hv_data.sort_values(by='revenue_involved_lakhs_rs', ascending=False, inplace=True)
-                hv_pages_count = 0
-                if not df_hv_data.empty:
-                    hv_buffer = BytesIO()
-                    create_high_value_paras_pdf(hv_buffer, df_hv_data)
-                    hv_reader = PdfReader(hv_buffer)
-                    final_pdf_merger.append(hv_reader)
-                    hv_pages_count = len(hv_reader.pages)
-                compiled_pdf_pages_count += hv_pages_count
-                progress_bar.progress(current_pdf_step / total_steps_for_pdf)
+    #             # Step 3: High-Value Paras Table
+    #             current_pdf_step += 1
+    #             status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating High-Value Paras Table...")
+    #             df_hv_data = df_period_data_full[(df_period_data_full['revenue_involved_lakhs_rs'].fillna(0) * 100000) > 500000].copy()
+    #             df_hv_data.sort_values(by='revenue_involved_lakhs_rs', ascending=False, inplace=True)
+    #             hv_pages_count = 0
+    #             if not df_hv_data.empty:
+    #                 hv_buffer = BytesIO()
+    #                 create_high_value_paras_pdf(hv_buffer, df_hv_data)
+    #                 hv_reader = PdfReader(hv_buffer)
+    #                 final_pdf_merger.append(hv_reader)
+    #                 hv_pages_count = len(hv_reader.pages)
+    #             compiled_pdf_pages_count += hv_pages_count
+    #             progress_bar.progress(current_pdf_step / total_steps_for_pdf)
 
-                # Step 4: Index Page
-                current_pdf_step += 1
-                status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating Index Page...")
-                index_page_actual_start = compiled_pdf_pages_count + 1
-                dar_start_page_counter_val = index_page_actual_start + 1  # After index page(s)
+    #             # Step 4: Index Page
+    #             current_pdf_step += 1
+    #             status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Generating Index Page...")
+    #             index_page_actual_start = compiled_pdf_pages_count + 1
+    #             dar_start_page_counter_val = index_page_actual_start + 1  # After index page(s)
 
-                index_items_list_final = []
-                for item_info in dar_objects_for_merge_and_index:
-                    index_items_list_final.append({
-                        'circle': item_info['circle'],
-                        'trade_name': item_info['trade_name'],
-                        'start_page_in_final_pdf': dar_start_page_counter_val,
-                        'num_pages_in_dar': item_info['num_pages_in_dar']
-                    })
-                    dar_start_page_counter_val += item_info['num_pages_in_dar']
+    #             index_items_list_final = []
+    #             for item_info in dar_objects_for_merge_and_index:
+    #                 index_items_list_final.append({
+    #                     'circle': item_info['circle'],
+    #                     'trade_name': item_info['trade_name'],
+    #                     'start_page_in_final_pdf': dar_start_page_counter_val,
+    #                     'num_pages_in_dar': item_info['num_pages_in_dar']
+    #                 })
+    #                 dar_start_page_counter_val += item_info['num_pages_in_dar']
 
-                index_buffer = BytesIO()
-                create_index_page_pdf(index_buffer, index_items_list_final, index_page_actual_start)
-                index_reader = PdfReader(index_buffer)
-                final_pdf_merger.append(index_reader)
-                compiled_pdf_pages_count += len(index_reader.pages)
-                progress_bar.progress(current_pdf_step / total_steps_for_pdf)
+    #             index_buffer = BytesIO()
+    #             create_index_page_pdf(index_buffer, index_items_list_final, index_page_actual_start)
+    #             index_reader = PdfReader(index_buffer)
+    #             final_pdf_merger.append(index_reader)
+    #             compiled_pdf_pages_count += len(index_reader.pages)
+    #             progress_bar.progress(current_pdf_step / total_steps_for_pdf)
 
-                # Step 5: Merge actual DAR PDFs
-                for i, dar_detail_info in enumerate(dar_objects_for_merge_and_index):
-                    current_pdf_step += 1
-                    status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Merging DAR {i+1}/{total_dars} ({html.escape(dar_detail_info['trade_name'])})...")
-                    if dar_detail_info['pdf_reader']:
-                        final_pdf_merger.append(dar_detail_info['pdf_reader'])
-                    else:  # Placeholder
-                        ph_b = BytesIO()
-                        ph_d = SimpleDocTemplate(ph_b, pagesize=A4)
-                        ph_s = [Paragraph(f"Content for {html.escape(dar_detail_info['trade_name'])} (Path: {html.escape(dar_detail_info['dar_path'])}) failed to load.", getSampleStyleSheet()['Normal'])]
-                        ph_d.build(ph_s)
-                        ph_b.seek(0)
-                        final_pdf_merger.append(PdfReader(ph_b))
-                    progress_bar.progress(current_pdf_step / total_steps_for_pdf)
+    #             # Step 5: Merge actual DAR PDFs
+    #             for i, dar_detail_info in enumerate(dar_objects_for_merge_and_index):
+    #                 current_pdf_step += 1
+    #                 status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Merging DAR {i+1}/{total_dars} ({html.escape(dar_detail_info['trade_name'])})...")
+    #                 if dar_detail_info['pdf_reader']:
+    #                     final_pdf_merger.append(dar_detail_info['pdf_reader'])
+    #                 else:  # Placeholder
+    #                     ph_b = BytesIO()
+    #                     ph_d = SimpleDocTemplate(ph_b, pagesize=A4)
+    #                     ph_s = [Paragraph(f"Content for {html.escape(dar_detail_info['trade_name'])} (Path: {html.escape(dar_detail_info['dar_path'])}) failed to load.", getSampleStyleSheet()['Normal'])]
+    #                     ph_d.build(ph_s)
+    #                     ph_b.seek(0)
+    #                     final_pdf_merger.append(PdfReader(ph_b))
+    #                 progress_bar.progress(current_pdf_step / total_steps_for_pdf)
 
-                # Step 6: Finalize PDF
-                current_pdf_step += 1
-                status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Finalizing PDF...")
-                output_pdf_final = BytesIO()
-                final_pdf_merger.write(output_pdf_final)
-                output_pdf_final.seek(0)
-                progress_bar.progress(1.0)
-                status_message_area.success("PDF Compilation Complete!")
+    #             # Step 6: Finalize PDF
+    #             current_pdf_step += 1
+    #             status_message_area.info(f"Step {current_pdf_step}/{total_steps_for_pdf}: Finalizing PDF...")
+    #             output_pdf_final = BytesIO()
+    #             final_pdf_merger.write(output_pdf_final)
+    #             output_pdf_final.seek(0)
+    #             progress_bar.progress(1.0)
+    #             status_message_area.success("PDF Compilation Complete!")
 
-                dl_filename = f"MCM_Agenda_{month_year_str.replace(' ', '_')}_Compiled.pdf"
-                st.download_button(label="⬇️ Download Compiled PDF Agenda", data=output_pdf_final, file_name=dl_filename, mime="application/pdf")
+    #             dl_filename = f"MCM_Agenda_{month_year_str.replace(' ', '_')}_Compiled.pdf"
+    #             st.download_button(label="⬇️ Download Compiled PDF Agenda", data=output_pdf_final, file_name=dl_filename, mime="application/pdf")
 
-            except Exception as e_compile_outer:
-                status_message_area.error(f"An error occurred during PDF compilation: {e_compile_outer}")
-                import traceback
-                st.error(traceback.format_exc())
-            finally:
+    #         except Exception as e_compile_outer:
+    #             status_message_area.error(f"An error occurred during PDF compilation: {e_compile_outer}")
+    #             import traceback
+    #             st.error(traceback.format_exc())
+    #         finally:
                 
-                time_module.sleep(0.5)  # Brief pause to ensure user sees final status
-                status_message_area.empty()
-                progress_bar.empty()
+    #             time_module.sleep(0.5)  # Brief pause to ensure user sees final status
+    #             status_message_area.empty()
+    #             progress_bar.empty()
                 
     # --- MCM Date Selection Section ---
     st.markdown("---")
@@ -987,155 +998,84 @@ def mcm_agenda_tab(dbx):
     
     # SIMILARLY UPDATE THE DETAILED BUTTON:
     
-    with col2:
-        if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
-             # Validate MCM date first
-            if not validate_mcm_date_selection():
-                st.stop()
-                
-            mcm_date = st.session_state.get(mcm_date_key)
-            with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
-                # 1. Fetch data and charts  
-                vital_stats, charts = get_visualization_data(dbx, selected_period)
-                if not vital_stats or not charts:
-                    st.error("Could not fetch visualization data to generate the report.")
-                    return
-                 # 2. ADD MCM DATE TO VITAL STATS
-                vital_stats['mcm_date'] = mcm_date.strftime("%d %B, %Y") if mcm_date else None
-            
-                # 2. ENHANCE with MCM detailed data (same as above)
-                df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-                if df_mcm_current is not None and not df_mcm_current.empty:
-                    df_mcm_filtered = df_mcm_current[df_mcm_current['mcm_period'] == selected_period].copy()
-                    
-                    mcm_columns = [
-                        'audit_group_number', 'gstin', 'trade_name', 'category', 
-                        'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
-                        'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
-                    ]
-                    
-                    df_mcm_paras = df_mcm_filtered[
-                        df_mcm_filtered['audit_para_number'].notna() & 
-                        (~df_mcm_filtered['audit_para_heading'].astype(str).isin([
-                            "N/A - Header Info Only (Add Paras Manually)", 
-                            "Manual Entry Required", 
-                            "Manual Entry - PDF Error", 
-                            "Manual Entry - PDF Upload Failed"
-                        ]))
-                    ].copy()
-                    
-                    if not df_mcm_paras.empty:
-                        for col in mcm_columns:
-                            if col not in df_mcm_paras.columns:
-                                df_mcm_paras[col] = ''
-                        
-                        df_mcm_paras['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
-                        df_mcm_paras['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
-                        df_mcm_paras['chair_remarks'] = df_mcm_paras['chair_remarks'].fillna('')
-                        df_mcm_paras['mcm_decision'] = df_mcm_paras['mcm_decision'].fillna('Decision pending')
-                        df_mcm_paras['status_of_para'] = df_mcm_paras['status_of_para'].fillna('Status not updated')
-                        
-                        vital_stats['mcm_detailed_data'] = df_mcm_paras[mcm_columns].to_dict('records')
-                        
-                        df_periods_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
-                        if df_periods_remarks is not None and 'overall_remarks' in df_periods_remarks.columns:
-                            try:
-                                month_name, year_str = selected_period.split(" ")
-                                year_val = int(year_str)
-                                period_row = df_periods_remarks[
-                                    (df_periods_remarks['month_name'] == month_name) & 
-                                    (df_periods_remarks['year'] == year_val)
-                                ]
-                                if not period_row.empty:
-                                    overall_remarks = period_row.iloc[0].get('overall_remarks', '')
-                                    if pd.notna(overall_remarks):
-                                        vital_stats['overall_remarks'] = overall_remarks
-                            except:
-                                pass
-    
-                # 3. Convert Plotly charts to images in memory
-                chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
-    
-                # 4. Generate PDF (THIS WILL NOW INCLUDE THE NEW SECTIONS AUTOMATICALLY)
-                report_generator = PDFReportGenerator(
-                    selected_period=selected_period,
-                    vital_stats=vital_stats,
-                    chart_images=chart_images
-                )
-                pdf_bytes = report_generator.run(detailed=True)  # Detailed version
-    
-                # 5. Provide Download Link
-                st.download_button(
-                    label="⬇️ Download Detailed Summary PDF",
-                    data=pdf_bytes,
-                    file_name=f"MCM_Executive_Summary_Detailed_{selected_period.replace(' ', '_')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-                st.success("Enhanced detailed summary PDF is ready for download!")
-    # with col1:
-    #     if st.button("📄 Generate Executive Summary (Short)", use_container_width=True):
-    #         with st.spinner("Generating Short PDF Summary... Please wait."):
-    #             # 1. Fetch data and charts
-    #             vital_stats, charts = get_visualization_data(dbx, selected_period)
-    #             if not vital_stats or not charts:
-    #                 st.error("Could not fetch visualization data to generate the report.")
-    #                 return
-    #             ############  Debug the data structure Added may be reomoved 
-    #             ttd = vital_stats.get('top_taxpayers_data', {})
-    #             print(f"Top taxpayers data type: {type(ttd)}")
-    #             for key in ['top_detection', 'top_recovery']:
-    #                 data = ttd.get(key, [])
-    #                 print(f"{key}: type={type(data)}, length={len(data) if hasattr(data, '__len__') else 'no length'}")
-    #                 if hasattr(data, 'to_dict'):
-    #                     print(f"  WARNING: {key} is still a DataFrame!")
-    #             ####################
-    #             # 2. Convert Plotly charts to images in memory
-    #             # AFTER
-    #             #chart_images = [BytesIO(chart.to_image(format="svg")) for chart in charts]
-    #             #chart_images = [BytesIO(chart.to_image(format="svg", width=720, height=450)) for chart in charts]
-    #             chart_images = [BytesIO(chart.to_image(format="svg", width=520, height=300)) for chart in charts]
-    #             #chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
-    
-    #             # 3. Generate PDF
-    #             report_generator = PDFReportGenerator(
-    #                 selected_period=selected_period,
-    #                 vital_stats=vital_stats,
-    #                 chart_images=chart_images
-    #             )
-    #             pdf_bytes = report_generator.run(detailed=False)
-    
-    #             # 4. Provide Download Link
-    #             st.download_button(
-    #                 label="⬇️ Download Short Summary PDF",
-    #                 data=pdf_bytes,
-    #                 file_name=f"MCM_Executive_Summary_Short_{selected_period.replace(' ', '_')}.pdf",
-    #                 mime="application/pdf",
-    #                 use_container_width=True
-    #             )
-    #             st.success("Short summary PDF is ready for download!")
-    
     # with col2:
     #     if st.button("📑 Generate Executive Summary (Detailed)", use_container_width=True, type="primary"):
+    #          # Validate MCM date first
+    #         if not validate_mcm_date_selection():
+    #             st.stop()
+                
+    #         mcm_date = st.session_state.get(mcm_date_key)
     #         with st.spinner("Generating Detailed PDF Summary... This may take a moment."):
-    #             # 1. Fetch data and charts
+    #             # 1. Fetch data and charts  
     #             vital_stats, charts = get_visualization_data(dbx, selected_period)
     #             if not vital_stats or not charts:
     #                 st.error("Could not fetch visualization data to generate the report.")
     #                 return
+    #              # 2. ADD MCM DATE TO VITAL STATS
+    #             vital_stats['mcm_date'] = mcm_date.strftime("%d %B, %Y") if mcm_date else None
+            
+    #             # 2. ENHANCE with MCM detailed data (same as above)
+    #             df_mcm_current = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+    #             if df_mcm_current is not None and not df_mcm_current.empty:
+    #                 df_mcm_filtered = df_mcm_current[df_mcm_current['mcm_period'] == selected_period].copy()
+                    
+    #                 mcm_columns = [
+    #                     'audit_group_number', 'gstin', 'trade_name', 'category', 
+    #                     'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
+    #                     'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
+    #                 ]
+                    
+    #                 df_mcm_paras = df_mcm_filtered[
+    #                     df_mcm_filtered['audit_para_number'].notna() & 
+    #                     (~df_mcm_filtered['audit_para_heading'].astype(str).isin([
+    #                         "N/A - Header Info Only (Add Paras Manually)", 
+    #                         "Manual Entry Required", 
+    #                         "Manual Entry - PDF Error", 
+    #                         "Manual Entry - PDF Upload Failed"
+    #                     ]))
+    #                 ].copy()
+                    
+    #                 if not df_mcm_paras.empty:
+    #                     for col in mcm_columns:
+    #                         if col not in df_mcm_paras.columns:
+    #                             df_mcm_paras[col] = ''
+                        
+    #                     df_mcm_paras['revenue_involved_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_involved_lakhs_rs'], errors='coerce').fillna(0)
+    #                     df_mcm_paras['revenue_recovered_lakhs_rs'] = pd.to_numeric(df_mcm_paras['revenue_recovered_lakhs_rs'], errors='coerce').fillna(0)
+    #                     df_mcm_paras['chair_remarks'] = df_mcm_paras['chair_remarks'].fillna('')
+    #                     df_mcm_paras['mcm_decision'] = df_mcm_paras['mcm_decision'].fillna('Decision pending')
+    #                     df_mcm_paras['status_of_para'] = df_mcm_paras['status_of_para'].fillna('Status not updated')
+                        
+    #                     vital_stats['mcm_detailed_data'] = df_mcm_paras[mcm_columns].to_dict('records')
+                        
+    #                     df_periods_remarks = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
+    #                     if df_periods_remarks is not None and 'overall_remarks' in df_periods_remarks.columns:
+    #                         try:
+    #                             month_name, year_str = selected_period.split(" ")
+    #                             year_val = int(year_str)
+    #                             period_row = df_periods_remarks[
+    #                                 (df_periods_remarks['month_name'] == month_name) & 
+    #                                 (df_periods_remarks['year'] == year_val)
+    #                             ]
+    #                             if not period_row.empty:
+    #                                 overall_remarks = period_row.iloc[0].get('overall_remarks', '')
+    #                                 if pd.notna(overall_remarks):
+    #                                     vital_stats['overall_remarks'] = overall_remarks
+    #                         except:
+    #                             pass
     
-    #             # 2. Convert Plotly charts to images in memory
+    #             # 3. Convert Plotly charts to images in memory
     #             chart_images = [BytesIO(chart.to_image(format="png", scale=2)) for chart in charts]
     
-    #             # 3. Generate PDF
+    #             # 4. Generate PDF (THIS WILL NOW INCLUDE THE NEW SECTIONS AUTOMATICALLY)
     #             report_generator = PDFReportGenerator(
     #                 selected_period=selected_period,
     #                 vital_stats=vital_stats,
     #                 chart_images=chart_images
     #             )
-    #             pdf_bytes = report_generator.run(detailed=True)
+    #             pdf_bytes = report_generator.run(detailed=True)  # Detailed version
     
-    #             # 4. Provide Download Link
+    #             # 5. Provide Download Link
     #             st.download_button(
     #                 label="⬇️ Download Detailed Summary PDF",
     #                 data=pdf_bytes,
@@ -1143,268 +1083,5 @@ def mcm_agenda_tab(dbx):
     #                 mime="application/pdf",
     #                 use_container_width=True
     #             )
-    #             st.success("Detailed summary PDF is ready for download!")
-# # ui_mcm_agenda.py
-# import streamlit as st
-# import pandas as pd
-# import html
-# from io import BytesIO
-# import time
-
-# # PDF manipulation libraries
-# from reportlab.lib.pagesizes import A4
-# from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-# from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-# from reportlab.lib.enums import TA_CENTER
-# from reportlab.lib import colors
-# from reportlab.lib.units import inch
-# from PyPDF2 import PdfWriter, PdfReader
-
-# # Dropbox-based imports
-# from dropbox_utils import read_from_spreadsheet, download_file, update_spreadsheet_from_df
-# from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
-
-# # --- Helper Functions (Identical to your original file) ---
-
-# def format_inr(n):
-#     """Formats a number into the Indian numbering system."""
-#     try:
-#         n = float(n)
-#         if pd.isna(n): return "0"
-#         n = int(n)
-#     except (ValueError, TypeError):
-#         return "0"
+    #             st.success("Enhanced detailed summary PDF is ready for download!")
     
-#     s = str(n)
-#     if n < 0: return '-' + format_inr(-n)
-#     if len(s) <= 3: return s
-    
-#     last_three = s[-3:]
-#     other_digits = s[:-3]
-#     groups = []
-#     while len(other_digits) > 2:
-#         groups.append(other_digits[-2:])
-#         other_digits = other_digits[:-2]
-#     if other_digits:
-#         groups.append(other_digits)
-    
-#     return ','.join(reversed(groups)) + ',' + last_three
-
-# def create_cover_page_pdf(buffer, title_text, subtitle_text):
-#     doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=1.5*inch)
-#     styles = getSampleStyleSheet()
-#     story = []
-#     title_style = ParagraphStyle('Title', parent=styles['h1'], fontSize=28, alignment=TA_CENTER, spaceAfter=0.3*inch, textColor=colors.HexColor("#dc3545"))
-#     story.append(Paragraph(title_text, title_style))
-#     story.append(Spacer(1, 0.3*inch))
-#     subtitle_style = ParagraphStyle('Subtitle', parent=styles['h2'], fontSize=16, alignment=TA_CENTER)
-#     story.append(Paragraph(subtitle_text, subtitle_style))
-#     doc.build(story)
-#     buffer.seek(0)
-#     return buffer
-
-# def create_index_page_pdf(buffer, index_data_list):
-#     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=0.75*inch, rightMargin=0.75*inch)
-#     styles = getSampleStyleSheet()
-#     story = [Paragraph("<b>Index of DARs</b>", styles['h1']), Spacer(1, 0.2*inch)]
-#     table_data = [[Paragraph("<b>Audit Circle</b>", styles['Normal']), Paragraph("<b>Trade Name of DAR</b>", styles['Normal']), Paragraph("<b>Start Page</b>", styles['Normal'])]]
-    
-#     for item in index_data_list:
-#         table_data.append([
-#             Paragraph(str(item['circle']), styles['Normal']),
-#             Paragraph(html.escape(item['trade_name']), styles['Normal']),
-#             Paragraph(str(item['start_page']), styles['Normal'])
-#         ])
-    
-#     index_table = Table(table_data, colWidths=[1.5*inch, 4*inch, 1.5*inch])
-#     index_table.setStyle(TableStyle([
-#         ('BACKGROUND', (0, 0), (-1, 0), colors.darkgrey), ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#         ('GRID', (0, 0), (-1, -1), 1, colors.black)
-#     ]))
-#     story.append(index_table)
-#     doc.build(story)
-#     buffer.seek(0)
-#     return buffer
-
-# def create_high_value_paras_pdf(buffer, df_high_value_paras):
-#     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=0.75*inch, rightMargin=0.75*inch)
-#     styles = getSampleStyleSheet()
-#     story = [Paragraph("<b>High-Value Audit Paras (> ₹5 Lakhs Detection)</b>", styles['h1']), Spacer(1, 0.2*inch)]
-    
-#     table_data = [[Paragraph(f"<b>{col}</b>", styles['Normal']) for col in ["Audit Group", "Para No.", "Para Title", "Detected (₹)", "Recovered (₹)"]]]
-    
-#     for _, row in df_high_value_paras.iterrows():
-#         detected_val = row.get('revenue_involved_lakhs_rs', 0) * 100000
-#         recovered_val = row.get('revenue_recovered_lakhs_rs', 0) * 100000
-#         table_data.append([
-#             Paragraph(str(row.get("audit_group_number", "N/A")), styles['Normal']),
-#             Paragraph(str(row.get("audit_para_number", "N/A")), styles['Normal']),
-#             Paragraph(html.escape(str(row.get("audit_para_heading", "N/A"))[:100]), styles['Normal']),
-#             Paragraph(format_inr(detected_val), styles['Normal']),
-#             Paragraph(format_inr(recovered_val), styles['Normal'])
-#         ])
-        
-#     hv_table = Table(table_data, colWidths=[1*inch, 0.7*inch, 3*inch, 1.4*inch, 1.4*inch])
-#     hv_table.setStyle(TableStyle([
-#         ('BACKGROUND', (0, 0), (-1, 0), colors.darkgrey), ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#         ('ALIGN', (3,1), (-1,-1), 'RIGHT'),
-#         ('GRID', (0, 0), (-1, -1), 1, colors.black)
-#     ]))
-#     story.append(hv_table)
-#     doc.build(story)
-#     buffer.seek(0)
-#     return buffer
-
-# # --- Main Tab Function ---
-# def mcm_agenda_tab(dbx):
-#     st.markdown("### MCM Agenda Preparation")
-    
-#     df_periods = read_from_spreadsheet(dbx, MCM_PERIODS_INFO_PATH)
-#     if df_periods.empty:
-#         st.warning("No MCM periods found."); return
-        
-#     period_options = df_periods.apply(lambda row: f"{row['month_name']} {row['year']}", axis=1).tolist()
-#     selected_period = st.selectbox("Select MCM Period for Agenda", options=period_options)
-
-#     if not selected_period: return
-
-#     month_year_str = selected_period
-#     st.markdown(f"#### MCM Audit Paras for {month_year_str}")
-#     st.markdown("---")
-    
-#     if 'mcm_agenda_df' not in st.session_state or st.session_state.get('mcm_agenda_period') != selected_period:
-#         with st.spinner(f"Loading data for {month_year_str}..."):
-#             df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-#             df_all_data.reset_index(inplace=True) 
-#             df_period = df_all_data[df_all_data['mcm_period'] == selected_period].copy()
-#             st.session_state.mcm_agenda_df = df_period
-#             st.session_state.mcm_agenda_period = selected_period
-
-#     df_period_data = st.session_state.mcm_agenda_df
-
-#     if df_period_data.empty:
-#         st.info(f"No data found for {month_year_str}."); return
-
-#     for circle_num in sorted(df_period_data['audit_circle_number'].dropna().unique()):
-#         with st.expander(f"Audit Circle {int(circle_num)}"):
-#             df_circle = df_period_data[df_period_data['audit_circle_number'] == circle_num]
-#             group_tabs = st.tabs([f"Audit Group {int(g)}" for g in sorted(df_circle['audit_group_number'].unique())])
-
-#             for i, group_num in enumerate(sorted(df_circle['audit_group_number'].unique())):
-#                 with group_tabs[i]:
-#                     df_group = df_circle[df_circle['audit_group_number'] == group_num]
-#                     for trade_name in sorted(df_group['trade_name'].unique()):
-#                         df_trade = df_group[df_group['trade_name'] == trade_name]
-                        
-#                         c1, c2 = st.columns([0.7, 0.3])
-#                         pdf_path = df_trade['dar_pdf_path'].iloc[0]
-#                         if c1.button(trade_name, key=f"btn_{trade_name}_{group_num}", use_container_width=True):
-#                             st.session_state[f"show_{trade_name}_{group_num}"] = not st.session_state.get(f"show_{trade_name}_{group_num}", False)
-                        
-#                         if pd.notna(pdf_path):
-#                             c2.link_button("View DAR PDF", f"https://www.dropbox.com/home{pdf_path.replace(' ', '%20')}", use_container_width=True)
-
-#                         if st.session_state.get(f"show_{trade_name}_{group_num}", False):
-#                             with st.container(border=True):
-#                                 gstin = df_trade['gstin'].iloc[0]; category = df_trade['category'].iloc[0]
-#                                 cat_color_map = {"Large": ("#f8d7da", "#721c24"), "Medium": ("#ffeeba", "#856404"), "Small": ("#d4edda", "#155724")}
-#                                 cat_bg, cat_text = cat_color_map.get(category, ("#e2e3e5", "#383d41"))
-
-#                                 info_cols = st.columns(2)
-#                                 info_cols[0].markdown(f"""<div style="background-color:{cat_bg};color:{cat_text};padding:4px 8px;border-radius:5px;text-align:center;"><b>Category:</b> {html.escape(str(category))}</div>""", unsafe_allow_html=True)
-#                                 info_cols[1].markdown(f"""<div style="background-color:#e9ecef;color:#495057;padding:4px 8px;border-radius:5px;text-align:center;"><b>GSTIN:</b> {html.escape(str(gstin))}</div>""", unsafe_allow_html=True)
-
-#                                 st.markdown(f"<h5 style='margin-top:20px;'>Gist of Audit Paras & MCM Decisions</h5>", unsafe_allow_html=True)
-                                
-#                                 # --- RESTORED: Custom CSS grid layout ---
-#                                 st.markdown("""<style>.grid-header{font-weight:bold;background-color:#343a40;color:white;padding:10px 5px;border-radius:5px;text-align:center;}.cell-style{padding:8px 5px;margin:1px;border-radius:5px;}.title-cell{text-align:left;padding-left:10px;background-color:#f0f2f6;}.revenue-cell{font-weight:bold;text-align:right!important;background-color:#e8f5e9;}.status-cell{font-weight:bold;text-align:center;background-color:#e3f2fd;}.total-row{font-weight:bold;padding-top:10px;}</style>""", unsafe_allow_html=True)
-#                                 col_props = (0.9, 5, 1.5, 1.5, 1.8, 2.5)
-#                                 headers = ['Para No.', 'Para Title', 'Detection (₹)', 'Recovery (₹)', 'Status', 'MCM Decision']
-#                                 header_cols = st.columns(col_props)
-#                                 for col, h in zip(header_cols, headers):
-#                                     col.markdown(f"<div class='grid-header'>{h}</div>", unsafe_allow_html=True)
-
-#                                 total_det, total_rec = 0, 0
-#                                 for original_index, row in df_trade.iterrows():
-#                                     with st.container():
-#                                         para_num = int(row["audit_para_number"]) if pd.notna(row["audit_para_number"]) else "N/A"
-#                                         det_rs = row.get('revenue_involved_lakhs_rs', 0) * 100000; total_det += det_rs
-#                                         rec_rs = row.get('revenue_recovered_lakhs_rs', 0) * 100000; total_rec += rec_rs
-                                        
-#                                         row_cols = st.columns(col_props)
-#                                         row_cols[0].markdown(f"<div class='cell-style'>{para_num}</div>", unsafe_allow_html=True)
-#                                         row_cols[1].markdown(f"<div class='cell-style title-cell'>{html.escape(str(row.get('audit_para_heading')))}</div>", unsafe_allow_html=True)
-#                                         row_cols[2].markdown(f"<div class='cell-style revenue-cell'>{format_inr(det_rs)}</div>", unsafe_allow_html=True)
-#                                         row_cols[3].markdown(f"<div class='cell-style revenue-cell'>{format_inr(rec_rs)}</div>", unsafe_allow_html=True)
-#                                         row_cols[4].markdown(f"<div class='cell-style status-cell'>{html.escape(str(row.get('status_of_para')))}</div>", unsafe_allow_html=True)
-
-#                                         options = ['Select a decision', 'Para closed since recovered', 'Para deferred', 'Para to be pursued else issue SCN']
-#                                         current = row.get('mcm_decision'); current = current if pd.notna(current) and current in options else options[0]
-#                                         sel_decision = row_cols[5].selectbox("Decision", options=options, index=options.index(current), key=f"dec_{row['index']}", label_visibility="collapsed")
-                                        
-#                                         if sel_decision != current:
-#                                             st.session_state.mcm_agenda_df.loc[st.session_state.mcm_agenda_df['index'] == row['index'], 'mcm_decision'] = sel_decision
-#                                             st.rerun()
-                                
-#                                 st.markdown("---")
-#                                 total_cols = st.columns(col_props)
-#                                 total_cols[1].markdown("<div class='total-row' style='text-align:right;'>Total of Paras</div>", unsafe_allow_html=True)
-#                                 total_cols[2].markdown(f"<div class='total-row revenue-cell cell-style'>{format_inr(total_det)}</div>", unsafe_allow_html=True)
-#                                 total_cols[3].markdown(f"<div class='total-row revenue-cell cell-style'>{format_inr(total_rec)}</div>", unsafe_allow_html=True)
-#                                 st.markdown("<br>", unsafe_allow_html=True)
-                                
-#                                 detection_style = "background-color: #f8d7da; color: #721c24; font-weight: bold; padding: 10px; border-radius: 5px; font-size: 1.1em;"
-#                                 recovery_style = "background-color: #d4edda; color: #155724; font-weight: bold; padding: 10px; border-radius: 5px; font-size: 1.1em;"
-#                                 st.markdown(f"<p style='{detection_style}'>Total Overall Detection for {html.escape(trade_name)}: ₹ {format_inr(df_trade['total_amount_detected_overall_rs'].iloc[0])}</p>", unsafe_allow_html=True)
-#                                 st.markdown(f"<p style='{recovery_style}'>Total Overall Recovery for {html.escape(trade_name)}: ₹ {format_inr(df_trade['total_amount_recovered_overall_rs'].iloc[0])}</p>", unsafe_allow_html=True)
-
-#     if st.button("Save All Decisions", type="primary"):
-#         with st.spinner("Saving decisions..."):
-#             df_master = read_from_spreadsheet(dbx, MCM_DATA_PATH)
-#             if 'mcm_decision' not in df_master.columns: df_master['mcm_decision'] = ""
-#             update_data = st.session_state.mcm_agenda_df.set_index('index')[['mcm_decision']]
-#             df_master.update(update_data)
-#             if update_spreadsheet_from_df(dbx, df_master, MCM_DATA_PATH):
-#                 st.success("Decisions saved!")
-#             else:
-#                 st.error("Failed to save decisions.")
-
-#     st.markdown("---")
-#     if st.button("Compile Full MCM Agenda PDF", use_container_width=True):
-#         with st.spinner("Compiling PDF Agenda..."):
-#             final_merger = PdfWriter()
-            
-#             cover_buf = BytesIO(); create_cover_page_pdf(cover_buf, f"MCM Agenda: {month_year_str}", "Audit-I Commissionerate"); final_merger.append(PdfReader(cover_buf))
-            
-#             df_hv = df_period_data[df_period_data['revenue_involved_lakhs_rs'] * 100000 > 500000]
-#             if not df_hv.empty:
-#                 hv_buf = BytesIO(); create_high_value_paras_pdf(hv_buf, df_hv); final_merger.append(PdfReader(hv_buf))
-
-#             df_pdf = df_period_data.dropna(subset=['dar_pdf_path', 'trade_name', 'audit_circle_number']).drop_duplicates(subset=['dar_pdf_path']).sort_values(by=['audit_circle_number', 'trade_name'])
-#             index_data, readers, current_page = [], {}, len(final_merger.pages) + 2
-            
-#             prog_bar = st.progress(0, text="Downloading DAR PDFs...")
-#             for i, (_, row) in enumerate(df_pdf.iterrows()):
-#                 content = download_file(dbx, row['dar_pdf_path'])
-#                 if content: readers[row['dar_pdf_path']] = PdfReader(BytesIO(content))
-#                 prog_bar.progress((i + 1) / len(df_pdf), text=f"Downloading... ({i+1}/{len(df_pdf)})")
-
-#             for _, row in df_pdf.iterrows():
-#                 reader = readers.get(row['dar_pdf_path'])
-#                 pages = len(reader.pages) if reader else 0
-#                 index_data.append({'circle': f"Circle {int(row['audit_circle_number'])}", 'trade_name': row['trade_name'], 'start_page': current_page})
-#                 current_page += pages
-            
-#             index_buf = BytesIO(); create_index_page_pdf(index_buf, index_data); final_merger.append(PdfReader(index_buf))
-            
-#             prog_bar.progress(0, text="Merging PDFs...")
-#             for i, (_, row) in enumerate(df_pdf.iterrows()):
-#                 if readers.get(row['dar_pdf_path']): final_merger.append(readers[row['dar_pdf_path']])
-#                 prog_bar.progress((i + 1) / len(df_pdf), text=f"Merging... ({i+1}/{len(df_pdf)})")
-
-#             output_pdf_bytes = BytesIO()
-#             final_merger.write(output_pdf_bytes)
-#             output_pdf_bytes.seek(0)
-#             prog_bar.empty()
-#             st.success("PDF Compilation Complete!")
-#             st.download_button("⬇️ Download Compiled PDF Agenda", data=output_pdf_bytes, file_name=f"MCM_Agenda_{month_year_str.replace(' ', '_')}.pdf", mime="application/pdf")
