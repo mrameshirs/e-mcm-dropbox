@@ -4467,7 +4467,7 @@ class PDFReportGenerator:
                     'mcm_decision': record.get('mcm_decision'),
                     'chair_remarks': record.get('chair_remarks')
                 })
-            st.write("Processed para data:")
+            #st.write("Processed para data:")
             # all_paras = []
             # for gstin_key, gstin_info in gstin_data.items():
             #     all_paras.extend(gstin_info['paras'])
@@ -4513,7 +4513,7 @@ class PDFReportGenerator:
                 st.error("❌ No valid paras found in data")
                 return None
             
-            st.info(f"ℹ️ Creating table with {len(valid_paras)} valid paras")
+            #st.info(f"ℹ️ Creating table with {len(valid_paras)} valid paras")
             
             # Create styles
             header_style = ParagraphStyle(
@@ -4678,7 +4678,7 @@ class PDFReportGenerator:
                     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ]))
-            st.success(f"✅ Table created: {len(valid_paras)} paras, ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
+            #st.success(f"✅ Table created: {len(valid_paras)} paras, ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
             return table
             
         except Exception as e:
@@ -4697,7 +4697,7 @@ class PDFReportGenerator:
             paras = gstin_info.get('paras', [])
             chair_remarks = gstin_info.get('chair_remarks', '')
             
-            st.info(f"Processing: {trade_name} ({len(paras)} paras)")
+            # st.info(f"Processing: {trade_name} ({len(paras)} paras)")
             
             # Create company header
             header_style = ParagraphStyle(
@@ -4850,7 +4850,7 @@ class PDFReportGenerator:
             self.story.append(Spacer(1, 0.05 * inch))
             self.story.append(recovery_table)
             
-            st.info(f"Added totals for {company_name}: ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
+            #st.info(f"Added totals for {company_name}: ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
             
         except Exception as e:
             st.warning(f"⚠️ Error adding company totals: {e}")       
