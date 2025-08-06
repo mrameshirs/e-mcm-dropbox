@@ -480,8 +480,8 @@ def mcm_agenda_tab(dbx):
                                 'status_of_para', 
                                 'revenue_involved_rs', 
                                 'revenue_recovered_rs',
-                                'Para Detection in Lakhs',  # Optional: compare with lakhs
-                                'Para Recovery in Lakhs'
+                                'revenue_involved_lakhs_rs',  # Optional: compare with lakhs
+                                'revenue_recovered_lakhs_rs'
                             ]].head(), use_container_width=True)
                             for index, row in df_trade_paras_item.iterrows():
                                 with st.container(border=True):
