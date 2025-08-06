@@ -1809,12 +1809,12 @@ class PDFReportGenerator:
                 try:
                     audit_group = str(row.get('audit_group_number_str', 'N/A'))
                     trade_name = str(row.get('trade_name', 'N/A'))
-                    if len(trade_name) > 30:
-                        trade_name = trade_name[:30] + '...'
+                    if len(trade_name) > 25:
+                        trade_name = trade_name[:25] + '...'
                     
                     para_heading = str(row.get('audit_para_heading', 'N/A'))
-                    if len(para_heading) > 100:
-                        para_heading = para_heading[:100] + '...'
+                    if len(para_heading) > 80:
+                        para_heading = para_heading[:80] + '...'
                     
                     detection = f"Rs.{row.get('Para Detection in Lakhs', 0):.2f} L"
                     
@@ -4845,7 +4845,7 @@ class PDFReportGenerator:
                     table_data.append([
                         Paragraph(para_num, cell_style),
                         Paragraph(title, cell_style),
-                        Paragraph(f" {self.format_indian_currency(detection)}", cell_style),
+                        Paragraph(f"₹{self.format_indian_currency(detection)}", cell_style),
                         Paragraph(f"₹ {self.format_indian_currency(recovery)}", cell_style),
                         Paragraph(status, cell_style),
                         Paragraph(decision, cell_style)
@@ -4859,7 +4859,7 @@ class PDFReportGenerator:
             table_data.append([
                 Paragraph('', header_style),
                 Paragraph('Total', total_style),
-                Paragraph(f" {self.format_indian_currency(total_detection)}", total_style),
+                Paragraph(f"₹ {self.format_indian_currency(total_detection)}", total_style),
                 Paragraph(f"₹ {self.format_indian_currency(total_recovery)}", total_style),
                 Paragraph('', header_style),
                 Paragraph('', header_style)
@@ -5213,14 +5213,14 @@ class PDFReportGenerator:
         """Format currency in Indian numbering system"""
         try:
             if amount == 0:
-                return "Rs. 0"
+                return "0"
             
             # Convert to integer for formatting
             amount = int(amount)
             
             # Handle negative numbers
             if amount < 0:
-                return f"Rs.-{self.format_indian_currency(-amount)[2:]}"
+                return f"-{self.format_indian_currency(-amount)[2:]}"
             
             # Convert to string and format
             amount_str = str(amount)
