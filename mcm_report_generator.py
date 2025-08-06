@@ -2847,10 +2847,10 @@ class PDFReportGenerator:
             # 🔧 REMOVED: No automatic page breaks
             print(f"✅ Added all {len(available_charts)} {chart_type} charts on continuous pages")
                     
-    except Exception as e:
-        print(f"Error adding {chart_type} charts in simple layout: {e}")
-        import traceback
-        traceback.print_exc()
+        except Exception as e:
+            print(f"Error adding {chart_type} charts in simple layout: {e}")
+            import traceback
+            traceback.print_exc()
     def _create_compact_chart_for_row(self, chart_id):
         """Create a compact chart with title for row layout"""
         try:
