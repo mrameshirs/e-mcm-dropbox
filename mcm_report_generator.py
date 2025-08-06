@@ -4588,8 +4588,8 @@ class PDFReportGenerator:
                     table_data.append([
                         Paragraph(para_num, cell_style),
                         Paragraph(title, cell_style),
-                        Paragraph(f"₹ {format_indian_currency(detection):,.2f}", cell_style),
-                        Paragraph(f"₹ {format_indian_currency(recovery:,.2f}", cell_style),
+                        Paragraph(f"₹ {format_indian_currency(detection)}", cell_style),
+                        Paragraph(f"₹ {format_indian_currency(recovery)}", cell_style),
                         Paragraph(status, cell_style),
                         Paragraph(decision, cell_style)
                     ])
@@ -4602,8 +4602,8 @@ class PDFReportGenerator:
             table_data.append([
                 Paragraph('', header_style),
                 Paragraph('Total', total_style),
-                Paragraph(f"₹ {format_indian_currency(total_detection):,.2f}", header_style),
-                Paragraph(f"₹ {format_indian_currency(total_recovery):,.2f}", header_style),
+                Paragraph(f"₹ {format_indian_currency(total_detection)}", header_style),
+                Paragraph(f"₹ {format_indian_currency(total_recovery)}", header_style),
                 Paragraph('', header_style),
                 Paragraph('', header_style)
             ])
@@ -4826,7 +4826,7 @@ class PDFReportGenerator:
             )
             
             # Detection box
-            detection_text = f"Total Detection for {company_name}: Rs. {format_indian_currency(total_detection):,.2f}"
+            detection_text = f"Total Detection for {company_name}: Rs. {format_indian_currency(total_detection)}"
             detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
             detection_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
@@ -4844,7 +4844,7 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold'
             )
             
-            recovery_text = f"Total Recovery for {company_name}: Rs. {format_indian_currency(total_recovery):,.2f}"
+            recovery_text = f"Total Recovery for {company_name}: Rs. {format_indian_currency(total_recovery)}"
             recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
             recovery_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
