@@ -2708,10 +2708,85 @@ class PDFReportGenerator:
             print(f"Error adding classification summary table: {e}")
             import traceback
             traceback.print_exc()
+    # def _add_detailed_charts_2x3_layout_simple(self, chart_type):
+    #     """Simple approach: Add detailed charts in 2x3 layout using direct insertion"""
+    #     try:
+    #         # Classification codes in logical order (first 6 for first page, next 6 for second page)
+    #         classification_codes = ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']
+            
+    #         # Filter available charts for this type
+    #         available_charts = []
+    #         for code in classification_codes:
+    #             chart_id = f"detailed_{chart_type}_{code}"
+    #             if chart_id in self.chart_registry:
+    #                 available_charts.append(chart_id)
+            
+    #         print(f"Found {len(available_charts)} available {chart_type} charts")
+            
+    #         if not available_charts:
+    #             print(f"No {chart_type} charts available")
+    #             return
+            
+    #         # Process charts in groups of 6 (2x3 layout per page)
+    #         charts_per_page = 6
+            
+    #         for page_start in range(0, len(available_charts), charts_per_page):
+    #             page_charts = available_charts[page_start:page_start + charts_per_page]
+                
+    #             # Add charts in pairs (2 per row)
+    #             for i in range(0, len(page_charts), 2):
+    #                 # Create a table for this row (2 charts side by side)
+    #                 row_charts = []
+                    
+    #                 # First chart in the row
+    #                 if i < len(page_charts):
+    #                     chart1_content = self._create_compact_chart_for_row(page_charts[i])
+    #                     row_charts.append(chart1_content)
+                    
+    #                 # Second chart in the row (if available)
+    #                 if i + 1 < len(page_charts):
+    #                     chart2_content = self._create_compact_chart_for_row(page_charts[i + 1])
+    #                     row_charts.append(chart2_content)
+    #                 else:
+    #                     # Empty cell if odd number of charts
+    #                     row_charts.append("")
+                    
+    #                 # Create table for this row
+    #                 if len(row_charts) >= 2:
+    #                     row_table = Table([row_charts], colWidths=[3.75*inch, 3.75*inch])
+    #                     row_table.setStyle(TableStyle([
+    #                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    #                         ('LEFTPADDING', (0, 0), (-1, -1), 2),
+    #                         ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+    #                         ('TOPPADDING', (0, 0), (-1, -1), 2),
+    #                         ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+    #                     ]))
+                        
+    #                     self.story.append(row_table)
+    #                     self.story.append(Spacer(1, 0.1 * inch))
+    #                 else:
+    #                     # Single chart - center it
+    #                     single_table = Table([row_charts], colWidths=[7.5*inch])
+    #                     single_table.setStyle(TableStyle([
+    #                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    #                     ]))
+    #                     self.story.append(single_table)
+    #                     self.story.append(Spacer(1, 0.1 * inch))
+                
+    #             # Add page break if there are more charts
+    #             if page_start + charts_per_page < len(available_charts):
+    #                 self.story.append(PageBreak())
+                    
+    #     except Exception as e:
+    #         print(f"Error adding {chart_type} charts in simple 2x3 layout: {e}")
+    #         import traceback
+    #         traceback.print_exc()
     def _add_detailed_charts_2x3_layout_simple(self, chart_type):
-        """Simple approach: Add detailed charts in 2x3 layout using direct insertion"""
+        """Simple approach: Add detailed charts in 2x3 layout using direct insertion - NO PAGE BREAKS"""
         try:
-            # Classification codes in logical order (first 6 for first page, next 6 for second page)
+            # Classification codes in logical order
             classification_codes = ['TP', 'RC', 'IT', 'IN', 'RF', 'PD', 'CV', 'SS', 'PG']
             
             # Filter available charts for this type
@@ -2727,63 +2802,55 @@ class PDFReportGenerator:
                 print(f"No {chart_type} charts available")
                 return
             
-            # Process charts in groups of 6 (2x3 layout per page)
-            charts_per_page = 6
+            # 🔧 FIX: Process ALL charts without page breaks - just add rows continuously
+            for i in range(0, len(available_charts), 2):
+                # Create a table for this row (2 charts side by side)
+                row_charts = []
+                
+                # First chart in the row
+                if i < len(available_charts):
+                    chart1_content = self._create_compact_chart_for_row(available_charts[i])
+                    row_charts.append(chart1_content)
+                
+                # Second chart in the row (if available)
+                if i + 1 < len(available_charts):
+                    chart2_content = self._create_compact_chart_for_row(available_charts[i + 1])
+                    row_charts.append(chart2_content)
+                else:
+                    # Empty cell if odd number of charts
+                    row_charts.append("")
+                
+                # Create table for this row
+                if len(row_charts) >= 2:
+                    row_table = Table([row_charts], colWidths=[3.75*inch, 3.75*inch])
+                    row_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 2),
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+                        ('TOPPADDING', (0, 0), (-1, -1), 2),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                    ]))
+                    
+                    self.story.append(row_table)
+                    self.story.append(Spacer(1, 0.05 * inch))  # Reduced spacing
+                else:
+                    # Single chart - center it
+                    single_table = Table([row_charts], colWidths=[7.5*inch])
+                    single_table.setStyle(TableStyle([
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ]))
+                    self.story.append(single_table)
+                    self.story.append(Spacer(1, 0.05 * inch))  # Reduced spacing
             
-            for page_start in range(0, len(available_charts), charts_per_page):
-                page_charts = available_charts[page_start:page_start + charts_per_page]
-                
-                # Add charts in pairs (2 per row)
-                for i in range(0, len(page_charts), 2):
-                    # Create a table for this row (2 charts side by side)
-                    row_charts = []
+            # 🔧 REMOVED: No automatic page breaks
+            print(f"✅ Added all {len(available_charts)} {chart_type} charts on continuous pages")
                     
-                    # First chart in the row
-                    if i < len(page_charts):
-                        chart1_content = self._create_compact_chart_for_row(page_charts[i])
-                        row_charts.append(chart1_content)
-                    
-                    # Second chart in the row (if available)
-                    if i + 1 < len(page_charts):
-                        chart2_content = self._create_compact_chart_for_row(page_charts[i + 1])
-                        row_charts.append(chart2_content)
-                    else:
-                        # Empty cell if odd number of charts
-                        row_charts.append("")
-                    
-                    # Create table for this row
-                    if len(row_charts) >= 2:
-                        row_table = Table([row_charts], colWidths=[3.75*inch, 3.75*inch])
-                        row_table.setStyle(TableStyle([
-                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                            ('LEFTPADDING', (0, 0), (-1, -1), 2),
-                            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-                            ('TOPPADDING', (0, 0), (-1, -1), 2),
-                            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-                        ]))
-                        
-                        self.story.append(row_table)
-                        self.story.append(Spacer(1, 0.1 * inch))
-                    else:
-                        # Single chart - center it
-                        single_table = Table([row_charts], colWidths=[7.5*inch])
-                        single_table.setStyle(TableStyle([
-                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                        ]))
-                        self.story.append(single_table)
-                        self.story.append(Spacer(1, 0.1 * inch))
-                
-                # Add page break if there are more charts
-                if page_start + charts_per_page < len(available_charts):
-                    self.story.append(PageBreak())
-                    
-        except Exception as e:
-            print(f"Error adding {chart_type} charts in simple 2x3 layout: {e}")
-            import traceback
-            traceback.print_exc()
-    
+    except Exception as e:
+        print(f"Error adding {chart_type} charts in simple layout: {e}")
+        import traceback
+        traceback.print_exc()
     def _create_compact_chart_for_row(self, chart_id):
         """Create a compact chart with title for row layout"""
         try:
@@ -4539,21 +4606,78 @@ class PDFReportGenerator:
             col_widths = [0.8*inch, 3.0*inch, 1.1*inch, 1.1*inch, 1.0*inch, 1.2*inch]
             table = Table(table_data, colWidths=col_widths)
             
-            # Simple styling
-            table.setStyle(TableStyle([
+            # # Simple styling
+            # table.setStyle(TableStyle([
+            #     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F3A4D")),
+            #     ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),  # DARK text
+            #     ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
+            #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            #     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            #     #('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F0F0F0")),
+            #     ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            #     ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            #     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            #     ('FONTSIZE', (0, 0), (-1, -1), 8),
+            #     ('TOPPADDING', (0, 0), (-1, -1), 4),
+            #     ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            # ]))
+            # Calculate actual table size
+            actual_rows = len(table_data)
+            print(f"📊 Audit paras table: {actual_rows} rows total")
+            
+            # Base table styling
+            table_styling = [
+                # Header row
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F3A4D")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F0F0F0")),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                
+                # Total row (last row)
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#E8F4F8")),
+                ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor("#1F3A4D")),
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 9),
+                ('ALIGN', (0, -1), (-1, -1), 'CENTER'),
+                
+                # Data rows
+                ('TEXTCOLOR', (0, 1), (-1, -2), colors.HexColor("#2C2C2C")),
+                ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -2), 8),
+                ('ALIGN', (0, 1), (1, -2), 'LEFT'),
+                ('ALIGN', (2, 1), (3, -2), 'RIGHT'),
+                ('ALIGN', (4, 1), (-1, -2), 'CENTER'),
+                
+                # Grid and padding
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ]))
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ]
             
+            # 🔧 DYNAMIC ALTERNATING ROWS - Works for any number of paras
+            for row_idx in range(1, actual_rows - 1):  # Skip header (0) and total (-1)
+                if (row_idx - 1) % 2 == 1:  # Every other data row
+                    table_styling.append(
+                        ('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor("#F8F9FA"))
+                    )
+            
+            # Apply styling safely
+            try:
+                table.setStyle(TableStyle(table_styling))
+                print(f"✅ Applied dynamic alternating rows to {actual_rows} row table")
+            except Exception as e:
+                print(f"❌ Table styling error: {e}")
+                # Minimal fallback
+                table.setStyle(TableStyle([
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ]))
             st.success(f"✅ Table created: {len(valid_paras)} paras, ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
             return table
             
