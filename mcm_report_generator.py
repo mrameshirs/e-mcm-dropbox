@@ -2510,7 +2510,7 @@ class PDFReportGenerator:
                             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                         ]))
                         self.story.append(classification_table)
-                        self.story.append(Spacer(1, 0.1 * inch))
+                        self.story.append(Spacer(1, 0.2 * inch))
                         
                     except Exception as other_error:
                         print(f"Other error in classification table styling: {other_error}")
