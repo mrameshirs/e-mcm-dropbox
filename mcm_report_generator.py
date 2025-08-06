@@ -4533,13 +4533,19 @@ class PDFReportGenerator:
                 alignment=TA_LEFT,
                 fontName='Helvetica'
             )
-            
+            total_style = ParagraphStyle(
+                name='Total',
+                parent=cell_style,  # ✅ Use cell_style instead of header_style
+                textColor=colors.HexColor("#1F3A4D"),
+                fontName='Helvetica-Bold',
+                fontSize=9
+            )
             # Create table header
             table_data = [[
                 Paragraph('Para No.', header_style),
                 Paragraph('Para Title', header_style),
-                Paragraph('Detection (₹)', header_style),
-                Paragraph('Recovery (₹)', header_style),
+                Paragraph('Detection (Rs)', header_style),
+                Paragraph('Recovery (Rs)', header_style),
                 Paragraph('Status', header_style),
                 Paragraph('MCM Decision', header_style)
             ]]
@@ -4582,8 +4588,8 @@ class PDFReportGenerator:
                     table_data.append([
                         Paragraph(para_num, cell_style),
                         Paragraph(title, cell_style),
-                        Paragraph(f"₹ {detection:,.2f}", cell_style),
-                        Paragraph(f"₹ {recovery:,.2f}", cell_style),
+                        Paragraph(f"₹ {format_indian_currency(detection):,.2f}", cell_style),
+                        Paragraph(f"₹ {format_indian_currency(recovery:,.2f}", cell_style),
                         Paragraph(status, cell_style),
                         Paragraph(decision, cell_style)
                     ])
@@ -4595,9 +4601,9 @@ class PDFReportGenerator:
             # Add totals row
             table_data.append([
                 Paragraph('', header_style),
-                Paragraph('Total', header_style),
-                Paragraph(f"₹ {total_detection:,.2f}", header_style),
-                Paragraph(f"₹ {total_recovery:,.2f}", header_style),
+                Paragraph('Total', total_style),
+                Paragraph(f"₹ {format_indian_currency(total_detection):,.2f}", header_style),
+                Paragraph(f"₹ {format_indian_currency(total_recovery):,.2f}", header_style),
                 Paragraph('', header_style),
                 Paragraph('', header_style)
             ])
@@ -4820,7 +4826,7 @@ class PDFReportGenerator:
             )
             
             # Detection box
-            detection_text = f"Total Detection for {company_name}: ₹ {total_detection:,.2f}"
+            detection_text = f"Total Detection for {company_name}: Rs. {format_indian_currency(total_detection):,.2f}"
             detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
             detection_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
@@ -4838,7 +4844,7 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold'
             )
             
-            recovery_text = f"Total Recovery for {company_name}: ₹ {total_recovery:,.2f}"
+            recovery_text = f"Total Recovery for {company_name}: Rs. {format_indian_currency(total_recovery):,.2f}"
             recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
             recovery_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
