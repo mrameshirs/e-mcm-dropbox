@@ -472,7 +472,17 @@ def mcm_agenda_tab(dbx):
                             
                             decision_options = ['Para closed since recovered', 'Para deferred', 'Para to be pursued else issue SCN']
                             total_para_det_rs, total_para_rec_rs = 0, 0
-                            
+                            # --- 🔍 DEBUG: Inspect the actual DataFrame ---
+                            st.write("### 🔍 Raw Data Preview")
+                            st.dataframe(df_trade_paras_item[[ 
+                                'audit_para_number', 
+                                'audit_para_heading', 
+                                'status_of_para', 
+                                'revenue_involved_rs', 
+                                'revenue_recovered_rs',
+                                'Para Detection in Lakhs',  # Optional: compare with lakhs
+                                'Para Recovery in Lakhs'
+                            ]].head(), use_container_width=True)
                             for index, row in df_trade_paras_item.iterrows():
                                 with st.container(border=True):
                                     para_num_str = str(int(row["audit_para_number"])) if pd.notna(row["audit_para_number"]) and row["audit_para_number"] != 0 else "N/A"
