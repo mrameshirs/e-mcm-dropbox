@@ -4189,15 +4189,9 @@ class PDFReportGenerator:
             # Overall Remarks Section
             self._add_overall_remarks_section()
             
-            # # MCM Data - Get from vital_stats or fallback
-            # mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
-            # st.subheader("Original MCM Data")
-            # mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
-            # if mcm_data:
-            #     st.dataframe(pd.DataFrame(mcm_data))
-            #     st.write(f"Columns in original data: {list(pd.DataFrame(mcm_data).columns)}")
-            # else:
-            #     st.write("No MCM data found")
+            # MCM Data - Get from vital_stats or fallback
+            mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
+          
             # Organize data by circles and groups
             organized_data = self._organize_mcm_data_by_circles(mcm_data)
             
