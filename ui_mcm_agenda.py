@@ -470,7 +470,7 @@ def mcm_agenda_tab(dbx):
                             for col, header in zip(header_cols, headers):
                                 col.markdown(f"<div class='grid-header'>{header}</div>", unsafe_allow_html=True)
                             
-                            decision_options = ['Para closed since recovered', 'Para deferred', 'Para to be pursued else issue SCN']
+                            decision_options = ['Para closed since recovered', 'Para deferred', 'Taxpayer to be pursued else issue SCN','Refer to TP commtre for recovery']
                             total_para_det_rs, total_para_rec_rs = 0, 0
                            
                             for index, row in df_trade_paras_item.iterrows():
