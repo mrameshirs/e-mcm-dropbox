@@ -234,9 +234,51 @@ def mcm_agenda_tab(dbx):
         return
 
     selected_period = st.selectbox("Select MCM Period for Agenda", options=list(period_options.keys()), key="mcm_agenda_period_select_v3_full")
-
+    
     if not selected_period:
         st.info("Please select an MCM period."); return
+
+    # ONE-TIME BULK UPDATE CODE - Add this temporarily in your MCM agenda tab
+    if st.button("🔧 ONE-TIME: Auto-set MCM Decisions for 'Agreed and Paid' Paras", type="secondary"):
+        with st.spinner("Bulk updating MCM decisions for 'Agreed and Paid' paras..."):
+            try:
+                # Load current data
+                df_bulk_update = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+                
+                if df_bulk_update is not None:
+                    # Ensure mcm_decision column exists
+                    if 'mcm_decision' not in df_bulk_update.columns:
+                        df_bulk_update['mcm_decision'] = ''
+                    
+                    # Find paras with "agreed and paid" status
+                    mask_agreed_paid = df_bulk_update['status_of_para'].astype(str).str.contains(
+                        'agreed.*paid', case=False, na=False
+                    )
+                    
+                    # Count how many will be updated
+                    paras_to_update = mask_agreed_paid.sum()
+                    
+                    if paras_to_update > 0:
+                        # Update MCM decision for matched paras
+                        df_bulk_update.loc[mask_agreed_paid, 'mcm_decision'] = 'Para closed since recovered'
+                        
+                        # Save back to spreadsheet
+                        success = update_spreadsheet_from_df(dbx, df_bulk_update, MCM_DATA_PATH)
+                        
+                        if success:
+                            st.success(f"✅ Successfully updated {paras_to_update} paras with 'Agreed and Paid' status!")
+                            st.info("MCM Decision set to: 'Para closed since recovered'")
+                            time_module.sleep(2)
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to save updates to spreadsheet")
+                    else:
+                        st.info("ℹ️ No paras found with 'Agreed and Paid' status")
+                else:
+                    st.error("❌ Could not load MCM data")
+                    
+            except Exception as e:
+                st.error(f"❌ Error during bulk update: {e}")
     # --- NEW: Overall Remarks Section ---
     st.markdown("---")
     with st.container(border=True):
@@ -566,8 +608,20 @@ def mcm_agenda_tab(dbx):
                                     clean_title = wrap_para_title_for_display(row.get('audit_para_heading', 'N/A'))
                                     para_title_text = f"<b>{clean_title}</b>"
                                     default_index = 0
+                                    # Set default MCM decision based on para status
+                                    default_index = 0
                                     if 'mcm_decision' in df_trade_paras_item.columns and pd.notna(row['mcm_decision']) and row['mcm_decision'] in decision_options:
                                         default_index = decision_options.index(row['mcm_decision'])
+                                    else:
+                                        # Auto-set default based on status_of_para
+                                        para_status = str(row.get('status_of_para', '')).lower()
+                                        if 'Agreed and Paid' in para_status:
+                                            try:
+                                                default_index = decision_options.index('Para closed since recovered')
+                                            except ValueError:
+                                                default_index = 0
+                                    # if 'mcm_decision' in df_trade_paras_item.columns and pd.notna(row['mcm_decision']) and row['mcm_decision'] in decision_options:
+                                    #     default_index = decision_options.index(row['mcm_decision'])
                                     
                                     row_cols = st.columns(col_proportions)
                                     row_cols[0].write(para_num_str)
@@ -581,6 +635,13 @@ def mcm_agenda_tab(dbx):
                                     
                                     decision_key = f"mcm_decision_{trade_name_item}_{para_num_str}_{index}"
                                     row_cols[5].selectbox("Decision", options=decision_options, index=default_index, key=decision_key, label_visibility="collapsed")
+                                    
+                                    # Show saved MCM decision below dropdown
+                                    saved_decision = row.get('mcm_decision', 'Not saved')
+                                    if saved_decision and saved_decision != 'Not saved':
+                                        row_cols[5].caption(f"💾 Saved: {saved_decision}", help="Previously saved MCM decision")
+                                    else:
+                                        row_cols[5].caption("💾 Not saved yet", help="MCM decision not saved")
                             
                             st.markdown("---")
                             with st.container():
