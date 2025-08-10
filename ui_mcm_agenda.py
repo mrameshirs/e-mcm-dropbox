@@ -1145,4 +1145,157 @@ def mcm_agenda_tab(dbx):
     #                 use_container_width=True
     #             )
     #             st.success("Enhanced detailed summary PDF is ready for download!")
+    def debug_mcm_data_flow():
+    """🔍 Debug the entire MCM data flow to find where company totals are lost"""
     
+    st.subheader("🔍 MCM Data Flow Debug Tracker")
+    
+    # Get the current data from session state (adjust as needed for your app structure)
+    if 'vital_stats' in st.session_state:
+        vital_stats = st.session_state['vital_stats']
+    else:
+        st.error("❌ vital_stats not found in session_state")
+        return
+    
+    # CHECKPOINT 1: Check vital_stats mcm_detailed_data
+    st.write("**🔵 CHECKPOINT 1: vital_stats['mcm_detailed_data']**")
+    mcm_detailed_data = vital_stats.get('mcm_detailed_data', [])
+    
+    if not mcm_detailed_data:
+        st.error("❌ mcm_detailed_data is empty in vital_stats")
+        return
+    
+    st.success(f"✅ Found {len(mcm_detailed_data)} records in vital_stats")
+    
+    # Check if critical fields exist
+    sample_record = mcm_detailed_data[0]
+    critical_fields = ['total_amount_detected_overall_rs', 'total_amount_recovered_overall_rs']
+    
+    st.write("**Field Check in Sample Record:**")
+    for field in critical_fields:
+        if field in sample_record:
+            value = sample_record[field]
+            st.write(f"✅ {field}: {value} (type: {type(value)})")
+        else:
+            st.error(f"❌ {field} NOT FOUND")
+    
+    # Show sample records
+    st.write("**Sample Records:**")
+    sample_df = pd.DataFrame(mcm_detailed_data[:3])
+    st.dataframe(sample_df[['gstin', 'trade_name'] + critical_fields])
+    
+    # CHECKPOINT 2: Check organized data after _organize_mcm_data_by_circles
+    st.write("\n**🔵 CHECKPOINT 2: After _organize_mcm_data_by_circles**")
+    
+    # Simulate the organization process (copy from your actual code)
+    try:
+        organized = {}
+        for record in mcm_detailed_data:
+            audit_group = record.get('audit_group_number', 0)
+            try:
+                group_num = int(audit_group)
+                circle_num = ((group_num - 1) // 3) + 1 if group_num > 0 else 0
+            except:
+                circle_num = 0
+            
+            if circle_num == 0:
+                continue
+                
+            if circle_num not in organized:
+                organized[circle_num] = {}
+            
+            if audit_group not in organized[circle_num]:
+                organized[circle_num][audit_group] = []
+            
+            organized[circle_num][audit_group].append(record)
+        
+        st.success(f"✅ Organized into {len(organized)} circles")
+        
+        # Check if critical fields survive organization
+        total_records_after = sum(len(groups[group]) for groups in organized.values() for group in groups)
+        st.write(f"📊 Records before: {len(mcm_detailed_data)}, after: {total_records_after}")
+        
+        # Check first organized record
+        if organized:
+            first_circle = list(organized.keys())[0]
+            first_group = list(organized[first_circle].keys())[0]
+            first_record_organized = organized[first_circle][first_group][0]
+            
+            st.write("**Critical Fields in Organized Data:**")
+            for field in critical_fields:
+                if field in first_record_organized:
+                    value = first_record_organized[field]
+                    st.write(f"✅ {field}: {value}")
+                else:
+                    st.error(f"❌ {field} LOST during organization")
+    
+    except Exception as e:
+        st.error(f"❌ Error during organization simulation: {e}")
+    
+    # CHECKPOINT 3: Check GSTIN-level grouping (what goes to company totals)
+    st.write("\n**🔵 CHECKPOINT 3: GSTIN-level Grouping**")
+    
+    # Simulate GSTIN grouping from first circle/group
+    if organized:
+        first_circle = list(organized.keys())[0]
+        first_group = list(organized[first_circle].keys())[0]
+        group_data = organized[first_circle][first_group]
+        
+        # Group by GSTIN (like in _add_gstin_section)
+        gstin_data = {}
+        for record in group_data:
+            gstin = record.get('gstin', 'Unknown')
+            trade_name = record.get('trade_name', 'Unknown')
+            key = f"{gstin}_{trade_name}"
+            
+            if key not in gstin_data:
+                gstin_data[key] = {
+                    'gstin': gstin,
+                    'trade_name': trade_name,
+                    'paras': []
+                }
+            
+            gstin_data[key]['paras'].append(record)
+        
+        st.success(f"✅ Grouped into {len(gstin_data)} companies")
+        
+        # Check first company's paras
+        if gstin_data:
+            first_company_key = list(gstin_data.keys())[0]
+            first_company_paras = gstin_data[first_company_key]['paras']
+            
+            st.write(f"**First Company: {first_company_key}**")
+            st.write(f"📊 Paras count: {len(first_company_paras)}")
+            
+            # Check critical fields in paras
+            first_para = first_company_paras[0]
+            for field in critical_fields:
+                if field in first_para:
+                    value = first_para[field]
+                    st.write(f"✅ {field}: {value}")
+                else:
+                    st.error(f"❌ {field} NOT FOUND in para data")
+            
+            # CHECKPOINT 4: Check what _add_company_totals_summary_from_paras receives
+            st.write("\n**🔵 CHECKPOINT 4: Company Totals Calculation**")
+            
+            # This is what the function should receive
+            total_detected_rs = first_para.get('total_amount_detected_overall_rs')
+            total_recovered_rs = first_para.get('total_amount_recovered_overall_rs')
+            
+            if total_detected_rs is not None and total_recovered_rs is not None:
+                st.success(f"✅ Company totals available: Detection={total_detected_rs}, Recovery={total_recovered_rs}")
+                st.write(f"💰 Detection: ₹{total_detected_rs:,.2f}")
+                st.write(f"💎 Recovery: ₹{total_recovered_rs:,.2f}")
+            else:
+                st.error("❌ Company totals MISSING in final calculation")
+                st.write(f"Detection value: {total_detected_rs}")
+                st.write(f"Recovery value: {total_recovered_rs}")
+                
+                # Show all available fields in the para
+                st.write("**Available fields in para:**")
+                st.write(list(first_para.keys()))
+
+# Add this button to your Streamlit sidebar or main area
+if st.button("🔍 Debug MCM Data Flow", help="Click to debug the entire MCM data propagation"):
+    debug_mcm_data_flow()
