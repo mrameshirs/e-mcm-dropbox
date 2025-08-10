@@ -3734,7 +3734,7 @@ class PDFReportGenerator:
                 
                 organized[circle_num][audit_group].append(record)
              
-                return organized
+            return organized
             
         except Exception as e:
             print(f"Error organizing MCM data: {e}")
