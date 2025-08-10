@@ -1395,7 +1395,7 @@ def get_visualization_data(dbx, selected_period):
             
             # Convert to list of dictionaries
             mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
-            st.dataframe(mcm_detailed_data)
+            #st.dataframe(mcm_detailed_data)
             #import streamlit as st
             #st.dataframe(pd.DataFrame(mcm_detailed_data))
             
@@ -1466,8 +1466,8 @@ def get_visualization_data(dbx, selected_period):
             'mcm_detailed_data': mcm_detailed_data,                    # New - detailed MCM data
             'overall_remarks': overall_remarks, 
         })
-        st.write('End -vital stats data')
-        st.dataframe(vital_stats['mcm_detailed_data'])
+        # st.write('End -vital stats data')
+        # st.dataframe(vital_stats['mcm_detailed_data'])
         return vital_stats, charts
         
     except Exception as e:
