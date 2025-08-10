@@ -4785,167 +4785,167 @@ class PDFReportGenerator:
         except Exception as e:
             st.error(f"❌ Critical error in GSTIN section for {gstin_info.get('trade_name', 'Unknown')}: {e}")
     
-    # def _add_company_totals_summary_from_paras(self, paras_data, company_name):
-    #     """Add company totals with Streamlit feedback"""
-    #     import streamlit as st
+    def _add_company_totals_summary_from_paras(self, paras_data, company_name):
+        """Add company totals with Streamlit feedback"""
+        import streamlit as st
         
-    #     try:
-    #         if not paras_data:
-    #             return
-                
-    #         total_detection = 0.0
-    #         total_recovery = 0.0
-            
-    #         # for para in paras_data:
-    #         #     try:
-    #         #         detection = float(para.get('revenue_involved_rs', 0) or 0)
-    #         #         recovery = float(para.get('revenue_recovered_rs', 0) or 0)
-    #         #         total_detection += detection
-    #         #         total_recovery += recovery
-    #         #     except:
-    #         #         continue
-    #         # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
-    #         total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
-    #         total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-
-    #         # Create summary boxes
-    #         detection_style = ParagraphStyle(
-    #             name='DetectionSummary',
-    #             parent=self.styles['Normal'],
-    #             fontSize=12,
-    #             textColor=colors.HexColor("#721c24"),
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         # Detection box
-    #         detection_text = f"Total Detection for {company_name}: Rs. {self.format_indian_currency(total_detected_rs)}"
-    #         detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
-    #         detection_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-    #         ]))
-            
-    #         # Recovery box
-    #         recovery_style = ParagraphStyle(
-    #             name='RecoverySummary',
-    #             parent=self.styles['Normal'],
-    #             fontSize=12,
-    #             textColor=colors.HexColor("#155724"),
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         recovery_text = f"Total Recovery for {company_name}: Rs. {self.format_indian_currency(total_recovered_rs)}"
-    #         recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
-    #         recovery_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-    #         ]))
-            
-    #         self.story.append(detection_table)
-    #         self.story.append(Spacer(1, 0.05 * inch))
-    #         self.story.append(recovery_table)
-            
-    #         #st.info(f"Added totals for {company_name}: ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
-            
-    #     except Exception as e:
-    #         st.warning(f"⚠️ Error adding company totals: {e}")       
-    def _add_company_totals_summary_from_paras(self, paras_data, total_detection_placeholder=None, total_recovery_placeholder=None):
-        """
-        Add company totals summary using DAR-level overall detection and recovery,
-        NOT by summing individual paras.
-        """
         try:
             if not paras_data:
                 return
-    
-            # Get company name from first para
-            company_name = paras_data[0].get('trade_name', 'Unknown Company')
-            if len(company_name) > 40:
-                company_name = company_name[:37] + '...'
-    
+                
+            total_detection = 0.0
+            total_recovery = 0.0
+            
+            # for para in paras_data:
+            #     try:
+            #         detection = float(para.get('revenue_involved_rs', 0) or 0)
+            #         recovery = float(para.get('revenue_recovered_rs', 0) or 0)
+            #         total_detection += detection
+            #         total_recovery += recovery
+            #     except:
+            #         continue
             # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
             total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-    
-            # Fallback logic: if overall values not present, sum from paras (defensive)
-            if total_detected_rs is None or total_recovered_rs is None:
-                st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
-                total_detected_rs = sum(
-                    float(para.get('revenue_involved_rs', 0) or 0)
-                    for para in paras_data
-                )
-                total_recovered_rs = sum(
-                    float(para.get('revenue_recovered_rs', 0) or 0)
-                    for para in paras_data
-                )
-    
-            # Convert from Rs to Lakhs for display (if needed for consistency)
-            total_detection_in_lakhs = total_detected_rs / 100000.0
-            total_recovery_in_lakhs = total_recovered_rs / 100000.0
-    
-            # Format amounts using existing formatter (assumes it handles lakhs)
-            detection_formatted = self.format_indian_currency(total_detection_in_lakhs)
-            recovery_formatted = self.format_indian_currency(total_recovery_in_lakhs)
-    
-            # Detection summary box (red background)
+
+            # Create summary boxes
             detection_style = ParagraphStyle(
                 name='DetectionSummary',
                 parent=self.styles['Normal'],
                 fontSize=12,
                 textColor=colors.HexColor("#721c24"),
                 alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                spaceAfter=8,
-                spaceBefore=15
+                fontName='Helvetica-Bold'
             )
-            detection_text = f"Total Detection for {company_name}: {detection_formatted}"
-            detection_data = [[Paragraph(detection_text, detection_style)]]
-            detection_table = Table(detection_data, colWidths=[7.5 * inch])
+            
+            # Detection box
+            detection_text = f"Total Detection for {company_name}: Rs. {self.format_indian_currency(total_detected_rs)}"
+            detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
             detection_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
                 ('TOPPADDING', (0, 0), (-1, -1), 10),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                ('LEFTPADDING', (0, 0), (-1, -1), 15),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#c82333")),
             ]))
-            self.story.append(detection_table)
-    
-            # Recovery summary box (green background)
+            
+            # Recovery box
             recovery_style = ParagraphStyle(
                 name='RecoverySummary',
                 parent=self.styles['Normal'],
                 fontSize=12,
                 textColor=colors.HexColor("#155724"),
                 alignment=TA_CENTER,
-                fontName='Helvetica-Bold',
-                spaceAfter=8,
-                spaceBefore=15
+                fontName='Helvetica-Bold'
             )
-            recovery_text = f"Total Recovery for {company_name}: {recovery_formatted}"
-            recovery_data = [[Paragraph(recovery_text, recovery_style)]]
-            recovery_table = Table(recovery_data, colWidths=[7.5 * inch])
+            
+            recovery_text = f"Total Recovery for {company_name}: Rs. {self.format_indian_currency(total_recovered_rs)}"
+            recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
             recovery_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
                 ('TOPPADDING', (0, 0), (-1, -1), 10),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                ('LEFTPADDING', (0, 0), (-1, -1), 15),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#28a745")),
             ]))
+            
+            self.story.append(detection_table)
             self.story.append(Spacer(1, 0.05 * inch))
             self.story.append(recovery_table)
-    
+            
+            #st.info(f"Added totals for {company_name}: ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
+            
         except Exception as e:
-            print(f"Error adding company totals summary: {e}")
-            import traceback
-            traceback.print_exc()
+            st.warning(f"⚠️ Error adding company totals: {e}")       
+    # def _add_company_totals_summary_from_paras(self, paras_data, total_detection_placeholder=None, total_recovery_placeholder=None):
+    #     """
+    #     Add company totals summary using DAR-level overall detection and recovery,
+    #     NOT by summing individual paras.
+    #     """
+    #     try:
+    #         if not paras_data:
+    #             return
+    
+    #         # Get company name from first para
+    #         company_name = paras_data[0].get('trade_name', 'Unknown Company')
+    #         if len(company_name) > 40:
+    #             company_name = company_name[:37] + '...'
+    
+    #         # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
+    #         total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
+    #         total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
+    
+    #         # Fallback logic: if overall values not present, sum from paras (defensive)
+    #         if total_detected_rs is None or total_recovered_rs is None:
+    #             st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
+    #             total_detected_rs = sum(
+    #                 float(para.get('revenue_involved_rs', 0) or 0)
+    #                 for para in paras_data
+    #             )
+    #             total_recovered_rs = sum(
+    #                 float(para.get('revenue_recovered_rs', 0) or 0)
+    #                 for para in paras_data
+    #             )
+    
+    #         # Convert from Rs to Lakhs for display (if needed for consistency)
+    #         total_detection_in_lakhs = total_detected_rs / 100000.0
+    #         total_recovery_in_lakhs = total_recovered_rs / 100000.0
+    
+    #         # Format amounts using existing formatter (assumes it handles lakhs)
+    #         detection_formatted = self.format_indian_currency(total_detection_in_lakhs)
+    #         recovery_formatted = self.format_indian_currency(total_recovery_in_lakhs)
+    
+    #         # Detection summary box (red background)
+    #         detection_style = ParagraphStyle(
+    #             name='DetectionSummary',
+    #             parent=self.styles['Normal'],
+    #             fontSize=12,
+    #             textColor=colors.HexColor("#721c24"),
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=8,
+    #             spaceBefore=15
+    #         )
+    #         detection_text = f"Total Detection for {company_name}: {detection_formatted}"
+    #         detection_data = [[Paragraph(detection_text, detection_style)]]
+    #         detection_table = Table(detection_data, colWidths=[7.5 * inch])
+    #         detection_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 15),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#c82333")),
+    #         ]))
+    #         self.story.append(detection_table)
+    
+    #         # Recovery summary box (green background)
+    #         recovery_style = ParagraphStyle(
+    #             name='RecoverySummary',
+    #             parent=self.styles['Normal'],
+    #             fontSize=12,
+    #             textColor=colors.HexColor("#155724"),
+    #             alignment=TA_CENTER,
+    #             fontName='Helvetica-Bold',
+    #             spaceAfter=8,
+    #             spaceBefore=15
+    #         )
+    #         recovery_text = f"Total Recovery for {company_name}: {recovery_formatted}"
+    #         recovery_data = [[Paragraph(recovery_text, recovery_style)]]
+    #         recovery_table = Table(recovery_data, colWidths=[7.5 * inch])
+    #         recovery_table.setStyle(TableStyle([
+    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
+    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
+    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    #             ('LEFTPADDING', (0, 0), (-1, -1), 15),
+    #             ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    #             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    #             ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#28a745")),
+    #         ]))
+    #         self.story.append(Spacer(1, 0.05 * inch))
+    #         self.story.append(recovery_table)
+    
+    #     except Exception as e:
+    #         print(f"Error adding company totals summary: {e}")
+    #         import traceback
+    #         traceback.print_exc()
     
     
     def format_indian_currency(self, amount):
