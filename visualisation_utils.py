@@ -579,7 +579,7 @@ def get_visualization_data(dbx, selected_period):
         CLASSIFICATION_CODES_DESC = {
             'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
             'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
-            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
+            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'SERIOUS PROCEDURAL LAPSE',
             'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
             'PG': 'PENALTY & GENERAL'
         }
@@ -2036,7 +2036,7 @@ def generate_classification_html_page(df_viz_data, selected_period):
                         <div class="category-card procedural">
                             <div class="category-title">
                                 <div class="category-icon">PD</div>
-                                Procedural & Documentation
+                                Serious Procedural Lapses
                             </div>
                             <ul class="subcategories">
                                 <li>Return Reconciliation</li>
