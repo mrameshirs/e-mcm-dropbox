@@ -98,38 +98,63 @@ def get_shareable_link(dbx, dropbox_path):
 #         st.error(f"Dropbox API error during upload: {e}")
 #         return False
 def upload_file(dbx, file_content, dropbox_path):
-    """Faster upload with diagnostics"""
+    """Try different methods to keep same filename"""
     import time
     
     file_size_mb = len(file_content) / (1024 * 1024)
     st.write(f"📊 Uploading {file_size_mb:.2f}MB...")
     
     start_time = time.time()
+    
+    # Method 1: Try update mode (updates existing file)
     try:
+        st.write("🔄 Trying update mode...")
         dbx.files_upload(
             file_content, 
-            dropbox_path, 
-            mode=dropbox.files.WriteMode('overwrite'),
-            autorename=False,        # Faster
-            strict_conflict=False    # Faster
+            dropbox_path,
+            mode=dropbox.files.WriteMode.update(rev="latest")
         )
         
         upload_time = time.time() - start_time
-        st.success(f"✅ Uploaded in {upload_time:.1f}s")
+        st.success(f"✅ Update mode worked in {upload_time:.1f}s")
         return True
         
-    except ApiError as e:
+    except Exception as e:
+        st.write(f"⚠️ Update mode failed: {e}")
+    
+    # Method 2: Fallback to temp-then-move
+    st.write("🔄 Using temp-then-move method...")
+    
+    temp_path = dropbox_path.replace('.xlsx', f'_temp_{int(time.time())}.xlsx')
+    
+    try:
+        # Upload to temp
+        dbx.files_upload(file_content, temp_path)
+        
+        # Replace original
+        try:
+            dbx.files_delete_v2(dropbox_path)
+        except:
+            pass
+            
+        dbx.files_move_v2(temp_path, dropbox_path)
+        
         upload_time = time.time() - start_time
-        if "too_many_requests" in str(e):
-            st.warning("⚠️ Rate limited - waiting 30 seconds...")
-            time.sleep(30)
-            return upload_file(dbx, file_content, dropbox_path)  # Retry
-        else:
-            st.error(f"❌ Upload failed after {upload_time:.1f}s: {e}")
-            return False
+        st.success(f"✅ Uploaded in {upload_time:.1f}s")
+        st.success(f"📁 Filename: {dropbox_path.split('/')[-1]} (unchanged)")
+        
+        return True
+        
     except Exception as e:
         upload_time = time.time() - start_time
-        st.error(f"❌ Upload error after {upload_time:.1f}s: {e}")
+        st.error(f"❌ Upload failed: {e}")
+        
+        # Cleanup
+        try:
+            dbx.files_delete_v2(temp_path)
+        except:
+            pass
+            
         return False
 def download_file(dbx, dropbox_path):
     """Downloads a file from a specific path in Dropbox."""
@@ -307,3 +332,4 @@ def create_monthly_file_structure(dbx):
         return update_spreadsheet_from_df(dbx, df_month_data, monthly_file_path)
     
     return get_monthly_file_path, read_monthly_data, save_monthly_data
+
