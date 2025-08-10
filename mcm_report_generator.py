@@ -4201,8 +4201,10 @@ class PDFReportGenerator:
             # total_recovery_in_lakhs = total_recovered_rs / 100000.0
     
             # Format amounts using existing formatter (assumes it handles lakhs)
-            detection_formatted = self.format_indian_currency(total_detection_rs)
-            recovery_formatted = self.format_indian_currency(total_recovery_rs)
+            #detection_formatted = self.format_indian_currency(total_detection_rs)
+            #recovery_formatted = self.format_indian_currency(total_recovery_rs)
+            detection_formatted = (total_detection_rs)
+            recovery_formatted = (total_recovery_rs)
             st.write(detection_formatted)
             # Detection summary box (red background)
             detection_style = ParagraphStyle(
