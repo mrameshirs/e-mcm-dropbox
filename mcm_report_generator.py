@@ -2207,7 +2207,7 @@ class PDFReportGenerator:
                 # Create classification table data
                 classification_data = [['Code', 'Description', 'Paras', 'Detection (Rs. L)', 'Recovery (Rs. L)']]
                 
-                for item in classification_summary[:7]:  # Top 7 categories
+                for item in classification_summary[:8]:  # Top 7 categories
                     code = item.get('major_code', 'Unknown')
                     description = CLASSIFICATION_CODES_DESC.get(code, 'Unknown Category')
                     para_count = item.get('Para_Count', 0)
