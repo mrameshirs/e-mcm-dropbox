@@ -556,17 +556,35 @@ def pco_dashboard(dbx):
             key=f"pco_editor_{selected_period}"
         )
 
+        # if st.button("Save Changes to Master File", type="primary"):
+        #     with st.spinner("Saving changes to Dropbox..."):
+        #         # Update the master dataframe with edited rows
+        #         df_all_data.update(edited_df)
+        #         if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
+        #             st.success("Changes saved successfully!")
+        #             time.sleep(1)
+        #             st.rerun()
+        #         else:
+        #             st.error("Failed to save changes.")
         if st.button("Save Changes to Master File", type="primary"):
-            with st.spinner("Saving changes to Dropbox..."):
-                # Update the master dataframe with edited rows
-                df_all_data.update(edited_df)
-                if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
-                    st.success("Changes saved successfully!")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("Failed to save changes.")
-
+            if df_filtered.equals(edited_df):
+                st.info("No changes detected.")
+            else:
+                with st.spinner("Saving changes..."):
+                    # Load master data
+                    df_all_data = read_from_spreadsheet(dbx, MCM_DATA_PATH)
+                    
+                    # Remove current month's data and add updated data
+                    df_other_months = df_all_data[df_all_data['mcm_period'] != selected_period]
+                    df_updated = pd.concat([df_other_months, edited_df], ignore_index=True)
+                    
+                    # Save back
+                    if update_spreadsheet_from_df(dbx, df_updated, MCM_DATA_PATH):
+                        st.success("Changes saved successfully!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("Failed to save changes.")
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
@@ -1553,6 +1571,7 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
 
 
 
