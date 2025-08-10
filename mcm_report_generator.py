@@ -4185,16 +4185,16 @@ class PDFReportGenerator:
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
             st.write(total_detected_rs)
             # Fallback logic: if overall values not present, sum from paras (defensive)
-            if total_detected_rs is None or total_recovered_rs is None:
-                st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
-                total_detected_rs = sum(
-                    float(para.get('revenue_involved_rs', 0) or 0)
-                    for para in paras_data
-                )
-                total_recovered_rs = sum(
-                    float(para.get('revenue_recovered_rs', 0) or 0)
-                    for para in paras_data
-                )
+            # if total_detected_rs is None or total_recovered_rs is None:
+            #     st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
+            #     total_detected_rs = sum(
+            #         float(para.get('revenue_involved_rs', 0) or 0)
+            #         for para in paras_data
+            #     )
+            #     total_recovered_rs = sum(
+            #         float(para.get('revenue_recovered_rs', 0) or 0)
+            #         for para in paras_data
+            #     )
     
             # # Convert from Rs to Lakhs for display (if needed for consistency)
             # total_detection_in_lakhs = total_detected_rs / 100000.0
