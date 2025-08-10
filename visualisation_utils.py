@@ -600,11 +600,12 @@ def get_visualization_data(dbx, selected_period):
                           labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                           color_discrete_sequence=['#1f77b4'])
             # Add this line to reduce Y-axis tick values font size
-            fig10.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
+            
 
             # fig10.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Number of Paras")
             # fig10.update_traces(textposition="outside", cliponaxis=False)
             fig10 = style_chart(fig10, "Number of Audit Paras by Categorisation", "Number of Paras", "Categorisation Code", wrap_x_labels=True)
+            fig10.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
             charts.append(fig10)
             
             # Detection by Classification
@@ -618,6 +619,7 @@ def get_visualization_data(dbx, selected_period):
             # fig11.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Detection (₹ Lakhs)")
             # fig11.update_traces(textposition="outside", cliponaxis=False)
             fig11 = style_chart(fig11, "Detection Amount by Categorisation", "Detection (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
+            fig11.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
             charts.append(fig11)
             
             # Recovery by Classification
@@ -631,6 +633,7 @@ def get_visualization_data(dbx, selected_period):
             # fig12.update_layout(title_x=0.5, xaxis_title="Categorisation  Code", yaxis_title="Recovery (₹ Lakhs)")
             # fig12.update_traces(textposition="outside", cliponaxis=False)
             fig12 = style_chart(fig12, "Recovery Amount by Categorisation", "Recovery (₹ Lakhs)", "Categorisation Code", wrap_x_labels=True)
+            fig12.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
             charts.append(fig12)
         
         # CHARTS 13-14: Treemap Analysis (EXACT REPLICA)
