@@ -3852,15 +3852,15 @@ class PDFReportGenerator:
                     'chair_remarks': record.get('chair_remarks')
                 })
                 
-            st.write("Processed para data:")
-            all_paras = []
-            for gstin_key, gstin_info in gstin_data.items():
-                all_paras.extend(gstin_info['paras'])
+            # st.write("Processed para data:")
+            # all_paras = []
+            # for gstin_key, gstin_info in gstin_data.items():
+            #     all_paras.extend(gstin_info['paras'])
             
-            if all_paras:
-                st.dataframe(pd.DataFrame(all_paras))
-                para_cols = list(pd.DataFrame(all_paras).columns)
-                st.write(f"Para columns: {para_cols}")
+            # if all_paras:
+            #     st.dataframe(pd.DataFrame(all_paras))
+            #     para_cols = list(pd.DataFrame(all_paras).columns)
+            #     st.write(f"Para columns: {para_cols}")
               
             
             # Add each GSTIN section
@@ -4183,7 +4183,7 @@ class PDFReportGenerator:
             # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
             total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-            st.write(total_detected_rs)
+            #st.write(total_detected_rs)
             # Fallback logic: if overall values not present, sum from paras (defensive)
             if total_detected_rs is None or total_recovered_rs is None:
                 st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
@@ -4203,7 +4203,7 @@ class PDFReportGenerator:
             # Format amounts using existing formatter (assumes it handles lakhs)
             detection_formatted = self.format_indian_currency(total_detection_rs)
             recovery_formatted = self.format_indian_currency(total_recovery_rs)
-    
+            st.write(detection_formatted)
             # Detection summary box (red background)
             detection_style = ParagraphStyle(
                 name='DetectionSummary',
