@@ -227,7 +227,7 @@ class PDFReportGenerator:
         CLASSIFICATION_CODES_DESC = {
             'TP': 'TAX PAYMENT DEFAULTS', 'RC': 'REVERSE CHARGE MECHANISM',
             'IT': 'INPUT TAX CREDIT VIOLATIONS', 'IN': 'INTEREST LIABILITY DEFAULTS',
-            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'PROCEDURAL & DOCUMENTATION',
+            'RF': 'RETURN FILING NON-COMPLIANCE', 'PD': 'SERIOUS PROCEDURAL LAPSE',
             'CV': 'CLASSIFICATION & VALUATION', 'SS': 'SPECIAL SITUATIONS',
             'PG': 'PENALTY & GENERAL'
         }
@@ -2243,7 +2243,7 @@ class PDFReportGenerator:
             ("RF", "Return Filing Non-Compliance", "#2ecc71", [
                 "Late Filing Penalties", "Non-Filing Issues (ITC-04)", "Filing Quality Issues"
             ]),
-            ("PD", "Procedural & Documentation", "#34495e", [
+            ("PD", "Serious Procedural Lapse", "#34495e", [
                 "Return Reconciliation", "Documentation Deficiencies", "Cash Payment Violations"
             ]),
             ("CV", "Classification & Valuation", "#e67e22", [
@@ -2425,7 +2425,7 @@ class PDFReportGenerator:
                     'IT': 'INPUT TAX CREDIT VIOLATIONS', 
                     'IN': 'INTEREST LIABILITY DEFAULTS',
                     'RF': 'RETURN FILING NON-COMPLIANCE', 
-                    'PD': 'PROCEDURAL & DOCUMENTATION',
+                    'PD': 'SERIOUS PROCEDURAL LAPSE',
                     'CV': 'CLASSIFICATION & VALUATION', 
                     'SS': 'SPECIAL SITUATIONS',
                     'PG': 'PENALTY & GENERAL'
@@ -4794,15 +4794,18 @@ class PDFReportGenerator:
             total_detection = 0.0
             total_recovery = 0.0
             
-            for para in paras_data:
-                try:
-                    detection = float(para.get('revenue_involved_rs', 0) or 0)
-                    recovery = float(para.get('revenue_recovered_rs', 0) or 0)
-                    total_detection += detection
-                    total_recovery += recovery
-                except:
-                    continue
-            
+            # for para in paras_data:
+            #     try:
+            #         detection = float(para.get('revenue_involved_rs', 0) or 0)
+            #         recovery = float(para.get('revenue_recovered_rs', 0) or 0)
+            #         total_detection += detection
+            #         total_recovery += recovery
+            #     except:
+            #         continue
+            # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
+            total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
+            total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
+
             # Create summary boxes
             detection_style = ParagraphStyle(
                 name='DetectionSummary',
@@ -4814,7 +4817,7 @@ class PDFReportGenerator:
             )
             
             # Detection box
-            detection_text = f"Total Detection for {company_name}: Rs. {self.format_indian_currency(total_detection)}"
+            detection_text = f"Total Detection for {company_name}: Rs. {self.format_indian_currency(total_detected_rs)}"
             detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
             detection_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
@@ -4832,7 +4835,7 @@ class PDFReportGenerator:
                 fontName='Helvetica-Bold'
             )
             
-            recovery_text = f"Total Recovery for {company_name}: Rs. {self.format_indian_currency(total_recovery)}"
+            recovery_text = f"Total Recovery for {company_name}: Rs. {self.format_indian_currency(total_recovered_rs)}"
             recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
             recovery_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
@@ -4850,111 +4853,7 @@ class PDFReportGenerator:
             st.warning(f"⚠️ Error adding company totals: {e}")       
 
     
-    # #working ############
-    # def _create_paras_table(self, paras_data):
-    #     """
-    #     Creates a clean table for audit paras using ONLY revenue_involved_rs and revenue_recovered_rs.
-    #     No fallbacks. No conversions. Direct use of rupees from the data.
-    #     """
-    #     if not paras_data:
-    #         return None
     
-    #     # Define styles
-    #     header_style = ParagraphStyle(
-    #         name='HeaderStyle',
-    #         parent=self.styles['Normal'],
-    #         fontSize=9,
-    #         textColor=colors.white,
-    #         alignment=TA_CENTER,
-    #         fontName='Helvetica-Bold'
-    #     )
-    #     cell_style = ParagraphStyle(
-    #         name='Cell',
-    #         parent=self.styles['Normal'],
-    #         fontSize=8,
-    #         textColor=colors.HexColor("#2C2C2C"),
-    #         alignment=TA_LEFT,
-    #         fontName='Helvetica'
-    #     )
-    #     amount_style = ParagraphStyle(
-    #         name='Amount',
-    #         parent=cell_style,
-    #         alignment=TA_RIGHT
-    #     )
-    #     total_style = ParagraphStyle(
-    #         name='Total',
-    #         parent=header_style,
-    #         textColor=colors.HexColor("#1F3A4D"),
-    #         fontName='Helvetica-Bold'
-    #     )
-    
-    #     # Table header
-    #     table_data = [[
-    #         Paragraph('Para No.', header_style),
-    #         Paragraph('Para Title', header_style),
-    #         Paragraph('Detection (₹)', header_style),
-    #         Paragraph('Recovery (₹)', header_style),
-    #         Paragraph('Status', header_style),
-    #         Paragraph('MCM Decision', header_style)
-    #     ]]
-    
-    #     # Accumulate totals
-    #     total_detection = 0.0
-    #     total_recovery = 0.0
-    
-    #     # Add rows
-    #     for para in paras_data:
-    #         para_num = str(para.get('audit_para_number', 'N/A'))
-    #         title = para.get('audit_para_heading', 'N/A')
-    
-    #         # ✅ Direct use of rupees — no fallback, no lakhs
-    #         detection = float(para.get('revenue_involved_rs', 0) or 0)
-    #         recovery = float(para.get('revenue_recovered_rs', 0) or 0)
-    
-    #         total_detection += detection
-    #         total_recovery += recovery
-    
-    #         # Format with commas (e.g., ₹1,23,456.78)
-    #         def fmt_amt(x):
-    #             return f"₹ {x:,.2f}"
-    
-    #         table_data.append([
-    #             Paragraph(para_num, cell_style),
-    #             Paragraph(title, cell_style),
-    #             Paragraph(fmt_amt(detection), amount_style),
-    #             Paragraph(fmt_amt(recovery), amount_style),
-    #             Paragraph(para.get('status_of_para', 'N/A'), cell_style),
-    #             Paragraph(para.get('mcm_decision', 'Pending'), cell_style)
-    #         ])
-    
-    #     # Add total row
-    #     table_data.append([
-    #         Paragraph('', total_style),
-    #         Paragraph('Total of Paras', total_style),
-    #         Paragraph(fmt_amt(total_detection), total_style),
-    #         Paragraph(fmt_amt(total_recovery), total_style),
-    #         Paragraph('', total_style),
-    #         Paragraph('', total_style)
-    #     ])
-    
-    #     # Create table
-    #     col_widths = [0.8*inch, 3.0*inch, 1.1*inch, 1.1*inch, 1.0*inch, 1.2*inch]
-    #     table = Table(table_data, colWidths=col_widths, repeatRows=1)
-    
-    #     # Apply minimal, clean styling
-    #     table.setStyle(TableStyle([
-    #         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1F3A4D")),
-    #         ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor("#F0F0F0")),
-    #         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-    #         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    #         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    #         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    #         ('FONTSIZE', (0, 0), (-1, 0), 9),
-    #         ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-    #         ('FONTSIZE', (0, -1), (-1, -1), 9),
-    #     ]))
-    
-    #     return table
     def format_indian_currency(self, amount):
         """Format currency in Indian numbering system"""
         try:
