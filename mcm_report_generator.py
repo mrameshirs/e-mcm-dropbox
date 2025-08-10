@@ -3640,8 +3640,8 @@ class PDFReportGenerator:
             
             # MCM Data - Get from vital_stats or fallback
             mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
-            st.write('vitals stats loaded')
-            st.dataframe(mcm_data)
+            # st.write('vitals stats loaded')
+            # st.dataframe(mcm_data)
             # Organize data by circles and groups
             organized_data = self._organize_mcm_data_by_circles(mcm_data)
             
@@ -4164,74 +4164,7 @@ class PDFReportGenerator:
         except Exception as e:
             st.error(f"❌ Critical error in GSTIN section for {gstin_info.get('trade_name', 'Unknown')}: {e}")
     
-    # def _add_company_totals_summary_from_paras(self, paras_data, company_name):
-    #     """Add company totals with Streamlit feedback"""
-    #     import streamlit as st
-        
-    #     try:
-    #         if not paras_data:
-    #             return
-                
-    #         total_detection = 0.0
-    #         total_recovery = 0.0
-            
-    #         # for para in paras_data:
-    #         #     try:
-    #         #         detection = float(para.get('revenue_involved_rs', 0) or 0)
-    #         #         recovery = float(para.get('revenue_recovered_rs', 0) or 0)
-    #         #         total_detection += detection
-    #         #         total_recovery += recovery
-    #         #     except:
-    #         #         continue
-    #         # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
-    #         total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
-    #         total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-
-    #         # Create summary boxes
-    #         detection_style = ParagraphStyle(
-    #             name='DetectionSummary',
-    #             parent=self.styles['Normal'],
-    #             fontSize=12,
-    #             textColor=colors.HexColor("#721c24"),
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         # Detection box
-    #         detection_text = f"Total Detection for {company_name}: Rs. {self.format_indian_currency(total_detected_rs)}"
-    #         detection_table = Table([[Paragraph(detection_text, detection_style)]], colWidths=[7.5*inch])
-    #         detection_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#f8d7da")),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-    #         ]))
-            
-    #         # Recovery box
-    #         recovery_style = ParagraphStyle(
-    #             name='RecoverySummary',
-    #             parent=self.styles['Normal'],
-    #             fontSize=12,
-    #             textColor=colors.HexColor("#155724"),
-    #             alignment=TA_CENTER,
-    #             fontName='Helvetica-Bold'
-    #         )
-            
-    #         recovery_text = f"Total Recovery for {company_name}: Rs. {self.format_indian_currency(total_recovered_rs)}"
-    #         recovery_table = Table([[Paragraph(recovery_text, recovery_style)]], colWidths=[7.5*inch])
-    #         recovery_table.setStyle(TableStyle([
-    #             ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#d4edda")),
-    #             ('TOPPADDING', (0, 0), (-1, -1), 10),
-    #             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-    #         ]))
-            
-    #         self.story.append(detection_table)
-    #         self.story.append(Spacer(1, 0.05 * inch))
-    #         self.story.append(recovery_table)
-            
-    #         #st.info(f"Added totals for {company_name}: ₹{total_detection:,.2f} detection, ₹{total_recovery:,.2f} recovery")
-            
-    #     except Exception as e:
-    #         st.warning(f"⚠️ Error adding company totals: {e}")       
+     
     def _add_company_totals_summary_from_paras(self, paras_data, total_detection_placeholder=None, total_recovery_placeholder=None):
         """
         Add company totals summary using DAR-level overall detection and recovery,
@@ -4243,14 +4176,14 @@ class PDFReportGenerator:
             
             # Get company name from first para
             company_name = paras_data[0].get('trade_name', 'Unknown Company')
-            st.write(paras_data[0])
+            #st.write(paras_data[0])
             if len(company_name) > 40:
                 company_name = company_name[:37] + '...'
     
             # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
             total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-    
+            st.write(total_detected_rs)
             # Fallback logic: if overall values not present, sum from paras (defensive)
             if total_detected_rs is None or total_recovered_rs is None:
                 st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
