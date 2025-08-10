@@ -600,7 +600,7 @@ def get_visualization_data(dbx, selected_period):
                           labels={'description': 'Classification Code', 'Para_Count': 'Number of Paras'},
                           color_discrete_sequence=['#1f77b4'])
             # Add this line to reduce Y-axis tick values font size
-            fig10.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+            fig10.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
 
             # fig10.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Number of Paras")
             # fig10.update_traces(textposition="outside", cliponaxis=False)
@@ -613,7 +613,7 @@ def get_visualization_data(dbx, selected_period):
                           labels={'description': 'Classification Code', 'Total_Detection': 'Detection (₹ Lakhs)'},
                           color_discrete_sequence=['#ff7f0e'])
             # Add this line to reduce Y-axis tick values font size
-            fig11.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+            fig11.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
 
             # fig11.update_layout(title_x=0.5, xaxis_title="Categorisation Code", yaxis_title="Detection (₹ Lakhs)")
             # fig11.update_traces(textposition="outside", cliponaxis=False)
@@ -626,7 +626,7 @@ def get_visualization_data(dbx, selected_period):
                           labels={'description': 'Classification Code', 'Total_Recovery': 'Recovery (₹ Lakhs)'},
                           color_discrete_sequence=['#2ca02c'])
             # Add this line to reduce Y-axis tick values font size
-            fig12.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=10)
+            fig12.update_layout(yaxis_tickfont_size=10, xaxis_tickfont_size=9)
  
             # fig12.update_layout(title_x=0.5, xaxis_title="Categorisation  Code", yaxis_title="Recovery (₹ Lakhs)")
             # fig12.update_traces(textposition="outside", cliponaxis=False)
@@ -1069,7 +1069,7 @@ def get_visualization_data(dbx, selected_period):
                         yaxis_title="",
                         xaxis=dict(
                             tickangle=-30,
-                            tickfont=dict(size=8, family="serif", color='#5A4A4A'),
+                            tickfont=dict(size=9, family="serif", color='#5A4A4A'),
                             showgrid=False
                         ),
                         margin=dict(l=60, r=20, t=20, b=120),
