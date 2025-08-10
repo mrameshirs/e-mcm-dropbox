@@ -4261,6 +4261,7 @@ class PDFReportGenerator:
             
             # MCM Data - Get from vital_stats or fallback
             mcm_data = self.vital_stats.get('mcm_detailed_data', self._get_fallback_mcm_data())
+            st.write('vitals stats loaded')
             st.dataframe(mcm_data)
             # Organize data by circles and groups
             organized_data = self._organize_mcm_data_by_circles(mcm_data)
@@ -4353,8 +4354,8 @@ class PDFReportGenerator:
                     organized[circle_num][audit_group] = []
                 
                 organized[circle_num][audit_group].append(record)
-            
-            return organized
+             
+                return organized
             
         except Exception as e:
             print(f"Error organizing MCM data: {e}")
@@ -4465,7 +4466,8 @@ class PDFReportGenerator:
                     # ✅ Include the critical rupee fields
                     'revenue_involved_rs': record.get('revenue_involved_rs', 0),
                     'revenue_recovered_rs': record.get('revenue_recovered_rs', 0),
-                    
+                    'total_amount_detected_overall_rs':record.get('total_amount_detected_overall_rs',0),
+                    'total_amount_recoverd_overall_rs':record.get('total_amount_recovered_overall_rs',0),
                     'status_of_para': record.get('status_of_para'),
                     'mcm_decision': record.get('mcm_decision'),
                     'chair_remarks': record.get('chair_remarks')
