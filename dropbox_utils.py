@@ -170,7 +170,7 @@ def download_file(dbx, dropbox_path):
 def read_from_spreadsheet(dbx, dropbox_path):
     """Reads an Excel file in Dropbox into a pandas DataFrame."""
     file_content = download_file(dbx, dropbox_path)
-    st.write("File downloaded")
+    #st.write("File downloaded")
     if file_content:
         try:
             return pd.read_excel(BytesIO(file_content))
@@ -332,4 +332,5 @@ def create_monthly_file_structure(dbx):
         return update_spreadsheet_from_df(dbx, df_month_data, monthly_file_path)
     
     return get_monthly_file_path, read_monthly_data, save_monthly_data
+
 
