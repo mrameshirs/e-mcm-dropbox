@@ -1224,43 +1224,7 @@ def get_visualization_data(dbx, selected_period):
             }
             
             print(f"DEBUG: Classification data processed - {total_observations} observations, {main_categories_count} main categories")
-        # ADD TOP TAXPAYERS ANALYSIS DATA (before return statement)
-        # top_taxpayers_data = {}
-        
-        # # Get top taxpayers by detection
-        # if not df_unique_reports.empty:
-        #     # Top Detection Taxpayers
-        #     top_detection = df_unique_reports.nlargest(10, 'Detection in Lakhs')[
-        #         ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs', 'audit_group_number_str']
-        #     ].copy()
-            
-        #     # Add recovery percentage
-        #     top_detection['recovery_percentage'] = (
-        #         top_detection['Recovery in Lakhs'] / 
-        #         top_detection['Detection in Lakhs'].replace(0, np.nan)
-        #     ).fillna(0) * 100
-            
-        #     # Rename columns for consistency
-        #     top_detection.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'audit_group', 'recovery_percentage']
-            
-        #     # Top Recovery Taxpayers
-        #     top_recovery = df_unique_reports[df_unique_reports['Recovery in Lakhs'] > 0].nlargest(10, 'Recovery in Lakhs')[
-        #         ['trade_name', 'category', 'Detection in Lakhs', 'Recovery in Lakhs', 'audit_group_number_str']
-        #     ].copy()
-            
-        #     # Add recovery percentage for top recovery
-        #     top_recovery['recovery_percentage'] = (
-        #         top_recovery['Recovery in Lakhs'] / 
-        #         top_recovery['Detection in Lakhs'].replace(0, np.nan)
-        #     ).fillna(0) * 100
-            
-        #     # Rename columns for consistency
-        #     top_recovery.columns = ['trade_name', 'category', 'total_detection', 'total_recovery', 'audit_group', 'recovery_percentage']
-            
-        #     top_taxpayers_data = {
-        #         'top_detection': top_detection.to_dict('records'),
-        #         'top_recovery': top_recovery.to_dict('records')
-        #     }
+      
         def create_top_taxpayers_data_safe(df_unique_reports):
             """Create top taxpayers data with bulletproof error handling"""
             result = {'top_detection': [], 'top_recovery': []}
@@ -1403,8 +1367,8 @@ def get_visualization_data(dbx, selected_period):
                 'revenue_involved_rs',           # ← Add rupees field
                 'revenue_recovered_rs',          # ← Add rupees field
                 'revenue_involved_lakhs_rs',     # ← Keep lakhs for backward compat
-                'revenue_recovered_lakhs_rs',
-                'status_of_para', 'mcm_decision', 'chair_remarks'
+                'revenue_recovered_lakhs_rs','total_amount_detected_overall_rs','total_amount_recovered_overall_rs',
+                'status_of_para', 'mcm_decision', 'chair_remarks',
             ]
             # Filter for records with actual para data
             df_mcm_data = df_viz_data[
