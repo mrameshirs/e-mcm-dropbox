@@ -1356,11 +1356,7 @@ def get_visualization_data(dbx, selected_period):
         mcm_detailed_data = []
         if not df_viz_data.empty:
             # Get detailed MCM data with all required fields
-            # mcm_columns = [
-            #     'audit_group_number', 'gstin', 'trade_name', 'category', 
-            #     'audit_para_number', 'audit_para_heading', 'revenue_involved_lakhs_rs', 
-            #     'revenue_recovered_lakhs_rs', 'status_of_para', 'mcm_decision', 'chair_remarks'
-            # ]
+          
             mcm_columns = [
                 'audit_group_number', 'gstin', 'trade_name', 'category',
                 'audit_para_number', 'audit_para_heading', 
@@ -1397,6 +1393,7 @@ def get_visualization_data(dbx, selected_period):
             
             # Convert to list of dictionaries
             mcm_detailed_data = df_mcm_data[mcm_columns].to_dict('records')
+            st.dataframe(mcm_detailed_data)
             #import streamlit as st
             #st.dataframe(pd.DataFrame(mcm_detailed_data))
             
