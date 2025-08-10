@@ -7,7 +7,7 @@ from streamlit_option_menu import option_menu
 import json
 import numpy as np
 # Dropbox-based imports
-from dropbox_utils import read_from_spreadsheet, update_spreadsheet_from_df
+from dropbox_utils import read_from_spreadsheet, update_spreadsheet_from_df,optimize_dataframe_for_excel,diagnose_upload_performance
 from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH,USER_CREDENTIALS
 
 # Import tab modules
@@ -555,17 +555,19 @@ def pco_dashboard(dbx):
             num_rows="dynamic", 
             key=f"pco_editor_{selected_period}"
         )
-
-        # if st.button("Save Changes to Master File", type="primary"):
-        #     with st.spinner("Saving changes to Dropbox..."):
-        #         # Update the master dataframe with edited rows
-        #         df_all_data.update(edited_df)
-        #         if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
-        #             st.success("Changes saved successfully!")
-        #             time.sleep(1)
-        #             st.rerun()
-        #         else:
-        #             st.error("Failed to save changes.")
+        # Add this in your "View Uploaded Reports" section for testing
+        if st.button("🔍 Test Upload Performance", type="secondary"):
+            diagnose_upload_performance(dbx, edited_df.head(20), "/test_upload.xlsx")
+                # if st.button("Save Changes to Master File", type="primary"):
+                #     with st.spinner("Saving changes to Dropbox..."):
+                #         # Update the master dataframe with edited rows
+                #         df_all_data.update(edited_df)
+                #         if update_spreadsheet_from_df(dbx, df_all_data, MCM_DATA_PATH):
+                #             st.success("Changes saved successfully!")
+                #             time.sleep(1)
+                #             st.rerun()
+                #         else:
+                #             st.error("Failed to save changes.")
         if st.button("Save Changes to Master File", type="primary"):
             if df_filtered.equals(edited_df):
                 st.info("No changes detected.")
@@ -585,6 +587,7 @@ def pco_dashboard(dbx):
                         st.rerun()
                     else:
                         st.error("Failed to save changes.")
+            
     # ========================== MCM AGENDA TAB ==========================
     elif selected_tab == "MCM Agenda":
         mcm_agenda_tab(dbx)
@@ -1571,6 +1574,7 @@ def pco_dashboard(dbx):
 
     st.markdown("</div>", unsafe_allow_html=True)
   
+
 
 
 
