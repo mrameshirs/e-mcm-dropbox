@@ -3845,8 +3845,8 @@ class PDFReportGenerator:
                     # ✅ Include the critical rupee fields
                     'revenue_involved_rs': record.get('revenue_involved_rs', 0),
                     'revenue_recovered_rs': record.get('revenue_recovered_rs', 0),
-                    # 'total_amount_detected_overall_rs':record.get('total_amount_detected_overall_rs',0),
-                    # 'total_amount_recoverd_overall_rs':record.get('total_amount_recovered_overall_rs',0),
+                    'total_amount_detected_overall_rs':record.get('total_amount_detected_overall_rs',0),
+                    'total_amount_recoverd_overall_rs':record.get('total_amount_recovered_overall_rs',0),
                     'status_of_para': record.get('status_of_para'),
                     'mcm_decision': record.get('mcm_decision'),
                     'chair_remarks': record.get('chair_remarks')
