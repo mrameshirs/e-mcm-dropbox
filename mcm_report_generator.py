@@ -3851,17 +3851,18 @@ class PDFReportGenerator:
                     'mcm_decision': record.get('mcm_decision'),
                     'chair_remarks': record.get('chair_remarks')
                 })
-            #st.write("Processed para data:")
-            # all_paras = []
-            # for gstin_key, gstin_info in gstin_data.items():
-            #     all_paras.extend(gstin_info['paras'])
+                
+            st.write("Processed para data:")
+            all_paras = []
+            for gstin_key, gstin_info in gstin_data.items():
+                all_paras.extend(gstin_info['paras'])
             
-            # if all_paras:
-            #     st.dataframe(pd.DataFrame(all_paras))
-            #     para_cols = list(pd.DataFrame(all_paras).columns)
-            #     st.write(f"Para columns: {para_cols}")
-            #     revenue_para_cols = [col for col in para_cols if 'revenue' in col.lower()]
-            #     st.write(f"Revenue columns in paras: {revenue_para_cols}")
+            if all_paras:
+                st.dataframe(pd.DataFrame(all_paras))
+                para_cols = list(pd.DataFrame(all_paras).columns)
+                st.write(f"Para columns: {para_cols}")
+                revenue_para_cols = [col for col in para_cols if 'revenue' in col.lower()]
+                st.write(f"Revenue columns in paras: {revenue_para_cols}")
             
             # Add each GSTIN section
             for gstin_key, gstin_info in gstin_data.items():
