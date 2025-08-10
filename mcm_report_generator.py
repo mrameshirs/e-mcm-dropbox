@@ -1600,7 +1600,7 @@ class PDFReportGenerator:
             
             # SAFE TABLE CREATION
             if len(para_data) > 1:  # More than just header
-                para_table = Table(para_data, colWidths=[0.7*inch, 1.6*inch, 4.8*inch, 1.1*inch])
+                para_table = Table(para_data, colWidths=[0.9*inch, 1.4*inch, 4.8*inch, 1.1*inch])
                 
                 # SAFE STYLING - calculate valid ranges
                 actual_rows = len(para_data)
@@ -4635,7 +4635,19 @@ class PDFReportGenerator:
                 spaceAfter=12,
                 spaceBefore=16
             )
-            
+              # Description
+            desc_style = ParagraphStyle(
+                name='MCMDecisionDesc',
+                parent=self.styles['Normal'],
+                fontSize=11,
+                textColor=colors.HexColor("#2C2C2C"),
+                alignment=TA_JUSTIFY,
+                fontName='Helvetica',
+                leftIndent=0.25*inch,
+                rightIndent=0.25*inch,
+                leading=14,
+                spaceAfter=16
+            )
             self.story.append(Paragraph("📊 MCM Decision Summary", table_header_style))
             
             # Create table data
@@ -4716,6 +4728,7 @@ class PDFReportGenerator:
             ]))
             
             self.story.append(decision_table)
+            self.story.append(Paragraph("📊Total figures are audit para wise Tax amount, not include Interest and penalty", desc_style))
             self.story.append(Spacer(1, 0.2 * inch))
             
         except Exception as e:
