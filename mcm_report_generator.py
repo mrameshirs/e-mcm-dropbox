@@ -4183,7 +4183,7 @@ class PDFReportGenerator:
             # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
             total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-            #st.write(total_detected_rs)
+            st.write(total_detected_rs)
             # Fallback logic: if overall values not present, sum from paras (defensive)
             if total_detected_rs is None or total_recovered_rs is None:
                 st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
