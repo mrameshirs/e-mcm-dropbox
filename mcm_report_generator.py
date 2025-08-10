@@ -3861,8 +3861,7 @@ class PDFReportGenerator:
                 st.dataframe(pd.DataFrame(all_paras))
                 para_cols = list(pd.DataFrame(all_paras).columns)
                 st.write(f"Para columns: {para_cols}")
-                revenue_para_cols = [col for col in para_cols if 'revenue' in col.lower()]
-                st.write(f"Revenue columns in paras: {revenue_para_cols}")
+              
             
             # Add each GSTIN section
             for gstin_key, gstin_info in gstin_data.items():
@@ -4241,9 +4240,10 @@ class PDFReportGenerator:
         try:
             if not paras_data:
                 return
-    
+            st.write(paras_data)
             # Get company name from first para
             company_name = paras_data[0].get('trade_name', 'Unknown Company')
+            st.write(paras_data[0])
             if len(company_name) > 40:
                 company_name = company_name[:37] + '...'
     
