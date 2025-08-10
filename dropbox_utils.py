@@ -111,6 +111,7 @@ def download_file(dbx, dropbox_path):
 def read_from_spreadsheet(dbx, dropbox_path):
     """Reads an Excel file in Dropbox into a pandas DataFrame."""
     file_content = download_file(dbx, dropbox_path)
+    st.message('File downloaded')
     if file_content:
         try:
             return pd.read_excel(BytesIO(file_content))
@@ -125,6 +126,7 @@ def update_spreadsheet_from_df(dbx, df_to_write, dropbox_path):
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df_to_write.to_excel(writer, index=False, sheet_name='Sheet1')
+            st.message('File updated. Now uploading')
         processed_data = output.getvalue()
         return upload_file(dbx, processed_data, dropbox_path)
     except Exception as e:
@@ -233,4 +235,5 @@ def list_files(dbx, folder_path):
 #     except ApiError as e:
 #         st.error(f"Dropbox API error while listing files: {e}")
 #         return []
+
 
