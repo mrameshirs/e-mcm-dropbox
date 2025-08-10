@@ -4810,15 +4810,15 @@ class PDFReportGenerator:
             self.story.append(drawing)
             self.story.append(Spacer(1, 0.2 * inch))
             
-    except Exception as e:
-        print(f"Error creating MCM chart: {e}")
-        # Simple fallback
-        fallback_style = ParagraphStyle(name='Fallback', parent=self.styles['Normal'], 
-                                       fontSize=10, alignment=TA_LEFT)
-        for item in decision_analysis:
-            text = f"• {item['decision']}: {item['para_count']} paras"
-            self.story.append(Paragraph(text, fallback_style))
-        self.story.append(Spacer(1, 0.2 * inch))
+        except Exception as e:
+            print(f"Error creating MCM chart: {e}")
+            # Simple fallback
+            fallback_style = ParagraphStyle(name='Fallback', parent=self.styles['Normal'], 
+                                           fontSize=10, alignment=TA_LEFT)
+            for item in decision_analysis:
+                text = f"• {item['decision']}: {item['para_count']} paras"
+                self.story.append(Paragraph(text, fallback_style))
+            self.story.append(Spacer(1, 0.2 * inch))
     
     def _add_mcm_decision_insights(self, decision_analysis):
         """Add insights and key findings from MCM decision analysis"""
