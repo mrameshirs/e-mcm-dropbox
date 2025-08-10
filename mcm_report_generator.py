@@ -4183,7 +4183,7 @@ class PDFReportGenerator:
             # ✅ Use DAR-level overall totals directly (in Rs), fallback to summing paras only if missing
             total_detected_rs = paras_data[0].get('total_amount_detected_overall_rs')
             total_recovered_rs = paras_data[0].get('total_amount_recovered_overall_rs')
-            st.write(total_detected_rs)
+            
             # Fallback logic: if overall values not present, sum from paras (defensive)
             # if total_detected_rs is None or total_recovered_rs is None:
             #     st.warning(f"⚠️ DAR-level totals missing for {company_name}. Falling back to para-level sum.")
@@ -4205,7 +4205,7 @@ class PDFReportGenerator:
             recovery_formatted = self.format_indian_currency(total_recovered_rs)
             # detection_formatted = (total_detected_rs)
             # recovery_formatted = (total_recovered_rs)
-            st.write(detection_formatted)
+           
             # Detection summary box (red background)
             detection_style = ParagraphStyle(
                 name='DetectionSummary',
@@ -4734,9 +4734,13 @@ class PDFReportGenerator:
         except Exception as e:
             print(f"Error adding MCM decision summary table: {e}")
     
+    
     def _add_mcm_decision_chart(self, decision_analysis):
-        """Add MCM decision distribution bar chart"""
+        """Add MCM decision distribution horizontal bar chart"""
         try:
+            from reportlab.graphics.shapes import Drawing, Rect, String
+            from reportlab.lib import colors as rl_colors
+            
             chart_header_style = ParagraphStyle(
                 name='MCMDecisionChartHeader',
                 parent=self.styles['Heading3'],
@@ -4750,37 +4754,71 @@ class PDFReportGenerator:
             
             self.story.append(Paragraph("📊 Distribution of Audit Paras by MCM Decision", chart_header_style))
             
-            # Create simple text-based chart for now (can be enhanced with actual chart generation later)
-            chart_style = ParagraphStyle(
-                name='ChartText',
-                parent=self.styles['Normal'],
-                fontSize=10,
-                textColor=colors.HexColor("#2C2C2C"),
-                alignment=TA_LEFT,
-                fontName='Helvetica',
-                leftIndent=0.5*inch,
-                leading=14,
-                spaceAfter=8
-            )
+            if not decision_analysis:
+                return
             
-            # Create a simple text representation of the chart
-            max_count = max([item['para_count'] for item in decision_analysis]) if decision_analysis else 1
+            # Chart dimensions
+            chart_width = 7 * inch
+            chart_height = len(decision_analysis) * 0.5 * inch + 1 * inch
+            drawing = Drawing(chart_width, chart_height)
             
-            for item in decision_analysis:
-                decision = item['decision']
-                count = item['para_count']
+            # Chart settings
+            max_count = max([item['para_count'] for item in decision_analysis])
+            bar_height = 0.35 * inch
+            bar_spacing = 0.15 * inch
+            label_width = 2.8 * inch
+            chart_area_width = chart_width - label_width - 0.5 * inch
+            
+            # Colors for bars
+            bar_colors = [
+                rl_colors.HexColor("#2E8B57"),  # Green
+                rl_colors.HexColor("#4682B4"),  # Blue  
+                rl_colors.HexColor("#B8860B"),  # Gold
+                rl_colors.HexColor("#CD853F"),  # Peru
+                rl_colors.HexColor("#8B4513"),  # Brown
+                rl_colors.HexColor("#4B0082"),  # Indigo
+            ]
+            
+            # Draw bars
+            for i, item in enumerate(decision_analysis):
+                y_pos = chart_height - 0.7 * inch - (i + 1) * (bar_height + bar_spacing)
                 
-                # Create a simple bar using characters
-                bar_length = int((count / max_count) * 30)  # Scale to max 30 characters
-                bar = '█' * bar_length
+                # Bar width proportional to count
+                bar_width = (item['para_count'] / max_count) * chart_area_width
                 
-                chart_text = f"{decision[:25]:<25} │{bar:<30}│ {count} paras"
-                self.story.append(Paragraph(chart_text, chart_style))
+                # Draw bar
+                color = bar_colors[i % len(bar_colors)]
+                bar = Rect(label_width, y_pos, bar_width, bar_height, 
+                          fillColor=color, strokeColor=color, strokeWidth=0)
+                drawing.add(bar)
+                
+                # Decision label (left)
+                decision_text = item['decision'][:35] + ('...' if len(item['decision']) > 35 else '')
+                label = String(label_width - 0.1 * inch, y_pos + bar_height/2, decision_text,
+                              fontSize=9, fillColor=rl_colors.black, textAnchor='end',
+                              fontName='Helvetica')
+                drawing.add(label)
+                
+                # Count label (on bar)
+                count_text = f"{item['para_count']} paras"
+                count_x = label_width + max(bar_width + 0.1 * inch, 0.5 * inch)
+                count_label = String(count_x, y_pos + bar_height/2, count_text,
+                                    fontSize=9, fillColor=rl_colors.black, textAnchor='start',
+                                    fontName='Helvetica-Bold')
+                drawing.add(count_label)
             
+            self.story.append(drawing)
             self.story.append(Spacer(1, 0.2 * inch))
             
-        except Exception as e:
-            print(f"Error adding MCM decision chart: {e}")
+    except Exception as e:
+        print(f"Error creating MCM chart: {e}")
+        # Simple fallback
+        fallback_style = ParagraphStyle(name='Fallback', parent=self.styles['Normal'], 
+                                       fontSize=10, alignment=TA_LEFT)
+        for item in decision_analysis:
+            text = f"• {item['decision']}: {item['para_count']} paras"
+            self.story.append(Paragraph(text, fallback_style))
+        self.story.append(Spacer(1, 0.2 * inch))
     
     def _add_mcm_decision_insights(self, decision_analysis):
         """Add insights and key findings from MCM decision analysis"""
