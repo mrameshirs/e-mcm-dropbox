@@ -4263,13 +4263,13 @@ class PDFReportGenerator:
                     for para in paras_data
                 )
     
-            # Convert from Rs to Lakhs for display (if needed for consistency)
-            total_detection_in_lakhs = total_detected_rs / 100000.0
-            total_recovery_in_lakhs = total_recovered_rs / 100000.0
+            # # Convert from Rs to Lakhs for display (if needed for consistency)
+            # total_detection_in_lakhs = total_detected_rs / 100000.0
+            # total_recovery_in_lakhs = total_recovered_rs / 100000.0
     
             # Format amounts using existing formatter (assumes it handles lakhs)
-            detection_formatted = self.format_indian_currency(total_detection_in_lakhs)
-            recovery_formatted = self.format_indian_currency(total_recovery_in_lakhs)
+            detection_formatted = self.format_indian_currency(total_detection_rs)
+            recovery_formatted = self.format_indian_currency(total_recovery_rs)
     
             # Detection summary box (red background)
             detection_style = ParagraphStyle(
