@@ -91,6 +91,7 @@ def upload_file(dbx, file_content, dropbox_path):
     """Uploads a file to a specific path in Dropbox."""
     try:
         dbx.files_upload(file_content, dropbox_path, mode=dropbox.files.WriteMode('overwrite'))
+        st.message('Uploading the sheet to db')
         return True
     except ApiError as e:
         st.error(f"Dropbox API error during upload: {e}")
@@ -232,3 +233,4 @@ def list_files(dbx, folder_path):
 #     except ApiError as e:
 #         st.error(f"Dropbox API error while listing files: {e}")
 #         return []
+
