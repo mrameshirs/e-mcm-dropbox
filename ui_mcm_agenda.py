@@ -25,40 +25,6 @@ from config import MCM_PERIODS_INFO_PATH, MCM_DATA_PATH
 from mcm_report_generator import PDFReportGenerator
 from visualisation_utils import get_visualization_data # Import the helper function
 
-# # --- HELPER FUNCTION FOR INDIAN NUMBERING ---
-# def format_inr(n):
-#     """
-#     Formats a number (including numpy types) into the Indian numbering system.
-#     """
-#     try:
-#         # First, try to convert the input to a standard integer. This handles numpy types.
-#         n = int(n)
-#     except (ValueError, TypeError):
-#         return "0" # If it can't be converted, return "0"
-    
-#     if n < 0:
-#         return '-' + format_inr(-n)
-#     if n == 0:
-#         return "0"
-    
-#     s = str(n)
-#     if len(s) <= 3:
-#         return s
-    
-#     s_last_three = s[-3:]
-#     s_remaining = s[:-3]
-    
-#     groups = []
-#     while len(s_remaining) > 2:
-#         groups.append(s_remaining[-2:])
-#         s_remaining = s_remaining[:-2]
-    
-#     if s_remaining:
-#         groups.append(s_remaining)
-    
-#     groups.reverse()
-#     result = ','.join(groups) + ',' + s_last_three
-#     return result
 def format_inr(n):
     """
     FIXED: Formats a number into the Indian numbering system with proper error handling.
