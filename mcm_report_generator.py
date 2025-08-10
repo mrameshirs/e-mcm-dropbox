@@ -1600,7 +1600,7 @@ class PDFReportGenerator:
             
             # SAFE TABLE CREATION
             if len(para_data) > 1:  # More than just header
-                para_table = Table(para_data, colWidths=[0.9*inch, 1.4*inch, 4.8*inch, 1.1*inch])
+                para_table = Table(para_data, colWidths=[0.6*inch, 1.8*inch, 4.6*inch, 1.1*inch])
                 
                 # SAFE STYLING - calculate valid ranges
                 actual_rows = len(para_data)
