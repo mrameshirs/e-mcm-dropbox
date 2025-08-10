@@ -1464,7 +1464,8 @@ def get_visualization_data(dbx, selected_period):
             'mcm_detailed_data': mcm_detailed_data,                    # New - detailed MCM data
             'overall_remarks': overall_remarks, 
         })
-        
+        st.write('End -vital stats data')
+        st.dataframe(vital_stats['mcm_detailed_data'])
         return vital_stats, charts
         
     except Exception as e:
