@@ -4851,7 +4851,7 @@ class PDFReportGenerator:
             
     #     except Exception as e:
     #         st.warning(f"⚠️ Error adding company totals: {e}")       
-    def _add_company_totals_summary(self, paras_data, total_detection_placeholder=None, total_recovery_placeholder=None):
+    def _add_company_totals_summary_from_paras(self, paras_data, total_detection_placeholder=None, total_recovery_placeholder=None):
         """
         Add company totals summary using DAR-level overall detection and recovery,
         NOT by summing individual paras.
