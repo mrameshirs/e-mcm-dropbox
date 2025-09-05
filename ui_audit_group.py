@@ -13,7 +13,7 @@ import html
 from dropbox_utils import (
     read_from_spreadsheet,
     update_spreadsheet_from_df,
-    upload_file,
+    upload_file,upload_pdf_file,
     get_shareable_link
 )
 from dar_processor import preprocess_pdf_text, get_structured_data_from_llm, get_para_classifications_from_llm
@@ -339,7 +339,7 @@ def upload_dar_tab(dbx, active_periods, api_key):
             status_area.info("✅ Step 2/7: No duplicates found. \n\n▶️ Step 3/7: Uploading PDF...")
             dar_filename = f"AG{st.session_state.audit_group_no}_{st.session_state.ag_current_uploaded_file_name}"
             pdf_path = f"{DAR_PDFS_PATH}/{dar_filename}"
-            if not upload_file(dbx, st.session_state.ag_pdf_bytes, pdf_path):
+            if not upload_pdf_file(dbx, st.session_state.ag_pdf_bytes, pdf_path):
                 status_area.error("❌ Submission Failed: Could not upload PDF.")
                 st.session_state.ag_submission_in_progress = False  # Reset on error
                 return
@@ -1891,5 +1891,6 @@ def delete_entries_tab(dbx):
 #                                 st.error("Failed to update the data file on Dropbox.")
 #                     else:
 #                         st.error("Incorrect password.")# # ui_audit_group.py
+
 
 
