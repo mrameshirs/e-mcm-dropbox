@@ -49,7 +49,48 @@ def validate_data_for_sheet(data_df_to_validate, risk_data, no_risk_flags_checke
                 for para_num in paras:
                     if para_num not in all_valid_para_numbers:
                         validation_errors.append(f"Risk Flags Error: Para number '{para_num}' linked to risk flag '{flag}' does not exist in the main table.")
-
+    # --- NEW: Total Amount Consistency Validation ---
+    # Check that all rows have the same value for total detected and recovered amounts
+    total_fields_to_check = [
+        ('total_amount_detected_overall_rs', 'Total Amount Detected (Overall Rs)'),
+        ('total_amount_recovered_overall_rs', 'Total Amount Recovered (Overall Rs)')
+    ]
+    
+    for field_key, field_display_name in total_fields_to_check:
+        if field_key in data_df_to_validate.columns:
+            # Get all non-null, non-empty values for this field
+            field_values = []
+            for index, row in data_df_to_validate.iterrows():
+                value = row.get(field_key)
+                if pd.notna(value) and value != "" and value != 0:
+                    # Convert to float for comparison, handling string representations
+                    try:
+                        numeric_value = float(value)
+                        field_values.append((index + 1, numeric_value))
+                    except (ValueError, TypeError):
+                        validation_errors.append(f"Row {index + 1}: '{field_display_name}' contains invalid numeric value: '{value}'")
+            
+            # Check if all values are the same
+            if len(field_values) > 1:
+                unique_values = {}
+                for row_num, value in field_values:
+                    if value not in unique_values:
+                        unique_values[value] = []
+                    unique_values[value].append(row_num)
+                
+                if len(unique_values) > 1:
+                    # Multiple different values found - this is an error
+                    error_details = []
+                    for value, row_numbers in unique_values.items():
+                        rows_str = ', '.join(map(str, row_numbers))
+                        error_details.append(f"₹{value:,.2f} (in rows: {rows_str})")
+                    
+                    validation_errors.append(
+                        f"Total Amount Consistency Error: '{field_display_name}' must have the same value in all rows. "
+                        f"This field represents the overall total for the entire audit report, not individual para amounts. "
+                        f"Found different values: {' | '.join(error_details)}. "
+                        f"Please ensure all rows contain the same total value representing the sum of all audit paras."
+                    )
     for index, row in data_df_to_validate.iterrows():
         row_display_id = f"Row {index + 1} (Para: {row.get('audit_para_number', 'N/A')})"
 
@@ -285,3 +326,4 @@ def validate_data_for_sheet(data_df_to_validate, risk_data, no_risk_flags_checke
 # #                     f"Consistency Error: Trade Name '{tn}' has multiple categories: {', '.join(sorted(list(cats)))}.")
 
 # #     return sorted(list(set(validation_errors)))# # validation_utils.py
+
