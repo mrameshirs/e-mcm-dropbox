@@ -139,23 +139,25 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
     """
 
     # Define models to try in order of preference
-    models_to_try = [
+    models_to_try = [("qwen/qwen3-coder:free", "Qwen3 Coder"), 
         ("deepseek/deepseek-r1:free", "DeepSeek R1"),
-        ("qwen/qwen3-coder:free", "Qwen3 Coder"), 
+        
         ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash")
     ]
     
     content_str_for_return = ""
     all_errors = []
-    
+    n=1
     for model_id, model_name in models_to_try:
-        st.info(f"🤖 Trying {model_name}...")
+        
+        st.info(f"🤖 Trying AI Model {n}...")
+        n=n+1
         
         content_str, error = try_openrouter_model(model_id, prompt, openrouter_api_key)
         
         if error is None:
             # Success! Process the response
-            st.success(f"✅ Successfully got response from {model_name}")
+            st.success(f"✅ Successfully got response from Model {n} ")
             content_str_for_return = content_str
             
             try:
@@ -179,12 +181,12 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
                 return ParsedDARReport(**json_data)
                 
             except json.JSONDecodeError as e:
-                error_msg = f"{model_name} JSON decode error: {e}. Raw response: {content_str[:500]}..."
+                error_msg = f"Model {n} JSON decode error: {e}. Raw response: {content_str[:500]}..."
                 all_errors.append(error_msg)
                 st.warning(f"⚠️ {model_name} returned invalid JSON, trying next model...")
                 continue
             except Exception as e:
-                error_msg = f"{model_name} processing error: {e}"
+                error_msg = f"Model {n}  processing error: {e}"
                 all_errors.append(error_msg)
                 st.warning(f"⚠️ Error processing {model_name} response, trying next model...")
                 continue
@@ -192,9 +194,9 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
             # Model failed
             all_errors.append(f"{model_name}: {error}")
             if "rate" in error.lower() and "limit" in error.lower():
-                st.warning(f"⚠️ {model_name} is rate limited, trying next model...")
+                st.warning(f"⚠️ Model {n}  is rate limited, trying next model...")
             else:
-                st.warning(f"⚠️ {model_name} failed: {error}")
+                st.warning(f"⚠️ Model {n}  failed: {error}")
     
     # All models failed
     combined_errors = " | ".join(all_errors)
@@ -214,9 +216,9 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
     user_prompt = f"Here are the audit observations to classify:\n{formatted_observations}"
     
     # Define models for classification
-    classification_models = [
+    classification_models = [("qwen/qwen3-coder:free", "Qwen3 Coder"),
         ("deepseek/deepseek-r1:free", "DeepSeek R1"),
-        ("qwen/qwen3-coder:free", "Qwen3 Coder"),
+        
         ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash")
     ]
     
@@ -262,9 +264,9 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
                 return classifications, None
 
             elif response.status_code == 429:
-                error_msg = f"{model_name}: Rate limited"
+                error_msg = f"Model {n} : Rate limited"
                 all_errors.append(error_msg)
-                st.warning(f"⚠️ {model_name} is rate limited, trying next model...")
+                st.warning(f"⚠️ Model {n} is rate limited, trying next model...")
                 continue
             else:
                 error_msg = f"{model_name}: API Error {response.status_code} - {response.text}"
@@ -446,3 +448,4 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
 #         return [], f"Network error during classification: {e}"
 #     except Exception as e:
 #         return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+
