@@ -88,15 +88,15 @@ def get_shareable_link(dbx, dropbox_path):
         print(f"Dropbox API error getting shareable link for {dropbox_path}: {e}")
         return None # Return None if a link can't be fetched or created
         
-# def upload_file(dbx, file_content, dropbox_path):
-#     """Uploads a file to a specific path in Dropbox."""
-#     try:
-#         dbx.files_upload(file_content, dropbox_path, mode=dropbox.files.WriteMode('overwrite'))
-#         st.write("Uploading the sheet to db")
-#         return True
-#     except ApiError as e:
-#         st.error(f"Dropbox API error during upload: {e}")
-#         return False
+def upload_pdf_file(dbx, file_content, dropbox_path):
+    """Uploads a file to a specific path in Dropbox."""
+    try:
+        dbx.files_upload(file_content, dropbox_path, mode=dropbox.files.WriteMode('overwrite'))
+        st.write("Uploading the sheet to db")
+        return True
+    except ApiError as e:
+        st.error(f"Dropbox API error during upload: {e}")
+        return False
 def upload_file(dbx, file_content, dropbox_path):
     """Try different methods to keep same filename"""
     import time
@@ -332,5 +332,6 @@ def create_monthly_file_structure(dbx):
         return update_spreadsheet_from_df(dbx, df_month_data, monthly_file_path)
     
     return get_monthly_file_path, read_monthly_data, save_monthly_data
+
 
 
