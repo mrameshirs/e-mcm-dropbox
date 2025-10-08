@@ -18,7 +18,7 @@ class DARHeaderSchema(BaseModel):
     taxpayer_classification: Optional[str] = Field(None, description="The business classification of the taxpayer.")
     total_amount_detected_overall_rs: Optional[float] = Field(None, description="Overall total amount detected in the DAR (in Rs, not Lakhs).")
     total_amount_recovered_overall_rs: Optional[float] = Field(None, description="Overall total amount recovered in the DAR (in Rs, not Lakhs).")
-    risk_flags: Optional[List[str]] = Field([], description="List of risk parameter codes, e.g., ['P1', 'P14'].")
+    risk_flags: Optional[List[str]] = Field([], description="List of risk parameter codes, e.g., ['P01', 'P14']...Please ensure P1..P9 are done with Zero prefixed eg."P01" ")
 
 class ParsedDARReport(BaseModel):
     header: Optional[DARHeaderSchema] = None
@@ -119,3 +119,4 @@ class FlattenedAuditData(BaseModel):
 # #     audit_para_heading: Optional[str] = None
 # #     revenue_involved_lakhs_rs: Optional[float] = None # Per para
 # #     revenue_recovered_lakhs_rs: Optional[float] = None # Per para
+
