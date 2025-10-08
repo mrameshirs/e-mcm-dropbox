@@ -108,7 +108,7 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
         "taxpayer_classification": "string or null. Choose one from the following list: {TAXPAYER_CLASSIFICATION_OPTIONS}",
         "total_amount_detected_overall_rs": "float or null (in Rupees)",
         "total_amount_recovered_overall_rs": "float or null (in Rupees)",
-        "risk_flags": "list of strings or null (e.g., ['P1', 'P04', 'P21'])"
+        "risk_flags": "list of strings or null (e.g., ['P01', 'P04', 'P21'])..Please ensure P1..P9 are done with Zero prefixed eg. P01"
       }},
       "audit_paras": [
         {{
@@ -449,5 +449,6 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
 #         return [], f"Network error during classification: {e}"
 #     except Exception as e:
 #         return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+
 
 
