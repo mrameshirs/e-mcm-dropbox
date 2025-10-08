@@ -139,12 +139,18 @@ def get_structured_data_from_llm(text_content: str) -> ParsedDARReport:
     """
 
     # Define models to try in order of preference
-    models_to_try = [("qwen/qwen3-coder:free", "Qwen3 Coder"), 
-        ("deepseek/deepseek-r1:free", "DeepSeek R1"),
+    # models_to_try = [("qwen/qwen3-coder:free", "Qwen3 Coder"), 
+    #     ("deepseek/deepseek-r1:free", "DeepSeek R1"),
         
-        ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash")
+    #     ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash")
+    # ]
+    models_to_try =[("qwen/qwen3-coder:free", "Qwen3 Coder"),
+        ("deepseek/deepseek-r1:free", "DeepSeek R1"),
+        ("alibaba/tongyi-deepresearch-30b-a3b:free","Deep research"),
+        
+        ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash"),
+                    ("meituan/longcat-flash-chat:free","longcat"),
     ]
-    
     content_str_for_return = ""
     all_errors = []
     n=1
@@ -449,6 +455,7 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
 #         return [], f"Network error during classification: {e}"
 #     except Exception as e:
 #         return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+
 
 
 
