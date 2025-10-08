@@ -218,7 +218,8 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
     # Define models for classification
     classification_models = [("qwen/qwen3-coder:free", "Qwen3 Coder"),
         ("deepseek/deepseek-r1:free", "DeepSeek R1"),
-        
+        ("alibaba/tongyi-deepresearch-30b-a3b:free","Deep research"),
+        ("meituan/longcat-flash-chat:free","longcat"),
         ("google/gemini-2.0-flash-exp:free", "Gemini 2.0 Flash")
     ]
     
@@ -448,4 +449,5 @@ def get_para_classifications_from_llm(audit_para_headings: List[str]) -> Tuple[L
 #         return [], f"Network error during classification: {e}"
 #     except Exception as e:
 #         return [], f"An unexpected error occurred during classification: {e}"# # dar_processor.py
+
 
